@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "remoteConfigUrl": "https://punjabi-beats-api.vercel.app/api/player-configs",
+  "configTtlHours": 6,
+  "clients": [
+    {
+      "id": "WEB_REMIX",
+      "clientName": "WEB_REMIX",
+      "clientVersion": "1.20240403.01.00",
+      "clientField": 67,
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36,gzip(gfe)",
+      "origin": "https://music.youtube.com",
+      "referer": "https://music.youtube.com/"
+    }
+  ],
+  "players": [],
+  "poToken": ""
+}

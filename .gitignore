@@ -1,0 +1,26 @@
+# Built outputs & Gradle caches
+.gradle/
+**/build/
+**/.gradle/
+**/.kotlin/
+
+# IDE files
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+
+# Android local machine configuration
+local.properties
+**/local.properties
+captures/
+**/captures/
+.externalNativeBuild/
+.cxx/
+
+# Log files
+*.log

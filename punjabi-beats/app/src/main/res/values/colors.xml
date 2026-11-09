@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pb_background">#FF0A0A0F</color>
+    <color name="pb_surface">#FF13131A</color>
+    <color name="pb_gold">#FFD4AF37</color>
+    <color name="pb_red">#FFE50914</color>
+    <color name="ic_launcher_background">#FF0A0A0F</color>
+</resources>

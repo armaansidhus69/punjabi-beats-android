@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Punjabi Beats</string>
+    <string name="notification_channel_playback">Playback</string>
+    <string name="notification_channel_playback_desc">Controls for music currently playing</string>
+    <string name="home">Home</string>
+    <string name="search">Search</string>
+    <string name="jam_rooms">Jam Rooms</string>
+    <string name="ai_studio">AI Studio</string>
+    <string name="library">Library</string>
+</resources>
