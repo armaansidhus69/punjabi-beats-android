@@ -36,8 +36,15 @@ class PlayerViewModel @Inject constructor(
     val player: MusicPlayerController,
     private val libraryRepository: LibraryRepository,
     private val downloadRepository: DownloadRepository,
+    private val settingsDataStore: com.punjabibeats.app.data.local.datastore.SettingsDataStore,
     resolutionBus: ResolutionBus,
 ) : ViewModel() {
+
+    val seekbarStyle = settingsDataStore.seekbarStyle()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic_waveform")
+
+    val isTurntableMode = settingsDataStore.turntableMode()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     private val _isLiked = MutableStateFlow(false)
     val isLiked: StateFlow<Boolean> = _isLiked.asStateFlow()
@@ -110,4 +117,12 @@ class PlayerViewModel @Inject constructor(
     fun moveQueueItem(from: Int, to: Int) = player.moveQueueItem(from, to)
 
     fun removeFromQueue(index: Int) = player.removeFromQueue(index)
+
+    fun setSeekbarStyle(style: String) {
+        viewModelScope.launch { settingsDataStore.saveSeekbarStyle(style) }
+    }
+
+    fun setTurntableMode(enabled: Boolean) {
+        viewModelScope.launch { settingsDataStore.saveTurntableMode(enabled) }
+    }
 }

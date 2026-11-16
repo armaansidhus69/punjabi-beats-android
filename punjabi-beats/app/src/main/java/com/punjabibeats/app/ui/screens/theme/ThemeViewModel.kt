@@ -26,9 +26,27 @@ class ThemeViewModel @Inject constructor(
             initialValue = pbThemeById("punjab"),
         )
 
+    val seekbarStyle: StateFlow<String> = settings.seekbarStyle()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic_waveform")
+
+    val isTurntableMode: StateFlow<Boolean> = settings.turntableMode()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
     fun selectTheme(theme: PBTheme) {
         viewModelScope.launch {
             settings.saveThemeId(theme.id)
+        }
+    }
+
+    fun selectSeekbarStyle(style: String) {
+        viewModelScope.launch {
+            settings.saveSeekbarStyle(style)
+        }
+    }
+
+    fun toggleTurntableMode(enabled: Boolean) {
+        viewModelScope.launch {
+            settings.saveTurntableMode(enabled)
         }
     }
 }

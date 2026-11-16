@@ -48,10 +48,18 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val PENDING_JAM_CODE = stringPreferencesKey("pending_jam_code")
         val PODCAST_FEEDS_JSON = stringPreferencesKey("podcast_feeds_json")
         val THEME_ID = stringPreferencesKey("theme_id")
+        val SEEKBAR_STYLE = stringPreferencesKey("seekbar_style")
+        val TURNTABLE_MODE = booleanPreferencesKey("turntable_mode")
     }
 
     fun themeId(): Flow<String> = context.pbDataStore.data.map { it[Keys.THEME_ID] ?: "punjab" }
     suspend fun saveThemeId(themeId: String) = context.pbDataStore.edit { it[Keys.THEME_ID] = themeId }
+
+    fun seekbarStyle(): Flow<String> = context.pbDataStore.data.map { it[Keys.SEEKBAR_STYLE] ?: "classic_waveform" }
+    suspend fun saveSeekbarStyle(style: String) = context.pbDataStore.edit { it[Keys.SEEKBAR_STYLE] = style }
+
+    fun turntableMode(): Flow<Boolean> = context.pbDataStore.data.map { it[Keys.TURNTABLE_MODE] ?: false }
+    suspend fun saveTurntableMode(enabled: Boolean) = context.pbDataStore.edit { it[Keys.TURNTABLE_MODE] = enabled }
 
     /** Jam room code arriving via a punjabibeats://jam/… deep link, consumed once. */
     suspend fun savePendingJamCode(code: String) =

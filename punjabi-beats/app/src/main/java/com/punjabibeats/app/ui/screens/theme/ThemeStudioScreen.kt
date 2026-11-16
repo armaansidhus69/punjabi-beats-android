@@ -25,9 +25,14 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.punjabibeats.app.ui.components.sliders.SeekbarStyle
+import com.punjabibeats.app.ui.components.sliders.SeekbarStylePickerSheet
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.PBTheme
 import com.punjabibeats.app.ui.theme.PBThemes
@@ -47,6 +54,10 @@ fun ThemeStudioScreen(
     viewModel: ThemeViewModel = hiltViewModel(),
 ) {
     val activeTheme by viewModel.selectedTheme.collectAsStateWithLifecycle()
+    val rawSeekbarStyle by viewModel.seekbarStyle.collectAsStateWithLifecycle()
+    val currentSeekbarStyle = remember(rawSeekbarStyle) { SeekbarStyle.fromId(rawSeekbarStyle) }
+    val isTurntableMode by viewModel.isTurntableMode.collectAsStateWithLifecycle()
+    var showSeekbarSheet by remember { mutableStateOf(false) }
     val theme = LocalPBTheme.current
 
     Column(
@@ -209,18 +220,126 @@ fun ThemeStudioScreen(
             }
         }
 
+        Spacer(Modifier.height(24.dp))
+
+        // Turntable Vinyl Deck Mode Switcher Card
+        Text(
+            "Player Deck Style",
+            color = theme.text,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .background(theme.surface)
+                .border(1.dp, theme.panel2, RoundedCornerShape(18.dp))
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "📻 Turntable Vinyl Deck",
+                    color = theme.text,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                )
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    "Displays rotating 12\" vinyl with animated metallic tonearm tracking the groove and 33/45 RPM speed",
+                    color = theme.muted,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                )
+            }
+            Spacer(Modifier.width(10.dp))
+            Switch(
+                checked = isTurntableMode,
+                onCheckedChange = { viewModel.toggleTurntableMode(it) },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = theme.background,
+                    checkedTrackColor = theme.accent,
+                    uncheckedThumbColor = theme.muted,
+                    uncheckedTrackColor = theme.panel2,
+                ),
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        // 22 Progress Slider Collection Switcher Card
+        Text(
+            "Seekbar Slider Style",
+            color = theme.text,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .background(theme.surface)
+                .border(1.dp, theme.panel2, RoundedCornerShape(18.dp))
+                .clickable { showSeekbarSheet = true }
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "${currentSeekbarStyle.iconEmoji} ${currentSeekbarStyle.displayName}",
+                    color = theme.accent,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                )
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    currentSeekbarStyle.description,
+                    color = theme.muted,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                )
+            }
+            Spacer(Modifier.width(10.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(theme.accent)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+            ) {
+                Text(
+                    "Change (22)",
+                    color = theme.background,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+
         Spacer(Modifier.height(20.dp))
         Text(
-            "Selected: ${activeTheme.name}",
+            "Selected: ${activeTheme.name} • ${currentSeekbarStyle.displayName}",
             color = theme.accent,
             fontWeight = FontWeight.Bold,
             fontSize = 15.sp,
         )
         Text(
-            "Your theme is automatically saved on this device.",
+            "Your theme and player settings are automatically saved on this device.",
             color = theme.muted,
             fontSize = 12.sp,
             modifier = Modifier.padding(bottom = 24.dp),
         )
+
+        if (showSeekbarSheet) {
+            SeekbarStylePickerSheet(
+                currentStyle = currentSeekbarStyle,
+                onSelectStyle = { viewModel.selectSeekbarStyle(it.id) },
+                onDismiss = { showSeekbarSheet = false },
+            )
+        }
     }
 }

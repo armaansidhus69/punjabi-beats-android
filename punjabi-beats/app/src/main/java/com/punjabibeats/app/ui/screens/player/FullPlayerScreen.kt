@@ -84,6 +84,10 @@ import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.VinylArtwork
 import com.punjabibeats.app.ui.components.WaveformSeekbar
+import com.punjabibeats.app.ui.components.sliders.SeekbarStyle
+import com.punjabibeats.app.ui.components.sliders.SeekbarStylePickerSheet
+import com.punjabibeats.app.ui.components.sliders.UniversalSeekbar
+import com.punjabibeats.app.ui.components.turntable.TurntableDeck
 import com.punjabibeats.app.ui.screens.player.components.QueueDrawer
 import com.punjabibeats.app.ui.screens.player.components.SleepTimerSheet
 import com.punjabibeats.app.ui.screens.player.components.SongDnaSheet
@@ -147,7 +151,12 @@ fun FullPlayerScreen(
     var showSleepSheet by remember { mutableStateOf(false) }
     var showQueue by remember { mutableStateOf(false) }
     var showDnaSheet by remember { mutableStateOf(false) }
+    var showSeekbarPicker by remember { mutableStateOf(false) }
+
     val audioFormat by player.audioFormatInfo.collectAsStateWithLifecycle()
+    val rawSeekbarStyle by viewModel.seekbarStyle.collectAsStateWithLifecycle()
+    val currentSeekbarStyle = remember(rawSeekbarStyle) { SeekbarStyle.fromId(rawSeekbarStyle) }
+    val isTurntableMode by viewModel.isTurntableMode.collectAsStateWithLifecycle()
 
     val pulseTransition = rememberInfiniteTransition(label = "pulse")
     val pulse by pulseTransition.animateFloat(
@@ -199,29 +208,82 @@ fun FullPlayerScreen(
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
-            // Artwork with theme-aware styling & pulsing animation for Anime / Cyberpunk
-            Box(
+            // Player View Mode Switcher: Cover Art vs Turntable
+            Row(
                 modifier = Modifier
-                    .size(260.dp)
-                    .scale(if (isPlaying && (theme.id == "anime" || theme.id == "cyber")) pulse else 1f)
-                    .clip(
-                        RoundedCornerShape(
-                            when (theme.id) {
-                                "classic" -> 18.dp
-                                "anime" -> 36.dp
-                                "cyber" -> 12.dp
-                                else -> 28.dp
-                            }
-                        )
-                    )
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(theme.surface.copy(alpha = 0.85f))
+                    .border(1.dp, theme.panel2, RoundedCornerShape(20.dp))
+                    .padding(3.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                VinylArtwork(
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (!isTurntableMode) theme.accent else Color.Transparent)
+                        .clickable { viewModel.setTurntableMode(false) }
+                        .padding(horizontal = 14.dp, vertical = 5.dp),
+                ) {
+                    Text(
+                        "🖼️ Cover Art",
+                        fontSize = 12.sp,
+                        fontWeight = if (!isTurntableMode) FontWeight.Bold else FontWeight.Medium,
+                        color = if (!isTurntableMode) theme.background else theme.muted,
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (isTurntableMode) theme.accent else Color.Transparent)
+                        .clickable { viewModel.setTurntableMode(true) }
+                        .padding(horizontal = 14.dp, vertical = 5.dp),
+                ) {
+                    Text(
+                        "📻 Turntable",
+                        fontSize = 12.sp,
+                        fontWeight = if (isTurntableMode) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isTurntableMode) theme.background else theme.muted,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // Artwork or Audiophile Turntable Deck
+            if (isTurntableMode) {
+                TurntableDeck(
                     artworkUrl = song?.artworkUrl,
                     isPlaying = isPlaying,
-                    size = 260.dp,
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    onSpeedChange = { viewModel.setPlaybackSpeed(it) },
+                    size = 250.dp,
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(260.dp)
+                        .scale(if (isPlaying && (theme.id == "anime" || theme.id == "cyber")) pulse else 1f)
+                        .clip(
+                            RoundedCornerShape(
+                                when (theme.id) {
+                                    "classic" -> 18.dp
+                                    "anime" -> 36.dp
+                                    "cyber" -> 12.dp
+                                    else -> 28.dp
+                                }
+                            )
+                        )
+                ) {
+                    VinylArtwork(
+                        artworkUrl = song?.artworkUrl,
+                        isPlaying = isPlaying,
+                        size = 260.dp,
+                    )
+                }
             }
 
             Spacer(Modifier.height(20.dp))
@@ -283,7 +345,34 @@ fun FullPlayerScreen(
                 )
             }
 
-            WaveformSeekbar(
+            // 22 Progress Slider Collection Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "${currentSeekbarStyle.iconEmoji} ${currentSeekbarStyle.displayName}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = theme.muted,
+                    fontWeight = FontWeight.Medium,
+                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(theme.surface.copy(alpha = 0.85f))
+                        .border(1.dp, theme.panel2, RoundedCornerShape(12.dp))
+                        .clickable { showSeekbarPicker = true }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Text("🎨 22 Sliders", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = theme.accent)
+                }
+            }
+
+            UniversalSeekbar(
+                style = currentSeekbarStyle,
                 positionMs = positionMs,
                 durationMs = durationMs,
                 isPlaying = isPlaying,
@@ -393,6 +482,13 @@ fun FullPlayerScreen(
                 song = song,
                 audioFormat = audioFormat,
                 onDismiss = { showDnaSheet = false },
+            )
+        }
+        if (showSeekbarPicker) {
+            SeekbarStylePickerSheet(
+                currentStyle = currentSeekbarStyle,
+                onSelectStyle = { viewModel.setSeekbarStyle(it.id) },
+                onDismiss = { showSeekbarPicker = false },
             )
         }
     }
