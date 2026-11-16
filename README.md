@@ -1,5 +1,9 @@
 # Punjabi Beats — Complete Code (v1.1.0, zen-integrated)
 
+[![Download APK](https://img.shields.io/badge/Download-APK%20(25%20MB)-brightgreen?style=for-the-badge&logo=android)](https://github.com/armaansidhus69/punjabi-beats-android/raw/main/apk/punjabi-beats-zen-v1.1-debug.apk)
+
+Direct APK Download Link: [**Download Punjabi Beats APK (v1.1)**](https://github.com/armaansidhus69/punjabi-beats-android/raw/main/apk/punjabi-beats-zen-v1.1-debug.apk)
+
 One archive with everything: the full Android project source, the build/integration
 scripts, and the compiled debug APK.
 
