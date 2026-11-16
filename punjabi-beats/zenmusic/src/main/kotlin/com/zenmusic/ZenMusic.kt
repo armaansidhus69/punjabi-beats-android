@@ -91,7 +91,7 @@ object ZenMusic {
         val resolver = com.zenmusic.resolver.ZenResolver(
             extractor = extractor,
             config = config,
-            tamperDetector = AndroidTamperDetector,
+            tamperDetector = if (config.decoyShower) AndroidTamperDetector else TamperDetector.NONE,
         )
         val dataSourceFactory = com.zenmusic.datasource.ZenDataSourceFactory(resolver)
 

@@ -18,6 +18,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.screens.ai.AiStudioScreen
+import com.punjabibeats.app.ui.screens.album.AlbumDetailScreen
+import com.punjabibeats.app.ui.screens.artist.ArtistDetailScreen
 import com.punjabibeats.app.ui.screens.home.HomeScreen
 import com.punjabibeats.app.ui.screens.jam.JamScreen
 import com.punjabibeats.app.ui.screens.library.LibraryScreen
@@ -27,6 +29,7 @@ import com.punjabibeats.app.ui.screens.player.FullPlayerScreen
 import com.punjabibeats.app.ui.screens.podcast.PodcastScreen
 import com.punjabibeats.app.ui.screens.search.SearchScreen
 import com.punjabibeats.app.ui.screens.settings.SettingsScreen
+import com.punjabibeats.app.ui.screens.theme.ThemeStudioScreen
 
 /** Screens receive PaddingValues(0.dp): the root overlay clears space itself. */
 private val NoPadding = PaddingValues(0.dp)
@@ -36,9 +39,7 @@ fun AppNavHost(navController: NavHostController, controller: MusicPlayerControll
     NavHost(
         navController = navController,
         startDestination = Routes.HOME,
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
+        modifier = Modifier.fillMaxSize(),
         enterTransition = { fadeIn(tween(220)) },
         exitTransition = { fadeOut(tween(220)) },
         popEnterTransition = { fadeIn(tween(220)) },
@@ -48,6 +49,8 @@ fun AppNavHost(navController: NavHostController, controller: MusicPlayerControll
             HomeScreen(
                 controller = controller,
                 onOpenPlayer = { navController.navigate(Routes.PLAYER) },
+                onOpenThemes = { navController.navigate(Routes.THEMES) },
+                onArtistClick = { artistName -> navController.navigate(Routes.artist(artistName)) },
                 bottomPadding = NoPadding,
             )
         }
@@ -55,6 +58,10 @@ fun AppNavHost(navController: NavHostController, controller: MusicPlayerControll
             SearchScreen(
                 controller = controller,
                 onOpenPlayer = { navController.navigate(Routes.PLAYER) },
+                onOpenArtist = { artistName -> navController.navigate(Routes.artist(artistName)) },
+                onOpenAlbum = { albumName, artistName ->
+                    navController.navigate(Routes.album(albumName, artistName))
+                },
                 bottomPadding = NoPadding,
             )
         }
@@ -84,7 +91,13 @@ fun AppNavHost(navController: NavHostController, controller: MusicPlayerControll
             )
         }
         composable(Routes.SETTINGS) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenThemes = { navController.navigate(Routes.THEMES) },
+            )
+        }
+        composable(Routes.THEMES) {
+            ThemeStudioScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = Routes.PLAYLIST_DETAIL,
@@ -122,6 +135,37 @@ fun AppNavHost(navController: NavHostController, controller: MusicPlayerControll
             popExitTransition = { slideOutVertically(tween(260)) { it } + fadeOut(tween(260)) },
         ) {
             LyricsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            route = Routes.ARTIST,
+            arguments = listOf(navArgument(Routes.ARG_ARTIST_NAME) { type = NavType.StringType }),
+        ) {
+            ArtistDetailScreen(
+                onBack = { navController.popBackStack() },
+                controller = controller,
+                onOpenPlayer = { navController.navigate(Routes.PLAYER) },
+                onOpenAlbum = { albumName, artistName ->
+                    navController.navigate(Routes.album(albumName, artistName))
+                },
+                bottomPadding = NoPadding,
+            )
+        }
+        composable(
+            route = Routes.ALBUM,
+            arguments = listOf(
+                navArgument(Routes.ARG_ALBUM_NAME) { type = NavType.StringType },
+                navArgument(Routes.ARG_ARTIST_NAME) { type = NavType.StringType },
+            ),
+        ) {
+            AlbumDetailScreen(
+                onBack = { navController.popBackStack() },
+                controller = controller,
+                onOpenPlayer = { navController.navigate(Routes.PLAYER) },
+                onOpenArtist = { artistName ->
+                    navController.navigate(Routes.artist(artistName))
+                },
+                bottomPadding = NoPadding,
+            )
         }
     }
 }

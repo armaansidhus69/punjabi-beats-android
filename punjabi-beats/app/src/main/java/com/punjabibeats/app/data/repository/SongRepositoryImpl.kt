@@ -1,5 +1,6 @@
 package com.punjabibeats.app.data.repository
 
+import android.content.Context
 import com.punjabibeats.app.core.util.SongCodec
 import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.data.local.db.HistoryDao
@@ -16,6 +17,7 @@ import com.punjabibeats.app.domain.model.SearchResults
 import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.domain.model.TRENDING_SEARCHES
 import com.punjabibeats.app.domain.repository.SongRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.async
@@ -28,6 +30,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 @Singleton
 class SongRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val jioSaavnApi: JioSaavnApi,
     private val pipedApi: PipedApi,
     private val pipedHostProvider: PipedHostProvider,
@@ -95,22 +98,62 @@ class SongRepositoryImpl @Inject constructor(
         }
 
         val jioSongs = songs.await()
+        val ytSongs = youtube.await()
+        val allSongs = (jioSongs + ytSongs).distinctBy { it.id.trim() }
+
+        val remoteArtists = artists.await()
+        val artistSplitRegex = Regex("[,&/•]|\\b(?:feat|ft|featuring)\\b\\.?", RegexOption.IGNORE_CASE)
+        val extractedArtists = allSongs.flatMap { song ->
+            song.artist.split(artistSplitRegex)
+                .map { it.trim() }
+                .filter { it.isNotBlank() && !it.equals("Unknown Artist", ignoreCase = true) }
+                .map { artistName ->
+                    ArtistCard(
+                        id = "art_${artistName.lowercase().trim().replace(" ", "_")}",
+                        name = artistName,
+                        artworkUrl = song.artworkUrl,
+                    )
+                }
+        }
+        val finalArtists = (remoteArtists + extractedArtists)
+            .distinctBy { it.name.trim().lowercase() }
+
+        val remoteAlbums = albums.await()
+        val extractedAlbums = allSongs
+            .filter { it.albumName.isNotBlank() }
+            .map { song ->
+                AlbumCard(
+                    id = "alb_${song.albumName.trim().lowercase().replace(" ", "_")}_${song.artist.trim().lowercase().replace(" ", "_")}",
+                    name = song.albumName.trim(),
+                    artist = song.artist,
+                    artworkUrl = song.artworkUrl,
+                    year = song.year,
+                )
+            }
+        val finalAlbums = (remoteAlbums + extractedAlbums)
+            .distinctBy { (it.name.trim().lowercase() + "_" + it.artist.trim().lowercase()) }
+
         SearchResults(
-            songs = jioSongs + youtube.await(),
-            artists = artists.await(),
-            albums = albums.await(),
+            songs = allSongs,
+            artists = finalArtists,
+            albums = finalAlbums,
             podcasts = emptyList(),
         )
     }
 
-    override suspend fun searchSongs(query: String, limit: Int): List<Song> =
-        runSuspendCatching {
+    override suspend fun searchSongs(query: String, limit: Int): List<Song> {
+        val jioSongs = runSuspendCatching {
             withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
                 jioSaavnApi.searchSongs(query, limit = limit)
                     .data?.results.orEmpty()
                     .mapNotNull { it.toSong() }
+                    .distinctBy { it.id.trim() }
             } ?: emptyList()
         }.getOrDefault(emptyList())
+
+        if (jioSongs.isNotEmpty()) return jioSongs.distinctBy { it.id.trim() }
+        return searchYouTube(query).take(limit).distinctBy { it.id.trim() }
+    }
 
     override suspend fun resolveStream(song: Song): Song = streamResolver.resolve(song)
 
@@ -144,17 +187,19 @@ class SongRepositoryImpl @Inject constructor(
     private suspend fun searchYouTube(query: String): List<Song> {
         // Zen engine first: on-device YouTube Music search, no backend API.
         val zen = runSuspendCatching {
-            com.zenmusic.ZenMusic.get()?.search?.songs(query)?.take(25)?.map { track ->
+            val engine = com.zenmusic.ZenMusic.get() ?: com.zenmusic.ZenMusic.initialize(context)
+            engine.search.songs(query).take(25).map { track ->
                 val videoId = track.uri.removePrefix("zen://").substringBefore('.')
                 Song(
                     id = "yt_$videoId",
                     title = track.title,
                     artist = track.artists.firstOrNull() ?: "Unknown Artist",
+                    artworkUrl = "https://i.ytimg.com/vi/$videoId/hqdefault.jpg",
                     durationMs = track.durationMs,
                     source = MusicSource.YOUTUBE,
                     videoId = videoId,
                 )
-            }.orEmpty()
+            }
         }.getOrDefault(emptyList())
         if (zen.isNotEmpty()) return zen
 

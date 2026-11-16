@@ -70,13 +70,7 @@ class PlayerViewModel @Inject constructor(
         }
         viewModelScope.launch {
             player.playerErrors.collect { error ->
-                consecutiveErrors++
                 _events.tryEmit(error)
-                if (consecutiveErrors <= player.queue.value.size) {
-                    player.next()
-                } else {
-                    player.pause()
-                }
             }
         }
         viewModelScope.launch {

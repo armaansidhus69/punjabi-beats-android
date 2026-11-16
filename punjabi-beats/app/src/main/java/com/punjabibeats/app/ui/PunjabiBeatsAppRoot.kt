@@ -7,6 +7,10 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.Home
@@ -14,6 +18,7 @@ import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -36,10 +41,7 @@ import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.MiniPlayerBar
 import com.punjabibeats.app.ui.navigation.AppNavHost
 import com.punjabibeats.app.ui.navigation.Routes
-import com.punjabibeats.app.ui.theme.AccentGold
-import com.punjabibeats.app.ui.theme.BgBase
-import com.punjabibeats.app.ui.theme.SurfaceBase
-import com.punjabibeats.app.ui.theme.TextSecondary
+import com.punjabibeats.app.ui.theme.LocalPBTheme
 
 private enum class BottomDestination(val route: String, val label: String, val icon: ImageVector) {
     HOME(Routes.HOME, "Home", Icons.Rounded.Home),
@@ -63,9 +65,11 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
     val currentRoute = backStackEntry?.destination?.route
     val showChrome = currentRoute in TOP_LEVEL_ROUTES
 
+    val theme = LocalPBTheme.current
+
     CompositionLocalProvider(LocalPbSnackbar provides snackbarHostState) {
         Scaffold(
-            containerColor = BgBase,
+            containerColor = theme.background,
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
                 Column {
@@ -92,7 +96,8 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
 
 @Composable
 private fun PbBottomBar(currentRoute: String?, navController: androidx.navigation.NavHostController) {
-    NavigationBar(containerColor = SurfaceBase, tonalElevation = 0.dp) {
+    val theme = LocalPBTheme.current
+    NavigationBar(containerColor = theme.panel, tonalElevation = 0.dp) {
         BottomDestination.entries.forEach { destination ->
             val selected = currentRoute == destination.route
             NavigationBarItem(
@@ -108,18 +113,25 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
                     Icon(
                         destination.icon,
                         contentDescription = destination.label,
-                        tint = if (selected) AccentGold else TextSecondary,
+                        tint = if (selected) theme.accent else theme.muted,
+                        modifier = Modifier.size(24.dp),
                     )
                 },
                 label = {
                     Text(
                         destination.label,
-                        color = if (selected) AccentGold else TextSecondary,
-                        style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                        color = if (selected) theme.accent else theme.muted,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 11.sp,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = AccentGold.copy(alpha = 0.15f),
+                    selectedIconColor = theme.accent,
+                    selectedTextColor = theme.accent,
+                    indicatorColor = theme.accent.copy(alpha = 0.15f),
+                    unselectedIconColor = theme.muted,
+                    unselectedTextColor = theme.muted,
                 ),
             )
         }

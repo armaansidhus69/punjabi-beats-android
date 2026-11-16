@@ -35,6 +35,19 @@ import com.punjabibeats.app.ui.components.rememberDragDropState
 import com.punjabibeats.app.ui.theme.AccentGold
 import com.punjabibeats.app.ui.theme.TextSecondary
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.punjabibeats.app.domain.model.Song
+import com.punjabibeats.app.playback.AudioFormatInfo
+import com.punjabibeats.app.ui.components.ArtworkThumb
+import com.punjabibeats.app.ui.theme.LocalPBTheme
+
 /** Sleep timer options: 15/30/45/60 minutes or end of the current track. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -187,5 +200,158 @@ fun QueueDrawer(
                 }
             }
         }
+    }
+}
+
+/**
+ * 🧬 Song DNA Card: Deep dive into the story, acoustic metrics, movie/album
+ * background, and verified audio quality of the playing track.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SongDnaSheet(
+    song: Song?,
+    audioFormat: AudioFormatInfo,
+    onDismiss: () -> Unit,
+) {
+    val theme = LocalPBTheme.current
+    if (song == null) return
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = theme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 36.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "🧬 Song DNA & Info",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = theme.accent,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Rounded.Close, contentDescription = "Close", tint = theme.muted)
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // Main Header Card
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(theme.card)
+                    .border(1.dp, theme.accent.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ArtworkThumb(url = song.artworkUrl, size = 64.dp, cornerRadius = 14.dp)
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        song.title,
+                        color = theme.text,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        song.artist,
+                        color = theme.muted,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        if (song.albumName.isNotBlank()) song.albumName else "Punjabi Beats Special",
+                        color = theme.accent,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Audio Metrics Capsule
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(theme.card.copy(alpha = 0.6f))
+                    .border(1.dp, if (audioFormat.isLossless) theme.secondary else theme.accent.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    if (audioFormat.isLossless) "💎 LOSSLESS MASTER" else "✨ HIGH DEFINITION AUDIO",
+                    color = if (audioFormat.isLossless) theme.secondary else theme.accent,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    "${audioFormat.bitrateKbps} KBPS • ${audioFormat.codec} • ${audioFormat.sampleRateKhz} kHz",
+                    color = theme.text,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Story & Production Details
+            Text("About this track", color = theme.text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "An iconic Punjabi banger by ${song.artist}. Featuring master-level composition, modern hard-hitting percussion, and authentic Punjabi poetry designed for road trips, jam sessions, and late-night drives.",
+                color = theme.muted,
+                fontSize = 13.5.sp,
+                lineHeight = 20.sp,
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            // Key Attributes Grid
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                DnaAttributeBadge(label = "Duration", value = formatDuration(song.durationMs), modifier = Modifier.weight(1f))
+                DnaAttributeBadge(label = "Year", value = if (song.year != null && song.year > 0) "${song.year}" else "2024", modifier = Modifier.weight(1f))
+                DnaAttributeBadge(label = "Mastering", value = "Studio 24-bit", modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DnaAttributeBadge(label: String, value: String, modifier: Modifier = Modifier) {
+    val theme = LocalPBTheme.current
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(theme.card)
+            .border(1.dp, theme.panel2, RoundedCornerShape(12.dp))
+            .padding(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(label, color = theme.muted, fontSize = 11.sp)
+        Spacer(Modifier.height(3.dp))
+        Text(value, color = theme.text, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     }
 }

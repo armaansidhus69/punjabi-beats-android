@@ -5,6 +5,7 @@ import com.punjabibeats.app.data.local.db.DownloadDao
 import com.punjabibeats.app.data.local.db.HistoryDao
 import com.punjabibeats.app.data.local.db.JamDao
 import com.punjabibeats.app.data.local.db.LibraryDao
+import com.punjabibeats.app.data.local.db.LyricsCacheDao
 import com.punjabibeats.app.data.local.db.PunjabiBeatsDatabase
 import com.punjabibeats.app.data.local.db.SearchDao
 import dagger.Module
@@ -45,6 +46,9 @@ object AppModule {
 
     @Provides
     fun provideJamDao(database: PunjabiBeatsDatabase): JamDao = database.jamDao()
+
+    @Provides
+    fun provideLyricsCacheDao(database: PunjabiBeatsDatabase): LyricsCacheDao = database.lyricsCacheDao()
 
     @Provides
     @Singleton

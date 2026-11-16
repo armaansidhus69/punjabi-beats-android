@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -42,7 +45,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.punjabibeats.app.ui.components.FeatureCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -71,9 +78,7 @@ import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.ReactionsOverlay
 import com.punjabibeats.app.ui.components.SectionHeader
 import com.punjabibeats.app.ui.components.SongRow
-import com.punjabibeats.app.ui.theme.AccentGold
-import com.punjabibeats.app.ui.theme.BgBase
-import com.punjabibeats.app.ui.theme.TextSecondary
+import com.punjabibeats.app.ui.theme.LocalPBTheme
 
 @Composable
 fun JamScreen(
@@ -81,11 +86,12 @@ fun JamScreen(
     bottomPadding: PaddingValues,
     viewModel: JamViewModel = hiltViewModel(),
 ) {
+    val theme = LocalPBTheme.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val inRoom = uiState.engineState.phase == com.punjabibeats.app.domain.model.JamPhase.IN_ROOM ||
         uiState.engineState.phase == com.punjabibeats.app.domain.model.JamPhase.CONNECTING
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(theme.background)) {
         if (inRoom) {
             JamRoomContent(viewModel = viewModel, onOpenPlayer = onOpenPlayer, bottomPadding = bottomPadding)
         } else {
@@ -97,6 +103,7 @@ fun JamScreen(
 
 @Composable
 private fun JamLobby(viewModel: JamViewModel, bottomPadding: PaddingValues) {
+    val theme = LocalPBTheme.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var codeInput by remember { mutableStateOf("") }
 
@@ -110,125 +117,132 @@ private fun JamLobby(viewModel: JamViewModel, bottomPadding: PaddingValues) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp)
+            .statusBarsPadding()
+            .verticalScroll(rememberScrollState())
             .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
     ) {
-        Spacer(Modifier.height(24.dp))
-        Text("Jam Rooms", style = MaterialTheme.typography.displaySmall, color = AccentGold)
-        Text(
-            "Listen together, perfectly in sync. One person hosts, everyone hears the same millisecond.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-
-        Spacer(Modifier.height(28.dp))
-        GlassCard {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.Groups, contentDescription = null, tint = AccentGold)
-                Spacer(Modifier.width(10.dp))
-                Text("Host a room", style = MaterialTheme.typography.titleMedium)
-            }
-            Text(
-                "You control playback; friends follow your every beat.",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-            Button(
-                onClick = { viewModel.createRoom() },
-                enabled = !uiState.connecting,
-                colors = ButtonDefaults.buttonColors(containerColor = AccentGold, contentColor = Color.Black),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 14.dp),
-            ) {
-                if (uiState.connecting) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.Black)
-                } else {
-                    Text("Create Room")
-                }
+        // Sunset Campfire Hero Header Banner
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(theme.heroGradient)
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+        ) {
+            Column {
+                Text(
+                    "👥 Jam Rooms",
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = theme.accent,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Listen together, perfectly in sync. One person hosts, everyone hears the same millisecond.",
+                    color = theme.muted,
+                    fontSize = 15.sp,
+                )
             }
         }
 
-        Spacer(Modifier.height(16.dp))
-        GlassCard {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.QrCodeScanner, contentDescription = null, tint = AccentGold)
-                Spacer(Modifier.width(10.dp))
-                Text("Join with a code", style = MaterialTheme.typography.titleMedium)
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 14.dp),
+        Spacer(Modifier.height(18.dp))
+
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            // FeatureCard 1: Host a room
+            FeatureCard(
+                emoji = "👥",
+                title = "Host a room",
+                description = "You control playback; friends follow your every beat.",
             ) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(BgBase)
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                Button(
+                    onClick = { viewModel.createRoom() },
+                    enabled = !uiState.connecting,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = theme.background),
                 ) {
-                    androidx.compose.foundation.text.BasicTextField(
-                        value = codeInput,
-                        onValueChange = { value -> codeInput = value.uppercase().take(JamViewModel.ROOM_CODE_LENGTH) },
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.titleLarge.copy(
-                            color = AccentGold,
-                            letterSpacing = androidx.compose.ui.unit.TextUnit(6f, androidx.compose.ui.unit.TextUnitType.Sp),
-                        ),
-                        decorationBox = { inner ->
-                            if (codeInput.isEmpty()) Text("ABC123", color = TextSecondary)
-                            inner()
-                        },
-                    )
+                    if (uiState.connecting) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.background)
+                    } else {
+                        Text("Create Room", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
                 }
-                Spacer(Modifier.width(10.dp))
-                IconButton(
-                    onClick = {
-                        scanLauncher.launch(
-                            ScanOptions()
-                                .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                                .setPrompt("Scan a Jam Room QR")
-                                .setBeepEnabled(false)
-                        )
+            }
+
+            // FeatureCard 2: Join with a code
+            FeatureCard(
+                emoji = "📱",
+                title = "Join with a code",
+                description = "Enter your friend's room code.",
+            ) {
+                OutlinedTextField(
+                    value = codeInput,
+                    onValueChange = { codeInput = it.uppercase().take(JamViewModel.ROOM_CODE_LENGTH) },
+                    placeholder = { Text("ABC123", color = theme.muted) },
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                scanLauncher.launch(
+                                    ScanOptions()
+                                        .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                                        .setPrompt("Scan a Jam Room QR")
+                                        .setBeepEnabled(false)
+                                )
+                            },
+                        ) {
+                            Icon(Icons.Rounded.QrCodeScanner, contentDescription = "Scan QR", tint = theme.accent)
+                        }
                     },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = theme.text,
+                        unfocusedTextColor = theme.text,
+                        focusedContainerColor = theme.surface,
+                        unfocusedContainerColor = theme.surface,
+                        focusedBorderColor = theme.accent,
+                        unfocusedBorderColor = theme.secondary.copy(alpha = 0.5f),
+                        cursorColor = theme.accent,
+                    ),
+                )
+
+                Spacer(Modifier.height(14.dp))
+
+                Button(
+                    onClick = { viewModel.joinRoom(codeInput) },
+                    enabled = codeInput.length == JamViewModel.ROOM_CODE_LENGTH && !uiState.connecting,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = theme.background),
                 ) {
-                    Icon(Icons.Rounded.QrCodeScanner, contentDescription = "Scan QR", tint = AccentGold)
+                    Text("Join Room", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
-            OutlinedButton(
-                onClick = { viewModel.joinRoom(codeInput) },
-                enabled = codeInput.length == JamViewModel.ROOM_CODE_LENGTH && !uiState.connecting,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
-            ) { Text("Join Room") }
-        }
 
-        uiState.error?.let { message ->
-            Text(
-                message,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 14.dp),
-            )
-        }
+            uiState.error?.let { message ->
+                Text(
+                    message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
 
-        if (uiState.recentRooms.isNotEmpty()) {
-            SectionHeader("Recent rooms")
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(uiState.recentRooms.size) { index ->
-                    val code = uiState.recentRooms[index]
-                    AssistChip(
-                        onClick = { viewModel.joinRoom(code) },
-                        label = { Text(code) },
-                        colors = AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    )
+            if (uiState.recentRooms.isNotEmpty()) {
+                SectionHeader("Recent rooms")
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(uiState.recentRooms.size) { index ->
+                        val code = uiState.recentRooms[index]
+                        AssistChip(
+                            onClick = { viewModel.joinRoom(code) },
+                            label = { Text(code) },
+                            colors = AssistChipDefaults.assistChipColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        )
+                    }
                 }
             }
         }
@@ -241,6 +255,7 @@ private fun JamRoomContent(
     onOpenPlayer: () -> Unit,
     bottomPadding: PaddingValues,
 ) {
+    val theme = LocalPBTheme.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snapshot = uiState.engineState.snapshot ?: return
     val isHost = uiState.engineState.isHost
@@ -257,20 +272,20 @@ private fun JamRoomContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPaddingCompat()
+                .statusBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Room ${snapshot.code}", style = MaterialTheme.typography.headlineMedium, color = AccentGold)
+                Text("Room ${snapshot.code}", style = MaterialTheme.typography.headlineMedium, color = theme.accent)
                 Text(
                     "${snapshot.participants.size} listening • ${uiState.engineState.transport}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
+                    color = theme.muted,
                 )
             }
             IconButton(onClick = { showQr = true }) {
-                Icon(Icons.Rounded.QrCode2, contentDescription = "Show QR", tint = AccentGold)
+                Icon(Icons.Rounded.QrCode2, contentDescription = "Show QR", tint = theme.accent)
             }
             IconButton(onClick = {
                 viewModel.shareRoom { link ->
@@ -281,7 +296,7 @@ private fun JamRoomContent(
                     runCatching { context.startActivity(Intent.createChooser(send, "Invite friends")) }
                 }
             }) {
-                Icon(Icons.Rounded.Share, contentDescription = "Share room", tint = AccentGold)
+                Icon(Icons.Rounded.Share, contentDescription = "Share room", tint = theme.accent)
             }
             IconButton(onClick = { viewModel.leaveRoom() }) {
                 Icon(Icons.Rounded.ExitToApp, contentDescription = "Leave room", tint = MaterialTheme.colorScheme.error)
@@ -300,21 +315,21 @@ private fun JamRoomContent(
                 label = {
                     Text(
                         if (kotlin.math.abs(drift) < 100) "Synced ±${drift}ms" else "Drift ${drift}ms",
-                        color = if (kotlin.math.abs(drift) < 100) Color(0xFF4ADE80) else AccentGold,
+                        color = if (kotlin.math.abs(drift) < 100) Color(0xFF4ADE80) else theme.accent,
                     )
                 },
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = theme.surface,
+                    disabledContainerColor = theme.surface,
                 ),
             )
             AssistChip(
                 onClick = {},
                 enabled = false,
-                label = { Text(if (isHost) "You are the host 👑" else "Guest mode") },
+                label = { Text(if (isHost) "You are the host 👑" else "Guest mode", color = theme.text) },
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = theme.surface,
+                    disabledContainerColor = theme.surface,
                 ),
             )
         }
@@ -331,7 +346,8 @@ private fun JamRoomContent(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                            .background(theme.surface)
+                            .border(1.5.dp, if (participant.isHost) theme.accent else theme.card, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(participant.emoji)
@@ -339,7 +355,7 @@ private fun JamRoomContent(
                     Text(
                         (if (participant.isHost) "👑 " else "") + participant.name,
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (participant.isMe) AccentGold else TextSecondary,
+                        color = if (participant.isMe) theme.accent else theme.muted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.width(52.dp),
@@ -361,23 +377,23 @@ private fun JamRoomContent(
                             .weight(1f)
                             .padding(horizontal = 12.dp),
                     ) {
-                        Text(song.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(song.artist, style = MaterialTheme.typography.bodySmall, color = TextSecondary, maxLines = 1)
+                        Text(song.title, color = theme.text, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(song.artist, style = MaterialTheme.typography.bodySmall, color = theme.muted, maxLines = 1)
                     }
                     if (isHost) {
                         IconButton(onClick = { viewModel.hostTogglePlay() }) {
                             Icon(
                                 if (snapshot.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                                 contentDescription = "Play/Pause",
-                                tint = AccentGold,
+                                tint = theme.accent,
                             )
                         }
                         IconButton(onClick = { viewModel.hostSkip() }) {
-                            Icon(Icons.Rounded.SkipNext, contentDescription = "Next track", tint = Color.White)
+                            Icon(Icons.Rounded.SkipNext, contentDescription = "Next track", tint = theme.text)
                         }
                     }
                     IconButton(onClick = onOpenPlayer) {
-                        Icon(Icons.Rounded.PlayArrow, contentDescription = "Open player", tint = Color.White)
+                        Icon(Icons.Rounded.PlayArrow, contentDescription = "Open player", tint = theme.accent)
                     }
                 }
             }
@@ -392,19 +408,20 @@ private fun JamRoomContent(
                 viewModel.searchSongsForQueue(value)
             },
             singleLine = true,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = theme.text),
             decorationBox = { inner ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(BgBase)
+                        .background(theme.surface)
+                        .border(1.dp, theme.panel2, RoundedCornerShape(12.dp))
                         .padding(horizontal = 12.dp),
                 ) {
-                    Icon(Icons.Rounded.Add, contentDescription = null, tint = AccentGold)
+                    Icon(Icons.Rounded.Add, contentDescription = null, tint = theme.accent)
                     Box(Modifier.padding(12.dp)) {
-                        if (searchQuery.isEmpty()) Text("Add a song to the shared queue…", color = TextSecondary)
+                        if (searchQuery.isEmpty()) Text("Add a song to the shared queue…", color = theme.muted)
                         inner()
                     }
                 }
@@ -419,7 +436,7 @@ private fun JamRoomContent(
                         song = song,
                         onClick = { viewModel.queueSong(song) },
                         trailing = {
-                            Icon(Icons.Rounded.Add, contentDescription = "Add to queue", tint = AccentGold)
+                            Icon(Icons.Rounded.Add, contentDescription = "Add to queue", tint = theme.accent)
                         },
                     )
                 }
@@ -441,19 +458,19 @@ private fun JamRoomContent(
                         Text(
                             entry.song.title,
                             style = MaterialTheme.typography.titleSmall,
-                            color = if (entry.played) TextSecondary else MaterialTheme.colorScheme.onSurface,
+                            color = if (entry.played) theme.muted else theme.text,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
                             "added by ${entry.addedByName.ifBlank { "someone" }}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
+                            color = theme.muted,
                         )
                     }
                     if (entry.addedByUserId == uiState.engineState.myId || isHost) {
                         IconButton(onClick = { viewModel.removeQueued(entry.entryId) }) {
-                            Icon(Icons.Rounded.Close, contentDescription = "Remove", tint = TextSecondary)
+                            Icon(Icons.Rounded.Close, contentDescription = "Remove", tint = theme.muted)
                         }
                     }
                 }
@@ -462,7 +479,7 @@ private fun JamRoomContent(
                 item {
                     Text(
                         "Queue is empty — add something above 🎶",
-                        color = TextSecondary,
+                        color = theme.muted,
                         modifier = Modifier.padding(20.dp),
                     )
                 }
@@ -480,7 +497,7 @@ private fun JamRoomContent(
                     onClick = { viewModel.sendReaction(emoji) },
                     label = { Text(emoji) },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = theme.surface,
                     ),
                 )
             }
@@ -491,9 +508,10 @@ private fun JamRoomContent(
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showQr = false },
             confirmButton = {
-                androidx.compose.material3.TextButton(onClick = { showQr = false }) { Text("Done") }
+                androidx.compose.material3.TextButton(onClick = { showQr = false }) { Text("Done", color = theme.accent) }
             },
-            title = { Text("Room ${snapshot.code}") },
+            title = { Text("Room ${snapshot.code}", color = theme.text) },
+            containerColor = theme.surface,
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     val bitmap = remember(snapshot.code) { generateQrBitmap("punjabibeats://jam/${snapshot.code}") }
@@ -505,7 +523,7 @@ private fun JamRoomContent(
                     Text(
                         "Friends scan this or type the code",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
+                        color = theme.muted,
                     )
                 }
             },
@@ -529,5 +547,3 @@ private fun generateQrBitmap(content: String, size: Int = 512): Bitmap {
     }
     return Bitmap.createBitmap(pixels, size, size, Bitmap.Config.ARGB_8888)
 }
-
-private fun Modifier.statusBarsPaddingCompat(): Modifier = this.statusBarsPadding()

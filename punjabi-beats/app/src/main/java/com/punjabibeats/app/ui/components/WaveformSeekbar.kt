@@ -96,8 +96,9 @@ fun WaveformSeekbar(
                 },
         ) {
             val progress = if (dragFraction.isNaN()) animatedFraction else dragFraction
-            val barWidth = 4.dp.toPx()
-            val gap = if (bars.size > 1) (size.width - bars.size * barWidth) / (bars.size - 1) else 0f
+            val barCount = bars.size
+            val effectiveBarWidth = (size.width / (barCount * 1.5f)).coerceIn(2f, 4.dp.toPx())
+            val gap = if (barCount > 1) ((size.width - barCount * effectiveBarWidth) / (barCount - 1)).coerceAtLeast(0f) else 0f
             val centerY = size.height / 2f
             bars.forEachIndexed { index, base ->
                 val played = (index + 0.5f) / bars.size <= progress
@@ -105,9 +106,9 @@ fun WaveformSeekbar(
                 val height = size.height * 0.82f * base * (if (played) shimmer else 0.6f)
                 drawRoundRect(
                     color = if (played) AccentGold else TextSecondary.copy(alpha = 0.35f),
-                    topLeft = Offset(index * (barWidth + gap), centerY - height / 2f),
-                    size = Size(barWidth, height),
-                    cornerRadius = CornerRadius(barWidth / 2f),
+                    topLeft = Offset(index * (effectiveBarWidth + gap), centerY - height / 2f),
+                    size = Size(effectiveBarWidth, height),
+                    cornerRadius = CornerRadius(effectiveBarWidth / 2f),
                 )
             }
         }

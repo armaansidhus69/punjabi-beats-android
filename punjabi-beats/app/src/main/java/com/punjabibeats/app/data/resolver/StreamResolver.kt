@@ -1,5 +1,6 @@
 package com.punjabibeats.app.data.resolver
 
+import android.util.LruCache
 import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.domain.model.MusicSource
 import com.punjabibeats.app.domain.model.Song
@@ -29,15 +30,42 @@ class StreamResolver @Inject constructor(
     private val iTunesResolver: ITunesResolver,
 ) {
 
+    private data class CachedStream(val streamUrl: String, val cachedAt: Long)
+    private val streamCache = LruCache<String, CachedStream>(CACHE_MAX_ENTRIES)
+
     suspend fun resolve(song: Song): Song {
         if (!song.streamUrl.isNullOrBlank()) return song
-        for (resolver in chainFor(song.source)) {
-            val resolved = runSuspendCatching {
-                withTimeoutOrNull(RESOLVE_TIMEOUT_MS) { resolver.resolve(song) }
-            }.getOrNull()
-            if (resolved != null && !resolved.streamUrl.isNullOrBlank()) return resolved
+
+        // Fast path: In-memory LRU cache with 45-minute TTL
+        val cached = streamCache.get(song.id)
+        if (cached != null) {
+            val age = System.currentTimeMillis() - cached.cachedAt
+            if (age < CACHE_TTL_MS && cached.streamUrl.isNotBlank()) {
+                return song.copy(streamUrl = cached.streamUrl)
+            } else {
+                streamCache.remove(song.id)
+            }
+        }
+
+        val result = withTimeoutOrNull(TOTAL_RESOLVE_TIMEOUT_MS) {
+            for (resolver in chainFor(song.source)) {
+                val resolved = runSuspendCatching {
+                    withTimeoutOrNull(RESOLVE_TIMEOUT_MS) { resolver.resolve(song) }
+                }.getOrNull()
+                if (resolved != null && !resolved.streamUrl.isNullOrBlank()) return@withTimeoutOrNull resolved
+            }
+            null
+        }
+        if (result != null && !result.streamUrl.isNullOrBlank()) {
+            streamCache.put(song.id, CachedStream(result.streamUrl, System.currentTimeMillis()))
+            return result
         }
         throw StreamResolutionException(song.id)
+    }
+
+    /** Evicts a stale or expired stream URL from cache. */
+    fun invalidate(songId: String) {
+        streamCache.remove(songId)
     }
 
     private fun chainFor(source: MusicSource): List<TrackResolver> {
@@ -46,38 +74,49 @@ class StreamResolver @Inject constructor(
                 zenMusicResolver,
                 innerTubeResolver,
                 youTubeStreamResolver,
-                jioSaavnResolver,
                 audiusResolver,
                 iTunesResolver,
+                jioSaavnResolver,
             )
             MusicSource.JIOSAAVN -> listOf(
-                zenMusicResolver,
                 jioSaavnResolver,
+                zenMusicResolver,
+                innerTubeResolver,
+                youTubeStreamResolver,
                 audiusResolver,
                 iTunesResolver,
             )
             MusicSource.AUDIUS -> listOf(
                 audiusResolver,
                 zenMusicResolver,
-                jioSaavnResolver,
+                innerTubeResolver,
+                youTubeStreamResolver,
                 iTunesResolver,
+                jioSaavnResolver,
             )
             MusicSource.ITUNES -> listOf(
                 iTunesResolver,
                 zenMusicResolver,
-                jioSaavnResolver,
+                innerTubeResolver,
+                youTubeStreamResolver,
                 audiusResolver,
+                jioSaavnResolver,
             )
             MusicSource.LOCAL -> listOf(
                 zenMusicResolver,
-                jioSaavnResolver,
+                innerTubeResolver,
+                youTubeStreamResolver,
                 audiusResolver,
                 iTunesResolver,
+                jioSaavnResolver,
             )
         }.distinct()
     }
 
     private companion object {
-        const val RESOLVE_TIMEOUT_MS = 3_500L
+        const val RESOLVE_TIMEOUT_MS = 8_000L
+        const val TOTAL_RESOLVE_TIMEOUT_MS = 20_000L
+        const val CACHE_MAX_ENTRIES = 100
+        const val CACHE_TTL_MS = 45 * 60 * 1_000L // 45 minutes TTL
     }
 }

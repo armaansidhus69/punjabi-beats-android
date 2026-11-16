@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -37,6 +38,19 @@ import com.punjabibeats.app.ui.theme.BgBase
 import com.punjabibeats.app.ui.theme.SurfaceBase
 import com.punjabibeats.app.ui.theme.TextSecondary
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
+import com.punjabibeats.app.ui.theme.LocalPBTheme
+
 /**
  * Playback & audio settings (the Metrolist audio-customization pattern):
  * tempo/pitch, skip silence, crossfade, equalizer, bass boost and virtualizer.
@@ -45,18 +59,21 @@ import com.punjabibeats.app.ui.theme.TextSecondary
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onOpenThemes: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val speed by viewModel.playbackSpeed.collectAsStateWithLifecycle()
     val pitch by viewModel.playbackPitch.collectAsStateWithLifecycle()
     val bands by viewModel.bands.collectAsStateWithLifecycle()
+    val theme = LocalPBTheme.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgBase)
+            .background(theme.background)
             .statusBarsPadding()
+            .navigationBarsPadding()
             .verticalScroll(rememberScrollState()),
     ) {
         Row(
@@ -66,9 +83,53 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = theme.text)
             }
-            Text("Settings", style = MaterialTheme.typography.titleLarge)
+            Text("Settings", style = MaterialTheme.typography.titleLarge, color = theme.text)
+        }
+
+        SectionCard(title = "Appearance") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(theme.panel2.copy(alpha = 0.6f))
+                    .clickable { onOpenThemes?.invoke() }
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(theme.panel)
+                        .border(1.5.dp, theme.accent, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(theme.emoji, fontSize = 22.sp)
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Theme Studio",
+                        color = theme.text,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                    )
+                    Text(
+                        "${theme.name} • ${theme.tagline}",
+                        color = theme.muted,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Icon(
+                    Icons.Default.Palette,
+                    contentDescription = "Theme Studio",
+                    tint = theme.accent,
+                )
+            }
         }
 
         SectionCard(title = "Playback") {

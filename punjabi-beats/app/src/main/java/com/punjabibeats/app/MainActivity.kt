@@ -13,10 +13,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.punjabibeats.app.data.local.datastore.SettingsDataStore
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.PunjabiBeatsAppRoot
 import com.punjabibeats.app.ui.theme.PunjabiBeatsTheme
+import com.punjabibeats.app.ui.theme.pbThemeById
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -39,7 +43,9 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermissionIfNeeded()
         captureJamDeepLink(intent)
         setContent {
-            PunjabiBeatsTheme {
+            val themeId by settings.themeId().collectAsStateWithLifecycle(initialValue = "punjab")
+            val currentTheme = remember(themeId) { pbThemeById(themeId) }
+            PunjabiBeatsTheme(theme = currentTheme) {
                 PunjabiBeatsAppRoot(playerController = playerController)
             }
         }

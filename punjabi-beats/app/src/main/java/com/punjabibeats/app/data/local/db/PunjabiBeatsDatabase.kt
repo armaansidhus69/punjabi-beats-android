@@ -14,8 +14,9 @@ import androidx.room.RoomDatabase
         PlayHistoryEntity::class,
         DownloadedSongEntity::class,
         JamRoomHistoryEntity::class,
+        LyricsCacheEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class PunjabiBeatsDatabase : RoomDatabase() {
@@ -25,6 +26,7 @@ abstract class PunjabiBeatsDatabase : RoomDatabase() {
     abstract fun historyDao(): HistoryDao
     abstract fun downloadDao(): DownloadDao
     abstract fun jamDao(): JamDao
+    abstract fun lyricsCacheDao(): LyricsCacheDao
 
     companion object {
         const val NAME = "punjabi_beats.db"

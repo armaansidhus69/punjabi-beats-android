@@ -7,6 +7,7 @@ object Routes {
     const val AI = "ai"
     const val LIBRARY = "library"
     const val SETTINGS = "settings"
+    const val THEMES = "themes"
     const val PLAYER = "player"
     const val LYRICS = "lyrics"
     const val PODCASTS = "podcasts"
@@ -15,4 +16,13 @@ object Routes {
     const val ARG_PLAYLIST_ID = "playlistId"
 
     fun playlistDetail(playlistId: String): String = "playlist/$playlistId"
+
+    const val ARTIST = "artist/{artistName}"
+    const val ARG_ARTIST_NAME = "artistName"
+    fun artist(name: String): String = "artist/${java.net.URLEncoder.encode(name, "UTF-8")}"
+
+    const val ALBUM = "album/{albumName}/{artistName}"
+    const val ARG_ALBUM_NAME = "albumName"
+    fun album(albumName: String, artistName: String): String =
+        "album/${java.net.URLEncoder.encode(albumName.ifBlank { "Album" }, "UTF-8")}/${java.net.URLEncoder.encode(artistName.ifBlank { "Unknown" }, "UTF-8")}"
 }

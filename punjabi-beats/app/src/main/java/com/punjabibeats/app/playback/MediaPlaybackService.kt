@@ -8,6 +8,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -63,6 +64,11 @@ class MediaPlaybackService : MediaSessionService() {
     @Inject lateinit var audioEffects: AudioEffectsManager
 
     private val crossfadeProcessor = CrossfadeAudioProcessor()
+    private val permanentlyFailedIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    private val errorRetryCounts = java.util.concurrent.ConcurrentHashMap<String, Int>()
+    private var activeQueueJob: kotlinx.coroutines.Job? = null
+    private var activeTransitionJob: kotlinx.coroutines.Job? = null
+    private var activePreFetchJob: kotlinx.coroutines.Job? = null
 
     private var mediaSession: MediaSession? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -82,9 +88,20 @@ class MediaPlaybackService : MediaSessionService() {
                 .build()
         }
 
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                /* minBufferMs = */ 15_000,
+                /* maxBufferMs = */ 30_000,
+                /* bufferForPlaybackMs = */ 1_500,
+                /* bufferForPlaybackAfterRebufferMs = */ 2_500,
+            )
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build()
+
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(PbDataSourceFactory.defaultFor(this)))
             .setRenderersFactory(renderersFactory)
+            .setLoadControl(loadControl)
             .setAudioAttributes(musicAudioAttributes(), /* handleAudioFocus = */ true)
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_NETWORK)
@@ -97,8 +114,126 @@ class MediaPlaybackService : MediaSessionService() {
             }
         })
         player.addListener(object : androidx.media3.common.Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == androidx.media3.common.Player.STATE_READY) {
+                    val currentSongId = player.currentMediaItem?.toSong()?.id
+                    if (currentSongId != null) {
+                        errorRetryCounts.remove(currentSongId)
+                    }
+                }
+            }
+
+            override fun onPositionDiscontinuity(
+                oldPosition: androidx.media3.common.Player.PositionInfo,
+                newPosition: androidx.media3.common.Player.PositionInfo,
+                reason: Int,
+            ) {
+                if (reason == androidx.media3.common.Player.DISCONTINUITY_REASON_SEEK) {
+                    crossfadeProcessor.onSeek(newPosition.positionMs)
+                }
+            }
+
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 crossfadeProcessor.onTrackChanged(player.duration.coerceAtLeast(0L))
+                val currentIdx = player.currentMediaItemIndex
+                if (currentIdx in 0 until player.mediaItemCount) {
+                    val currentItem = player.getMediaItemAt(currentIdx)
+                    val currentUri = currentItem.localConfiguration?.uri?.toString().orEmpty()
+                    if (currentUri.isEmpty() || currentUri.startsWith(SilenceAsset.DATA_URI_PREFIX)) {
+                        val songId = currentItem.toSong()?.id.orEmpty()
+                        if (songId.isNotEmpty() && permanentlyFailedIds.contains(songId)) {
+                            advanceOrPause(player, shouldPlay = player.playWhenReady)
+                        } else {
+                            // CRITICAL FIX P1.1: Pause immediately so ExoPlayer does NOT play out
+                            // the short silence placeholder WAV and auto-skip before network resolution completes!
+                            val wasPlayWhenReady = player.playWhenReady
+                            player.pause()
+                            activeTransitionJob?.cancel()
+                            activeTransitionJob = serviceScope.launch {
+                                val resolved = resolveItemSafely(currentItem)
+                                withContext(Dispatchers.Main) {
+                                    if (currentIdx == player.currentMediaItemIndex && currentIdx < player.mediaItemCount) {
+                                        val isStillSilence = resolved.localConfiguration?.uri?.toString()
+                                            ?.startsWith(SilenceAsset.DATA_URI_PREFIX) == true
+                                        if (!isStillSilence) {
+                                            player.replaceMediaItem(currentIdx, resolved)
+                                            player.seekToDefaultPosition(currentIdx)
+                                            player.playWhenReady = true
+                                            player.prepare()
+                                            player.play()
+                                        } else {
+                                            if (songId.isNotEmpty()) permanentlyFailedIds.add(songId)
+                                            advanceOrPause(player, shouldPlay = wasPlayWhenReady)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                val nextIdx = currentIdx + 1
+                if (nextIdx in 0 until player.mediaItemCount) {
+                    val nextItem = player.getMediaItemAt(nextIdx)
+                    val nextUri = nextItem.localConfiguration?.uri?.toString().orEmpty()
+                    if (nextUri.isEmpty() || nextUri.startsWith(SilenceAsset.DATA_URI_PREFIX)) {
+                        activePreFetchJob?.cancel()
+                        activePreFetchJob = serviceScope.launch {
+                            val resolved = resolveItemSafely(nextItem)
+                            withContext(Dispatchers.Main) {
+                                if (nextIdx < player.mediaItemCount) {
+                                    player.replaceMediaItem(nextIdx, resolved)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                val currentIdx = player.currentMediaItemIndex
+                if (currentIdx !in 0 until player.mediaItemCount) return
+                val currentItem = player.getMediaItemAt(currentIdx)
+                val song = currentItem.toSong()
+                if (song == null) {
+                    advanceOrPause(player)
+                    return
+                }
+
+                android.util.Log.w("MediaPlaybackService", "onPlayerError on ${song.id} (${song.title}): ${error.errorCodeName} - ${error.message}")
+                streamResolver.invalidate(song.id)
+                val retries = errorRetryCounts.getOrDefault(song.id, 0)
+                if (retries < 1) {
+                    // CRITICAL FIX P1.2: Expired CDN token or transient socket disconnect.
+                    // Retry once with a freshly resolved stream URL instead of freezing in STATE_IDLE!
+                    errorRetryCounts[song.id] = retries + 1
+                    activeTransitionJob?.cancel()
+                    activeTransitionJob = serviceScope.launch {
+                        val freshSong = song.copy(streamUrl = null)
+                        val resolved = resolveItemSafely(freshSong.toMediaItem())
+                        withContext(Dispatchers.Main) {
+                            if (currentIdx == player.currentMediaItemIndex && currentIdx < player.mediaItemCount) {
+                                val isSilence = resolved.localConfiguration?.uri?.toString()
+                                    ?.startsWith(SilenceAsset.DATA_URI_PREFIX) == true
+                                if (!isSilence) {
+                                    player.replaceMediaItem(currentIdx, resolved)
+                                    player.seekToDefaultPosition(currentIdx)
+                                    player.playWhenReady = true
+                                    player.prepare()
+                                    player.play()
+                                    return@withContext
+                                }
+                            }
+                            permanentlyFailedIds.add(song.id)
+                            streamResolver.invalidate(song.id)
+                            advanceOrPause(player)
+                        }
+                    }
+                } else {
+                    permanentlyFailedIds.add(song.id)
+                    streamResolver.invalidate(song.id)
+                    advanceOrPause(player)
+                }
             }
         })
 
@@ -184,6 +319,18 @@ class MediaPlaybackService : MediaSessionService() {
         }
     }
 
+    private fun advanceOrPause(player: androidx.media3.common.Player, shouldPlay: Boolean = true) {
+        if (player.hasNextMediaItem()) {
+            player.seekToNextMediaItem()
+            if (shouldPlay) {
+                player.prepare()
+                player.play()
+            }
+        } else {
+            player.pause()
+        }
+    }
+
     private fun musicAudioAttributes(): AudioAttributes = AudioAttributes.Builder()
         .setUsage(C.USAGE_MEDIA)
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -199,27 +346,34 @@ class MediaPlaybackService : MediaSessionService() {
             startPositionMs: Long,
         ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
             val future = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
-            serviceScope.launch {
+            permanentlyFailedIds.clear()
+            errorRetryCounts.clear()
+            activeQueueJob?.cancel()
+            activeTransitionJob?.cancel()
+            activePreFetchJob?.cancel()
+            activeQueueJob = serviceScope.launch {
                 val safeIndex = startIndex.coerceIn(0, mediaItems.lastIndex.coerceAtLeast(0))
                 val targetItem = mediaItems.getOrNull(safeIndex)
                 // Resolve the song the user actually tapped right away (< 500ms)
                 val resolvedTarget = targetItem?.let { resolveItemSafely(it) } ?: targetItem
-                val initialList = mediaItems.toMutableList()
-                if (resolvedTarget != null && safeIndex in initialList.indices) {
-                    initialList[safeIndex] = resolvedTarget
-                }
+                // In ExoPlayer, every MediaItem in a playlist must have a valid non-null URI
+                // (localConfiguration != null). Items not yet resolved get a silence placeholder.
+                val initialList = mediaItems.mapIndexed { idx, item ->
+                    if (idx == safeIndex) (resolvedTarget ?: item.withSilence())
+                    else if (item.localConfiguration?.uri != null) item
+                    else item.withSilence()
+                }.toMutableList()
+
                 // Unblock playback immediately!
                 future.set(MediaSession.MediaItemsWithStartPosition(initialList, safeIndex, startPositionMs))
 
-                // Resolve remaining items concurrently in the background so next track transitions seamlessly
-                val restIndices = initialList.indices.filter { it != safeIndex }
-                restIndices.map { idx ->
-                    async {
-                        val resolved = resolveItemSafely(initialList[idx])
-                        withContext(Dispatchers.Main) {
-                            if (idx < mediaSession.player.mediaItemCount) {
-                                mediaSession.player.replaceMediaItem(idx, resolved)
-                            }
+                // Pre-resolve the immediate next track first so its transition is seamless
+                val nextIdx = safeIndex + 1
+                if (nextIdx in initialList.indices) {
+                    val resolvedNext = resolveItemSafely(mediaItems[nextIdx])
+                    withContext(Dispatchers.Main) {
+                        if (nextIdx < mediaSession.player.mediaItemCount) {
+                            mediaSession.player.replaceMediaItem(nextIdx, resolvedNext)
                         }
                     }
                 }
@@ -233,19 +387,23 @@ class MediaPlaybackService : MediaSessionService() {
             mediaItems: List<MediaItem>,
         ): ListenableFuture<List<MediaItem>> {
             val future: SettableFuture<List<MediaItem>> = SettableFuture.create()
-            serviceScope.launch {
-                // Resolve batch items concurrently in parallel rather than sequentially
-                val resolved = mediaItems.map { item -> async { resolveItemSafely(item) } }.awaitAll()
-                future.set(resolved)
+            // Non-blocking queue addition: items with URIs keep them; unresolved get silence placeholders
+            // and resolve lazily when playback transitions near them.
+            val initial = mediaItems.map { item ->
+                if (item.localConfiguration?.uri != null) item else item.withSilence()
             }
+            future.set(initial)
             return future
         }
     }
 
     private suspend fun resolveItemSafely(item: MediaItem): MediaItem {
         val song = item.toSong() ?: return item.withSilence()
+        if (permanentlyFailedIds.contains(song.id)) {
+            return item.withSilence()
+        }
         val offline = runCatching { downloadRepository.get(song.id) }.getOrNull()
-        if (offline != null) {
+        if (offline != null && com.punjabibeats.app.data.security.DownloadCrypto.fileFor(this, offline.id).exists()) {
             return item.buildUpon().setUri("pbenc://${offline.id}").build()
         }
         if (!song.streamUrl.isNullOrBlank()) {
@@ -253,8 +411,15 @@ class MediaPlaybackService : MediaSessionService() {
         }
         return try {
             val resolved = streamResolver.resolve(song)
-            item.buildUpon().setUri(resolved.streamUrl).build()
+            if (resolved.streamUrl.isNullOrBlank()) {
+                permanentlyFailedIds.add(song.id)
+                resolutionBus.emitResolutionFailure(song)
+                item.withSilence()
+            } else {
+                item.buildUpon().setUri(resolved.streamUrl).build()
+            }
         } catch (resolutionFailure: Exception) {
+            permanentlyFailedIds.add(song.id)
             resolutionBus.emitResolutionFailure(song)
             item.withSilence()
         }

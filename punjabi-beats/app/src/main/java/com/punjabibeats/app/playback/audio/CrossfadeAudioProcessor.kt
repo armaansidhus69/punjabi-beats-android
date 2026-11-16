@@ -27,6 +27,7 @@ class CrossfadeAudioProcessor : BaseAudioProcessor() {
     @Volatile
     var trackDurationUs: Long = C.TIME_UNSET
 
+    @Volatile
     private var frameCount = 0L
     private var sampleRate = 44_100
 
@@ -34,6 +35,16 @@ class CrossfadeAudioProcessor : BaseAudioProcessor() {
     fun onTrackChanged(durationMs: Long) {
         frameCount = 0L
         trackDurationUs = if (durationMs > 0) durationMs * 1_000L else C.TIME_UNSET
+    }
+
+    /** Called by the service when the user seeks, resynchronizing the PCM frame counter. */
+    fun onSeek(positionMs: Long) {
+        val safeMs = positionMs.coerceAtLeast(0L)
+        frameCount = (safeMs * sampleRate) / 1_000L
+    }
+
+    override fun onFlush() {
+        super.onFlush()
     }
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
@@ -46,7 +57,6 @@ class CrossfadeAudioProcessor : BaseAudioProcessor() {
     override fun queueInput(input: ByteBuffer) {
         val remaining = input.remaining()
         if (remaining == 0) {
-            replaceOutputBuffer(0)
             return
         }
         val output = replaceOutputBuffer(remaining)
@@ -67,6 +77,7 @@ class CrossfadeAudioProcessor : BaseAudioProcessor() {
         }
         val framesAdvanced = remaining.toLong() / maxOf(1, bytesPerFrame())
         frameCount += framesAdvanced
+        output.flip()
     }
 
     private fun currentGain(): Float {

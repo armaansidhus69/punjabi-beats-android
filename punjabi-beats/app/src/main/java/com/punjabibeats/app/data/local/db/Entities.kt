@@ -60,3 +60,14 @@ data class JamRoomHistoryEntity(
     @PrimaryKey val code: String,
     val joinedAt: Long = System.currentTimeMillis(),
 )
+
+@Entity(tableName = "lyrics_cache")
+data class LyricsCacheEntity(
+    @PrimaryKey val cacheKey: String,
+    val trackName: String,
+    val artistName: String,
+    val lyricsJson: String,
+    val provider: String,
+    val isSynced: Boolean,
+    val cachedAt: Long = System.currentTimeMillis(),
+)

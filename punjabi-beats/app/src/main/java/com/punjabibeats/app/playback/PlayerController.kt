@@ -10,6 +10,14 @@ sealed interface SleepMode {
     data object EndOfTrack : SleepMode
 }
 
+/** Real-time audio stream metrics and codec information. */
+data class AudioFormatInfo(
+    val codec: String = "MP3",
+    val bitrateKbps: Int = 320,
+    val sampleRateKhz: Float = 44.1f,
+    val isLossless: Boolean = false,
+)
+
 /** UI-facing contract over the Media3 session (implemented by PlayerControllerImpl). */
 interface MusicPlayerController {
 
@@ -27,6 +35,7 @@ interface MusicPlayerController {
     val playbackPitch: StateFlow<Float>
     val skipSilenceEnabled: StateFlow<Boolean>
     val sleepMode: StateFlow<SleepMode?>
+    val audioFormatInfo: StateFlow<AudioFormatInfo>
     val playerErrors: SharedFlow<String>
 
     fun playQueue(songs: List<Song>, startIndex: Int = 0)

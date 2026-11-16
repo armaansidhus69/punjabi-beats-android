@@ -115,3 +115,16 @@ interface JamDao {
     @Query("DELETE FROM jam_room_history WHERE code = :code")
     suspend fun delete(code: String)
 }
+
+@Dao
+interface LyricsCacheDao {
+
+    @Query("SELECT * FROM lyrics_cache WHERE cacheKey = :key LIMIT 1")
+    suspend fun getLyrics(key: String): LyricsCacheEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entity: LyricsCacheEntity)
+
+    @Query("DELETE FROM lyrics_cache WHERE cachedAt < :olderThanMs")
+    suspend fun pruneOld(olderThanMs: Long)
+}

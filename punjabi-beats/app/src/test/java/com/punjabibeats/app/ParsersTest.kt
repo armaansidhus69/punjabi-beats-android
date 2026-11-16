@@ -31,7 +31,9 @@ class ParsersTest {
         assertEquals("Ohi", words[0].text)
         assertEquals(10_000L, words[0].startMs)
         assertEquals(10_400L, words[0].endMs)
-        assertEquals(11_000L, words[1].startMs)
+        assertEquals(10_400L, words[1].startMs)
+        assertEquals(11_000L, words[1].endMs)
+        assertEquals(11_000L, words[2].startMs)
         assertTrue(words[2].endMs > words[2].startMs)
     }
 

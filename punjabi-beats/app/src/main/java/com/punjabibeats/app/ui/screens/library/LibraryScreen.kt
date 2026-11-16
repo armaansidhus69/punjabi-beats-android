@@ -1,6 +1,9 @@
 package com.punjabibeats.app.ui.screens.library
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,30 +14,38 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,18 +57,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.punjabibeats.app.data.local.LocalMusicScanner
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.EmptyState
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.SongRow
-import com.punjabibeats.app.ui.theme.AccentGold
-import com.punjabibeats.app.ui.theme.TextSecondary
+import com.punjabibeats.app.ui.theme.LocalPBTheme
 
-private val LIBRARY_TABS = listOf("Liked", "Playlists", "Downloads")
+private data class LibraryTabItem(val label: String, val index: Int)
+
+private val LIBRARY_TABS = listOf(
+    LibraryTabItem("❤️ Liked", 0),
+    LibraryTabItem("📑 Playlists", 1),
+    LibraryTabItem("⬇️ Downloads", 2),
+    LibraryTabItem("📱 Local", 3),
+)
 
 @Composable
 fun LibraryScreen(
@@ -69,6 +93,7 @@ fun LibraryScreen(
     bottomPadding: PaddingValues,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
+    val theme = LocalPBTheme.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentSong by controller.currentSong.collectAsStateWithLifecycle()
     val snackbar = LocalPbSnackbar.current
@@ -82,35 +107,75 @@ fun LibraryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(theme.background)
             .statusBarsPadding(),
     ) {
+        // Sunset Skyline Header with Icons
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(theme.heroGradient)
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Rounded.Folder,
+                    contentDescription = null,
+                    tint = theme.accent,
+                    modifier = Modifier.size(32.dp),
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    "Library",
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = theme.accent,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = onOpenPodcasts) {
+                    Icon(Icons.Rounded.CloudDownload, contentDescription = "Podcasts", tint = theme.accent)
+                }
+                IconButton(onClick = onOpenSettings) {
+                    Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = theme.accent)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(10.dp))
+
+        // Horizontal Segmented Pill Tabs
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text("Library", style = MaterialTheme.typography.displaySmall, modifier = Modifier.weight(1f))
-            IconButton(onClick = onOpenPodcasts) {
-                Icon(Icons.Rounded.CloudDownload, contentDescription = "Podcasts", tint = AccentGold)
-            }
-            IconButton(onClick = onOpenSettings) {
-                Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = AccentGold)
+            LIBRARY_TABS.forEach { tab ->
+                val isSelected = selectedTab == tab.index
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (isSelected) theme.accent else theme.surface)
+                        .border(1.dp, if (isSelected) theme.accent else theme.panel2, RoundedCornerShape(20.dp))
+                        .clickable { selectedTab = tab.index }
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        tab.label,
+                        color = if (isSelected) theme.background else theme.text,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        fontSize = 14.sp,
+                    )
+                }
             }
         }
-        TabRow(
-            selectedTabIndex = selectedTab,
-            containerColor = Color.Transparent,
-            contentColor = AccentGold,
-        ) {
-            LIBRARY_TABS.forEachIndexed { index, label ->
-                Tab(
-                    selected = selectedTab == index,
-                    onClick = { selectedTab = index },
-                    text = { Text(label) },
-                )
-            }
-        }
+
+        Spacer(Modifier.height(14.dp))
 
         when (selectedTab) {
             0 -> LikedTab(uiState, currentSong?.id, viewModel, controller, onOpenPlayer, bottomPadding)
@@ -121,7 +186,8 @@ fun LibraryScreen(
                 viewModel = viewModel,
                 bottomPadding = bottomPadding,
             )
-            else -> DownloadsTab(uiState, currentSong?.id, viewModel, controller, onOpenPlayer, bottomPadding)
+            2 -> DownloadsTab(uiState, currentSong?.id, viewModel, controller, onOpenPlayer, bottomPadding)
+            else -> LocalTab(viewModel, currentSong?.id, controller, onOpenPlayer, bottomPadding)
         }
     }
 
@@ -146,6 +212,7 @@ fun PlaylistDetailScreen(
     bottomPadding: PaddingValues,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
+    val theme = LocalPBTheme.current
     val songs by viewModel.observePlaylistSongs(playlistId)
         .collectAsStateWithLifecycle(initialValue = emptyList())
     val currentSong by controller.currentSong.collectAsStateWithLifecycle()
@@ -153,7 +220,9 @@ fun PlaylistDetailScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding(),
+            .background(theme.background)
+            .statusBarsPadding()
+            .navigationBarsPadding(),
     ) {
         Row(
             modifier = Modifier
@@ -162,9 +231,9 @@ fun PlaylistDetailScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = theme.text)
             }
-            Text("Playlist", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            Text("Playlist", style = MaterialTheme.typography.titleLarge, color = theme.text, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             IconButton(
                 enabled = songs.isNotEmpty(),
                 onClick = {
@@ -172,7 +241,7 @@ fun PlaylistDetailScreen(
                     onOpenPlayer()
                 },
             ) {
-                Icon(Icons.Rounded.PlayArrow, contentDescription = "Play all", tint = AccentGold)
+                Icon(Icons.Rounded.PlayArrow, contentDescription = "Play all", tint = theme.accent)
             }
         }
         if (songs.isEmpty()) {
@@ -194,7 +263,7 @@ fun PlaylistDetailScreen(
                         },
                         trailing = {
                             IconButton(onClick = { viewModel.removeFromPlaylist(playlistId, song.id) }) {
-                                Icon(Icons.Rounded.Delete, contentDescription = "Remove", tint = TextSecondary)
+                                Icon(Icons.Rounded.Delete, contentDescription = "Remove", tint = theme.muted)
                             }
                         },
                     )
@@ -213,12 +282,49 @@ private fun LikedTab(
     onOpenPlayer: () -> Unit,
     bottomPadding: PaddingValues,
 ) {
+    val theme = LocalPBTheme.current
     if (uiState.likedSongs.isEmpty()) {
-        EmptyState(
-            icon = Icons.Rounded.Favorite,
-            title = "No liked songs yet",
-            subtitle = "Tap the heart in the player and your favourites land here instantly.",
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Icon(
+                Icons.Rounded.FavoriteBorder,
+                contentDescription = null,
+                tint = theme.accent,
+                modifier = Modifier.size(68.dp),
+            )
+            Spacer(Modifier.height(18.dp))
+            Text(
+                "No liked songs yet",
+                color = theme.text,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Tap the heart in the player and your favourites land here instantly.",
+                color = theme.muted,
+                fontSize = 15.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+            Spacer(Modifier.height(24.dp))
+            Button(
+                onClick = onOpenPlayer,
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = theme.background),
+                modifier = Modifier.height(48.dp),
+            ) {
+                Icon(Icons.Filled.MusicNote, contentDescription = null, tint = theme.background, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("🎵 Discover Songs", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        }
         return
     }
     LazyColumn(contentPadding = PaddingValues(bottom = bottomPadding.calculateBottomPadding() + 130.dp)) {
@@ -236,17 +342,17 @@ private fun LikedTab(
                 Box(
                     modifier = Modifier
                         .size(48.dp)
-                        .background(AccentGold, RoundedCornerShape(24.dp)),
+                        .background(theme.accent, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         Icons.Rounded.PlayArrow,
                         contentDescription = "Play all",
-                        tint = Color.Black,
+                        tint = theme.background,
                     )
                 }
-                Spacer(Modifier.width(12.dp))
-                Text("Play all ${uiState.likedSongs.size} songs", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.width(14.dp))
+                Text("Play all ${uiState.likedSongs.size} songs", color = theme.text, fontWeight = FontWeight.Bold, fontSize = 17.sp)
             }
         }
         items(uiState.likedSongs.size) { index ->
@@ -273,6 +379,7 @@ private fun PlaylistsTab(
     viewModel: LibraryViewModel,
     bottomPadding: PaddingValues,
 ) {
+    val theme = LocalPBTheme.current
     Column(
         modifier = Modifier.padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
     ) {
@@ -283,9 +390,9 @@ private fun PlaylistsTab(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text("Your playlists", style = MaterialTheme.typography.titleLarge)
+            Text("Your playlists", color = theme.text, fontWeight = FontWeight.Bold, fontSize = 21.sp)
             IconButton(onClick = onCreateClick) {
-                Icon(Icons.Rounded.Add, contentDescription = "New playlist", tint = AccentGold)
+                Icon(Icons.Rounded.Add, contentDescription = "New playlist", tint = theme.accent)
             }
         }
         if (uiState.playlists.isEmpty()) {
@@ -300,31 +407,36 @@ private fun PlaylistsTab(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 6.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(theme.surface)
+                    .border(1.dp, theme.panel2, RoundedCornerShape(16.dp))
                     .clickable { onOpenPlaylist(playlist.id) }
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                    .padding(14.dp),
             ) {
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
+                        .size(52.dp)
+                        .background(theme.background, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Rounded.QueueMusic, contentDescription = null, tint = AccentGold)
+                    Icon(Icons.Rounded.QueueMusic, contentDescription = null, tint = theme.accent)
                 }
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 14.dp),
                 ) {
-                    Text(playlist.name, style = MaterialTheme.typography.titleSmall)
+                    Text(playlist.name, color = theme.text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(Modifier.height(2.dp))
                     Text(
                         "${playlist.songCount} songs",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
+                        color = theme.muted,
+                        fontSize = 13.sp,
                     )
                 }
                 IconButton(onClick = { viewModel.deletePlaylist(playlist.id) }) {
-                    Icon(Icons.Rounded.Delete, contentDescription = "Delete playlist", tint = TextSecondary)
+                    Icon(Icons.Rounded.Delete, contentDescription = "Delete playlist", tint = theme.muted)
                 }
             }
         }
@@ -340,11 +452,12 @@ private fun DownloadsTab(
     onOpenPlayer: () -> Unit,
     bottomPadding: PaddingValues,
 ) {
+    val theme = LocalPBTheme.current
     if (uiState.downloads.isEmpty()) {
         EmptyState(
             icon = Icons.Rounded.CloudDownload,
             title = "No offline downloads",
-            subtitle = "Download the current song from the player — files are stored AES-GCM encrypted on device.",
+            subtitle = "Download songs from the player — files are stored AES-GCM encrypted on device.",
         )
         return
     }
@@ -362,10 +475,10 @@ private fun DownloadsTab(
                     trailing = {
                         val progress = uiState.downloadProgress[song.id]
                         if (progress != null && progress < 100) {
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = AccentGold)
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.accent)
                         } else {
                             IconButton(onClick = { viewModel.removeDownload(song) }) {
-                                Icon(Icons.Rounded.Delete, contentDescription = "Remove download", tint = TextSecondary)
+                                Icon(Icons.Rounded.Delete, contentDescription = "Remove download", tint = theme.muted)
                             }
                         }
                     },
@@ -377,7 +490,7 @@ private fun DownloadsTab(
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp)
                             .height(2.dp),
-                        color = AccentGold,
+                        color = theme.accent,
                     )
                 }
             }
@@ -390,26 +503,212 @@ private fun CreatePlaylistDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val theme = LocalPBTheme.current
     var name by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New playlist") },
+        title = { Text("New playlist", color = theme.text) },
+        containerColor = theme.surface,
         text = {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 singleLine = true,
-                placeholder = { Text("Playlist name") },
+                placeholder = { Text("Playlist name", color = theme.muted) },
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = theme.text,
+                    unfocusedTextColor = theme.text,
+                    focusedBorderColor = theme.accent,
+                    unfocusedBorderColor = theme.panel2,
+                ),
             )
         },
         confirmButton = {
             TextButton(
                 enabled = name.isNotBlank(),
                 onClick = { onConfirm(name) },
-            ) { Text("Create") }
+            ) { Text("Create", color = theme.accent, fontWeight = FontWeight.Bold) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text("Cancel", color = theme.muted) }
         },
     )
+}
+
+@Composable
+private fun LocalTab(
+    viewModel: LibraryViewModel,
+    currentSongId: String?,
+    controller: MusicPlayerController,
+    onOpenPlayer: () -> Unit,
+    bottomPadding: PaddingValues,
+) {
+    val theme = LocalPBTheme.current
+    val context = LocalContext.current
+    var hasPermission by remember { mutableStateOf(LocalMusicScanner.hasAudioPermission(context)) }
+    val localSongs by viewModel.localSongs.collectAsStateWithLifecycle()
+    val isScanning by viewModel.isScanningLocal.collectAsStateWithLifecycle()
+    var searchQuery by remember { mutableStateOf("") }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasPermission = granted
+        if (granted) {
+            viewModel.scanLocalSongs(context)
+        }
+    }
+
+    LaunchedEffect(hasPermission) {
+        if (hasPermission && localSongs.isEmpty() && !isScanning) {
+            viewModel.scanLocalSongs(context)
+        }
+    }
+
+    if (!hasPermission) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Icon(
+                Icons.Rounded.Smartphone,
+                contentDescription = null,
+                tint = theme.accent,
+                modifier = Modifier.size(68.dp),
+            )
+            Spacer(Modifier.height(18.dp))
+            Text(
+                "Offline Device Audio",
+                color = theme.text,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Scan and play your Punjabi MP3s, M4A, FLAC, and local files directly on Punjabi Beats.",
+                color = theme.muted,
+                fontSize = 15.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+            Spacer(Modifier.height(24.dp))
+            Button(
+                onClick = { permissionLauncher.launch(LocalMusicScanner.getRequiredPermission()) },
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = theme.background),
+                modifier = Modifier.height(48.dp),
+            ) {
+                Icon(Icons.Rounded.Folder, contentDescription = null, tint = theme.background, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Scan Device Audio", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        }
+        return
+    }
+
+    val filtered = remember(localSongs, searchQuery) {
+        if (searchQuery.isBlank()) localSongs
+        else localSongs.filter {
+            it.title.contains(searchQuery, ignoreCase = true) ||
+            it.artist.contains(searchQuery, ignoreCase = true) ||
+            it.albumName.contains(searchQuery, ignoreCase = true)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column {
+                Text(
+                    text = if (isScanning) "Scanning device..." else "${localSongs.size} offline tracks",
+                    color = theme.text,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                )
+                Text(
+                    text = "Stored locally on your phone",
+                    color = theme.muted,
+                    fontSize = 12.sp,
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { viewModel.scanLocalSongs(context) }) {
+                    if (isScanning) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.accent)
+                    } else {
+                        Icon(Icons.Rounded.Refresh, contentDescription = "Rescan", tint = theme.accent)
+                    }
+                }
+                if (filtered.isNotEmpty()) {
+                    IconButton(
+                        onClick = {
+                            controller.playQueue(filtered, 0)
+                            onOpenPlayer()
+                        }
+                    ) {
+                        Icon(Icons.Rounded.PlayArrow, contentDescription = "Play all", tint = theme.accent)
+                    }
+                }
+            }
+        }
+
+        if (localSongs.isNotEmpty()) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
+                placeholder = { Text("Search local tracks...", color = theme.muted, fontSize = 14.sp) },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = theme.text,
+                    unfocusedTextColor = theme.text,
+                    focusedContainerColor = theme.surface,
+                    unfocusedContainerColor = theme.surface,
+                    focusedBorderColor = theme.accent,
+                    unfocusedBorderColor = theme.panel2,
+                ),
+            )
+        }
+
+        if (filtered.isEmpty() && !isScanning) {
+            EmptyState(
+                icon = Icons.Rounded.Smartphone,
+                title = if (localSongs.isEmpty()) "No local music found" else "No matching tracks",
+                subtitle = if (localSongs.isEmpty()) "We could not find any audio files on your phone." else "Try searching with a different keyword.",
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+            ) {
+                itemsIndexed(filtered, key = { _, song -> song.id }) { index, song ->
+                    SongRow(
+                        song = song,
+                        isPlaying = song.id == currentSongId,
+                        onClick = {
+                            controller.playQueue(filtered, index)
+                            onOpenPlayer()
+                        },
+                        trailing = {
+                            IconButton(onClick = { viewModel.toggleLike(song) }) {
+                                Icon(Icons.Rounded.FavoriteBorder, contentDescription = "Like", tint = theme.muted)
+                            }
+                        },
+                    )
+                }
+            }
+        }
+    }
 }

@@ -1,12 +1,21 @@
 package com.punjabibeats.app.ui.components
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +31,11 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +44,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,21 +52,42 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.punjabibeats.app.core.util.formatDuration
 import com.punjabibeats.app.domain.model.MoodCategory
 import com.punjabibeats.app.domain.model.Song
-import com.punjabibeats.app.ui.theme.AccentGold
 import com.punjabibeats.app.ui.theme.AccentRed
-import com.punjabibeats.app.ui.theme.TextSecondary
+import com.punjabibeats.app.ui.theme.Grey
+import com.punjabibeats.app.ui.theme.HighlightRowBg
+import com.punjabibeats.app.ui.theme.LocalPBTheme
+import com.punjabibeats.app.ui.theme.White
 import com.punjabibeats.app.ui.theme.moodGradient
 
-/** Root-level snackbar host shared through composition. */
 val LocalPbSnackbar = compositionLocalOf<SnackbarHostState> {
-    error("LocalPbSnackbar not provided")
+    error("No SnackbarHostState provided")
+}
+
+@Composable
+fun GlassCard(
+    modifier: Modifier = Modifier,
+    cornerRadius: Dp = 20.dp,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val theme = LocalPBTheme.current
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(cornerRadius))
+            .background(theme.panel)
+            .border(1.dp, theme.panel2.copy(alpha = 0.6f), RoundedCornerShape(cornerRadius))
+            .padding(18.dp),
+        content = content,
+    )
 }
 
 @Composable
@@ -59,22 +95,29 @@ fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
-    onAction: (() -> Unit)? = null,
+    onActionClick: (() -> Unit)? = null,
 ) {
+    val theme = LocalPBTheme.current
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = 20.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge)
-        if (actionLabel != null && onAction != null) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            color = theme.text,
+            fontWeight = FontWeight.Bold,
+            fontSize = 22.sp,
+        )
+        if (actionLabel != null && onActionClick != null) {
             Text(
                 actionLabel,
                 style = MaterialTheme.typography.labelLarge,
-                color = AccentGold,
-                modifier = Modifier.clickable(onClick = onAction),
+                color = theme.accent,
+                modifier = Modifier.clickable(onClick = onActionClick),
             )
         }
     }
@@ -83,25 +126,22 @@ fun SectionHeader(
 @Composable
 fun ArtworkThumb(
     url: String?,
-    size: Dp = 48.dp,
-    cornerRadius: Dp = 8.dp,
+    size: Dp,
     modifier: Modifier = Modifier,
+    cornerRadius: Dp = 12.dp,
 ) {
+    val theme = LocalPBTheme.current
     val shape = RoundedCornerShape(cornerRadius)
     if (url.isNullOrBlank()) {
         Box(
             modifier = modifier
                 .size(size)
                 .clip(shape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .background(theme.surface)
+                .border(1.dp, theme.panel2.copy(alpha = 0.5f), shape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                Icons.Filled.MusicNote,
-                contentDescription = null,
-                tint = TextSecondary,
-                modifier = Modifier.size(size / 2),
-            )
+            Icon(Icons.Filled.MusicNote, contentDescription = null, tint = theme.accent, modifier = Modifier.size(size / 2))
         }
     } else {
         AsyncImage(
@@ -111,11 +151,43 @@ fun ArtworkThumb(
             modifier = modifier
                 .size(size)
                 .clip(shape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .background(theme.surface),
         )
     }
 }
 
+/** Animated 3-bar equalizer indicator for the currently playing track. */
+@Composable
+fun EqualizerBars(modifier: Modifier = Modifier, color: Color = Color(0xFFE2BC3F)) {
+    val infiniteTransition = rememberInfiniteTransition(label = "eq")
+    val h1 by infiniteTransition.animateFloat(
+        initialValue = 0.35f, targetValue = 0.95f,
+        animationSpec = infiniteRepeatable(tween(450), RepeatMode.Reverse), label = "h1"
+    )
+    val h2 by infiniteTransition.animateFloat(
+        initialValue = 0.85f, targetValue = 0.25f,
+        animationSpec = infiniteRepeatable(tween(350), RepeatMode.Reverse), label = "h2"
+    )
+    val h3 by infiniteTransition.animateFloat(
+        initialValue = 0.45f, targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(tween(500), RepeatMode.Reverse), label = "h3"
+    )
+    Row(
+        modifier = modifier.height(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.5.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        Box(Modifier.width(3.dp).fillMaxHeight(h1).clip(RoundedCornerShape(1.5.dp)).background(color))
+        Box(Modifier.width(3.dp).fillMaxHeight(h2).clip(RoundedCornerShape(1.5.dp)).background(color))
+        Box(Modifier.width(3.dp).fillMaxHeight(h3).clip(RoundedCornerShape(1.5.dp)).background(color))
+    }
+}
+
+/**
+ * High-polish song row matching the showcase screenshot:
+ * Gold-highlighted container when playing, artwork, title, artist • duration,
+ * animated equalizer, golden circular play button, and 3-dots more menu.
+ */
 @Composable
 fun SongRow(
     song: Song,
@@ -126,14 +198,24 @@ fun SongRow(
     onToggleLike: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
+    val theme = LocalPBTheme.current
+    val rowShape = RoundedCornerShape(16.dp)
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 5.dp)
+            .clip(rowShape)
+            .background(if (isPlaying) theme.panel2 else theme.panel)
+            .border(
+                1.dp,
+                if (isPlaying) theme.accent else theme.panel2.copy(alpha = 0.5f),
+                rowShape
+            )
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ArtworkThumb(url = song.artworkUrl, size = 52.dp, cornerRadius = 10.dp)
+        ArtworkThumb(url = song.artworkUrl, size = 52.dp, cornerRadius = 12.dp)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -141,29 +223,105 @@ fun SongRow(
         ) {
             Text(
                 song.title,
-                style = MaterialTheme.typography.titleSmall,
-                color = if (isPlaying) AccentGold else MaterialTheme.colorScheme.onSurface,
+                color = if (isPlaying) theme.accent else theme.text,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            Spacer(Modifier.height(3.dp))
             Text(
                 "${song.artist} • ${formatDuration(song.durationMs)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = theme.muted,
+                fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (isPlaying) {
+            EqualizerBars(modifier = Modifier.padding(end = 8.dp), color = theme.accent)
+        }
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .border(1.5.dp, theme.accent, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                if (isPlaying) Icons.Rounded.Pause else Icons.Filled.PlayArrow,
+                contentDescription = if (isPlaying) "Pause" else "Play",
+                tint = theme.accent,
+                modifier = Modifier.size(18.dp),
             )
         }
         if (onToggleLike != null && isLiked != null) {
-            IconButton(onClick = onToggleLike) {
+            IconButton(onClick = onToggleLike, modifier = Modifier.size(32.dp).padding(start = 4.dp)) {
                 Icon(
                     if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                     contentDescription = if (isLiked) "Unlike" else "Like",
-                    tint = if (isLiked) AccentRed else TextSecondary,
+                    tint = if (isLiked) Color(0xFFFF5577) else theme.muted,
+                    modifier = Modifier.size(18.dp),
                 )
             }
         }
-        trailing?.invoke()
+        if (trailing != null) {
+            trailing()
+        } else {
+            Icon(
+                Icons.Rounded.MoreVert,
+                contentDescription = "More",
+                tint = theme.muted,
+                modifier = Modifier.padding(start = 6.dp).size(20.dp),
+            )
+        }
+    }
+}
+
+/** Circular artist avatar with gold/accent rim matching the screenshot. */
+@Composable
+fun ArtistCard(
+    name: String,
+    emoji: String = "🎤",
+    artworkUrl: String? = null,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val theme = LocalPBTheme.current
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .width(96.dp)
+            .clickable(onClick = onClick),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(theme.surface)
+                .border(2.dp, theme.accent, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (artworkUrl != null) {
+                AsyncImage(
+                    model = artworkUrl,
+                    contentDescription = name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                )
+            } else {
+                Text(emoji, fontSize = 34.sp)
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            name,
+            color = theme.text,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 12.5.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -175,6 +333,7 @@ fun SongCard(
     modifier: Modifier = Modifier,
     width: Dp = 150.dp,
 ) {
+    val theme = LocalPBTheme.current
     Column(
         modifier = modifier
             .width(width)
@@ -196,48 +355,92 @@ fun SongCard(
                 Icon(
                     Icons.Filled.PlayArrow,
                     contentDescription = "Play ${song.title}",
-                    tint = AccentGold,
+                    tint = theme.accent,
                     modifier = Modifier.size(18.dp),
                 )
             }
         }
         Text(
             song.title,
-            style = MaterialTheme.typography.titleSmall,
+            color = theme.text,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 8.dp),
         )
         Text(
             song.artist,
-            style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary,
+            color = theme.muted,
+            fontSize = 12.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
+/**
+ * Rich Mood tile matching the 2x2 + 1 wide layout from the showcase screenshot.
+ */
 @Composable
-fun MoodTile(mood: MoodCategory, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun MoodTile(
+    mood: MoodCategory,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isFullWidth: Boolean = false,
+) {
+    val theme = LocalPBTheme.current
     val gradient = moodGradient(mood.id)
     Box(
         modifier = modifier
-            .height(96.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .height(if (isFullWidth) 110.dp else 125.dp)
+            .clip(RoundedCornerShape(20.dp))
             .background(Brush.linearGradient(gradient))
+            .border(1.dp, theme.accent.copy(alpha = 0.25f), RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
-            .padding(14.dp),
+            .padding(16.dp),
     ) {
         Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
-            Text(mood.emoji, style = MaterialTheme.typography.headlineMedium)
+            Text(mood.emoji, fontSize = 30.sp)
             Text(
                 mood.title,
-                style = MaterialTheme.typography.titleSmall,
-                color = Color.White,
+                color = White,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+    }
+}
+
+/** Feature card with border and description matching Jam/AI screens. */
+@Composable
+fun FeatureCard(
+    emoji: String,
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val theme = LocalPBTheme.current
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = theme.surface),
+        border = BorderStroke(1.dp, theme.panel2.copy(alpha = 0.7f)),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Text(
+                "$emoji  $title",
+                color = theme.text,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(description, color = theme.muted, fontSize = 14.sp)
+            Spacer(Modifier.height(18.dp))
+            content()
         }
     }
 }
@@ -249,6 +452,7 @@ fun EmptyState(
     subtitle: String,
     modifier: Modifier = Modifier,
 ) {
+    val theme = LocalPBTheme.current
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -256,12 +460,12 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Icon(icon, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(44.dp))
-        Text(title, style = MaterialTheme.typography.titleMedium)
+        Icon(icon, contentDescription = null, tint = theme.accent, modifier = Modifier.size(54.dp))
+        Text(title, style = MaterialTheme.typography.titleMedium, color = theme.text, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         Text(
             subtitle,
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = theme.muted,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
@@ -269,6 +473,7 @@ fun EmptyState(
 
 @Composable
 fun ErrorState(message: String, onRetry: (() -> Unit)? = null, modifier: Modifier = Modifier) {
+    val theme = LocalPBTheme.current
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -277,7 +482,7 @@ fun ErrorState(message: String, onRetry: (() -> Unit)? = null, modifier: Modifie
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Icon(Icons.Filled.GraphicEq, contentDescription = null, tint = AccentRed, modifier = Modifier.size(40.dp))
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = theme.muted)
         if (onRetry != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -286,9 +491,9 @@ fun ErrorState(message: String, onRetry: (() -> Unit)? = null, modifier: Modifie
                     .clickable(onClick = onRetry)
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                Icon(Icons.Filled.Refresh, contentDescription = null, tint = AccentGold, modifier = Modifier.size(18.dp))
+                Icon(Icons.Filled.Refresh, contentDescription = null, tint = theme.accent, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(6.dp))
-                Text("Retry", color = AccentGold, style = MaterialTheme.typography.labelLarge)
+                Text("Retry", color = theme.accent, style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -296,7 +501,8 @@ fun ErrorState(message: String, onRetry: (() -> Unit)? = null, modifier: Modifie
 
 @Composable
 fun PbLoading(modifier: Modifier = Modifier) {
+    val theme = LocalPBTheme.current
     Box(modifier = modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = AccentGold)
+        CircularProgressIndicator(color = theme.accent)
     }
 }

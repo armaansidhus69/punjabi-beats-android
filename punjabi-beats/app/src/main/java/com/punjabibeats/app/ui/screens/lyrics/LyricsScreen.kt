@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -89,9 +90,9 @@ fun LyricsScreen(
     val lines = lyrics?.lines.orEmpty()
     val isSynced = lyrics?.isSynced == true
 
-    val activeIndex = remember(lines, isSynced) {
+    val activeIndex = remember(lines, isSynced, uiState.timingOffsetMs) {
         derivedStateOf {
-            if (!isSynced) -1 else lines.indexOfLast { it.timeMs <= positionMs }
+            if (!isSynced) -1 else lines.indexOfLast { it.timeMs <= (positionMs + uiState.timingOffsetMs) }
         }
     }
     val currentLineIndex by activeIndex
@@ -113,7 +114,8 @@ fun LyricsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(BgBase)
-            .statusBarsPadding(),
+            .statusBarsPadding()
+            .navigationBarsPadding(),
     ) {
         Row(
             modifier = Modifier
@@ -192,6 +194,53 @@ fun LyricsScreen(
             color = TextSecondary,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
         )
+
+        if (isSynced) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Offset: ${if (uiState.timingOffsetMs > 0) "+" else ""}${uiState.timingOffsetMs}ms",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (uiState.timingOffsetMs != 0L) AccentGold else TextSecondary,
+                    modifier = Modifier.weight(1f),
+                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.White.copy(alpha = 0.08f))
+                        .clickable { viewModel.adjustTimingOffset(-250L) }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Text("-0.25s", style = MaterialTheme.typography.labelSmall, color = Color.White)
+                }
+                Spacer(Modifier.width(6.dp))
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.White.copy(alpha = 0.08f))
+                        .clickable { viewModel.adjustTimingOffset(250L) }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Text("+0.25s", style = MaterialTheme.typography.labelSmall, color = Color.White)
+                }
+                if (uiState.timingOffsetMs != 0L) {
+                    Spacer(Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(AccentGold.copy(alpha = 0.2f))
+                            .clickable { viewModel.resetTimingOffset() }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                    ) {
+                        Text("Reset", style = MaterialTheme.typography.labelSmall, color = AccentGold)
+                    }
+                }
+            }
+        }
 
         when (val lyricsState = uiState.lyrics) {
             is UiState.Loading -> PbLoading(modifier = Modifier.fillMaxSize())

@@ -30,6 +30,7 @@ data class LyricsUiState(
     val scriptMode: ScriptMode = ScriptMode.BOTH,
     val selectMode: Boolean = false,
     val selectedIndices: Set<Int> = emptySet(),
+    val timingOffsetMs: Long = 0L,
 )
 
 @HiltViewModel
@@ -107,6 +108,15 @@ class LyricsViewModel @Inject constructor(
 
     fun clearSelection() {
         _uiState.value = _uiState.value.copy(selectedIndices = emptySet(), selectMode = false)
+    }
+
+    fun adjustTimingOffset(deltaMs: Long) {
+        val next = (_uiState.value.timingOffsetMs + deltaMs).coerceIn(-10000L, 10000L)
+        _uiState.value = _uiState.value.copy(timingOffsetMs = next)
+    }
+
+    fun resetTimingOffset() {
+        _uiState.value = _uiState.value.copy(timingOffsetMs = 0L)
     }
 
     fun notifyShared(count: Int) {

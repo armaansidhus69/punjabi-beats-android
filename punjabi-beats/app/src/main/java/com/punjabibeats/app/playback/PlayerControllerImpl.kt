@@ -16,6 +16,7 @@ import com.punjabibeats.app.core.util.SongCodec
 import com.punjabibeats.app.data.local.datastore.SettingsDataStore
 import com.punjabibeats.app.domain.model.Song
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.concurrent.ConcurrentLinkedQueue
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +66,7 @@ class PlayerControllerImpl @Inject constructor(
     private val _playbackPitch = MutableStateFlow(1.0f)
     private val _skipSilenceEnabled = MutableStateFlow(false)
     private val _sleepMode = MutableStateFlow<SleepMode?>(null)
+    private val _audioFormatInfo = MutableStateFlow(AudioFormatInfo())
     private val _playerErrors = MutableSharedFlow<String>(extraBufferCapacity = 8)
 
     override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
@@ -81,19 +83,34 @@ class PlayerControllerImpl @Inject constructor(
     override val playbackPitch: StateFlow<Float> = _playbackPitch.asStateFlow()
     override val skipSilenceEnabled: StateFlow<Boolean> = _skipSilenceEnabled.asStateFlow()
     override val sleepMode: StateFlow<SleepMode?> = _sleepMode.asStateFlow()
+    override val audioFormatInfo: StateFlow<AudioFormatInfo> = _audioFormatInfo.asStateFlow()
     override val playerErrors: SharedFlow<String> = _playerErrors.asSharedFlow()
 
     private var positionJob: Job? = null
     private var sleepJob: Job? = null
     private var restored = false
+    private val pendingActions = ConcurrentLinkedQueue<(MediaController) -> Unit>()
 
     init {
+        connectController()
+    }
+
+    private fun connectController() {
         val sessionToken = SessionToken(
             context,
             ComponentName(context, MediaPlaybackService::class.java),
         )
         val future = MediaController.Builder(context, sessionToken)
             .setApplicationLooper(Looper.getMainLooper())
+            .setListener(object : MediaController.Listener {
+                override fun onDisconnected(controller: MediaController) {
+                    _mediaController.value = null
+                    scope.launch {
+                        delay(1_000)
+                        connectController()
+                    }
+                }
+            })
             .buildAsync()
         future.addListener(
             {
@@ -105,6 +122,12 @@ class PlayerControllerImpl @Inject constructor(
                     publishPosition()
                     restorePersistedState()
                     observeQueueForPersistence()
+
+                    // Drain actions that were requested before connection finished
+                    while (true) {
+                        val action = pendingActions.poll() ?: break
+                        runCatching { action(controller) }
+                    }
                 } else {
                     _playerErrors.tryEmit("Could not start the audio engine. Please reopen the app.")
                 }
@@ -151,8 +174,43 @@ class PlayerControllerImpl @Inject constructor(
             _shuffleEnabled.value = enabled
         }
 
+        override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
+            updateAudioFormatInfo(tracks)
+        }
+
         override fun onPlayerError(error: PlaybackException) {
             _playerErrors.tryEmit(error.message ?: "Playback error")
+        }
+    }
+
+    private fun updateAudioFormatInfo(tracks: androidx.media3.common.Tracks) {
+        for (group in tracks.groups) {
+            if (group.type == androidx.media3.common.C.TRACK_TYPE_AUDIO && group.isSelected) {
+                for (i in 0 until group.length) {
+                    if (group.isTrackSelected(i)) {
+                        val format = group.getTrackFormat(i)
+                        val mime = format.sampleMimeType.orEmpty()
+                        val codecName = when {
+                            mime.contains("flac", ignoreCase = true) -> "FLAC"
+                            mime.contains("alac", ignoreCase = true) -> "ALAC"
+                            mime.contains("aac", ignoreCase = true) || mime.contains("mp4a", ignoreCase = true) -> "AAC"
+                            mime.contains("opus", ignoreCase = true) -> "Opus"
+                            mime.contains("ogg", ignoreCase = true) -> "OGG"
+                            else -> "MP3"
+                        }
+                        val bitrate = if (format.bitrate > 0) format.bitrate / 1000 else 320
+                        val sampleRate = if (format.sampleRate > 0) format.sampleRate / 1000f else 44.1f
+                        val isLossless = codecName == "FLAC" || codecName == "ALAC" || bitrate >= 800
+                        _audioFormatInfo.value = AudioFormatInfo(
+                            codec = codecName,
+                            bitrateKbps = bitrate,
+                            sampleRateKhz = sampleRate,
+                            isLossless = isLossless,
+                        )
+                        return
+                    }
+                }
+            }
         }
     }
 
@@ -161,6 +219,12 @@ class PlayerControllerImpl @Inject constructor(
     override fun playQueue(songs: List<Song>, startIndex: Int) {
         if (songs.isEmpty()) return
         val safeIndex = startIndex.coerceIn(0, songs.lastIndex)
+        val target = songs[safeIndex]
+        _currentSong.value = target
+        _currentIndex.value = safeIndex
+        _isBuffering.value = true
+        _positionMs.value = 0L
+        _durationMs.value = target.durationMs
         withController { controller ->
             controller.setMediaItems(songs.map { it.toMediaItem() }, safeIndex, 0L)
             controller.prepare()
@@ -198,15 +262,32 @@ class PlayerControllerImpl @Inject constructor(
     override fun pause() = withController { it.pause() }
 
     override fun next() = withController { controller ->
-        if (controller.hasNextMediaItem()) controller.seekToNextMediaItem()
-        else if (controller.repeatMode == Player.REPEAT_MODE_ALL) controller.seekToDefaultPosition(0)
+        val wasPlaying = controller.playWhenReady
+        if (controller.hasNextMediaItem()) {
+            controller.seekToNextMediaItem()
+            if (wasPlaying || controller.playbackState == Player.STATE_IDLE) {
+                controller.prepare()
+                controller.play()
+            }
+        } else if (controller.repeatMode == Player.REPEAT_MODE_ALL) {
+            controller.seekToDefaultPosition(0)
+            if (wasPlaying || controller.playbackState == Player.STATE_IDLE) {
+                controller.prepare()
+                controller.play()
+            }
+        }
     }
 
     override fun previous() = withController { controller ->
+        val wasPlaying = controller.playWhenReady
         if (controller.currentPosition > 3_000L) {
             controller.seekTo(0L)
         } else if (controller.hasPreviousMediaItem()) {
             controller.seekToPreviousMediaItem()
+            if (wasPlaying || controller.playbackState == Player.STATE_IDLE) {
+                controller.prepare()
+                controller.play()
+            }
         } else {
             controller.seekTo(0L)
         }
@@ -291,7 +372,12 @@ class PlayerControllerImpl @Inject constructor(
     // ------------------------------------------------------------------ internals
 
     private fun withController(block: (MediaController) -> Unit) {
-        _mediaController.value?.let(block)
+        val controller = _mediaController.value
+        if (controller != null) {
+            block(controller)
+        } else {
+            pendingActions.offer(block)
+        }
     }
 
     private fun startTicker() {
@@ -320,7 +406,7 @@ class PlayerControllerImpl @Inject constructor(
     private fun publishCurrent() {
         val controller = _mediaController.value ?: return
         val item = controller.currentMediaItem
-        _currentSong.value = item?.toSong() ?: _currentSong.value
+        _currentSong.value = item?.toSong()
         _currentIndex.value = controller.currentMediaItemIndex
     }
 

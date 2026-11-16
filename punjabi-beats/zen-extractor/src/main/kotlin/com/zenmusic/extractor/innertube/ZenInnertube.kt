@@ -7,7 +7,9 @@ import com.zenmusic.potoken.PoToken
 import com.zenmusic.potoken.PotokenCoordinator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -173,48 +175,58 @@ internal class ZenInnertube(
      */
     suspend fun player(mediaId: String): JSONObject = withContext(Dispatchers.IO) {
         val visitor = ensureVisitorData()
-        val sessionPot = potoken.sessionTokenOrNull(visitor)
-        val sts = try {
-            signatureTimestamp?.invoke()
-        } catch (t: Throwable) {
-            ZenLog.w("signatureTimestamp provider failed: ${t.message}")
-            null
-        }
 
         var firstPlayable: JSONObject? = null
         var lastError: Throwable? = null
 
         kotlinx.coroutines.coroutineScope {
-            val raced = listOf(
-                Triple(remix, "remix", sessionPot?.value),
-                Triple(visionos, "visionos", null),
-                Triple(visionos103, "visionos2", null),
-            ).map { (client, tag, token) ->
-                async { attempt(mediaId, client, tag, visitor, sts, token) }
+            val resultsChannel = Channel<Pair<String, Attempt>>(capacity = 3)
+
+            // visionos identities are keyless and tokenless — race them immediately at 0ms!
+            val visionJob = launch {
+                resultsChannel.send("visionos" to attempt(mediaId, visionos, "visionos", visitor, null, null))
             }
+            val vision2Job = launch {
+                resultsChannel.send("visionos2" to attempt(mediaId, visionos103, "visionos2", visitor, null, null))
+            }
+            val remixJob = launch {
+                val sessionPot = potoken.sessionTokenOrNull(visitor)
+                val sts = try {
+                    signatureTimestamp?.invoke()
+                } catch (t: Throwable) {
+                    ZenLog.w("signatureTimestamp provider failed: ${t.message}")
+                    null
+                }
+                resultsChannel.send("remix" to attempt(mediaId, remix, "remix", visitor, sts, sessionPot?.value))
+            }
+
+            val racedJobs = listOf(visionJob, vision2Job, remixJob)
             try {
-                for ((idx, deferred) in raced.withIndex()) {
-                    val attemptResult = deferred.await()
+                repeat(3) {
+                    val (tag, attemptResult) = resultsChannel.receive()
                     val response = attemptResult.response
                     if (response != null && isPlayable(response)) {
                         if (firstPlayable == null) firstPlayable = response
                         if (hasUsableAudio(response)) {
-                            ZenLog.d { "player ok via=${listOf("remix", "visionos", "visionos2")[idx]} media=${mediaId.take(4)}**" }
+                            ZenLog.d { "player ok via=$tag media=${mediaId.take(4)}**" }
                             return@coroutineScope response
                         }
-                        // OK but the server withheld the stream URLs — do not
-                        // win the chain; let the next identity (already in
-                        // flight) take it.
-                        ZenLog.d { "player ok-but-withheld via=${listOf("remix", "visionos", "visionos2")[idx]}" }
+                        ZenLog.d { "player ok-but-withheld via=$tag" }
                     } else {
                         lastError = lastError ?: attemptResult.error
                     }
                 }
             } finally {
-                raced.forEach { runCatching { it.cancel() } }
+                racedJobs.forEach { runCatching { it.cancel() } }
             }
 
             // Sequential last resort: web-style ciphered client.
+            val sessionPot = potoken.sessionTokenOrNull(visitor)
+            val sts = try {
+                signatureTimestamp?.invoke()
+            } catch (t: Throwable) {
+                null
+            }
             val tvsAttempt = attempt(mediaId, tvs, "tvs", visitor, sts, sessionPot?.value)
             val response = tvsAttempt.response
             if (response != null && isPlayable(response)) {

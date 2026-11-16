@@ -24,8 +24,8 @@ data class ZenConfig(
     val potokenWebView: Boolean = true,
     /** Mint a content-bound token per video in addition to the session token. */
     val contentPoToken: Boolean = true,
-    /** Enable the fake-stream shower (decoy responses under tamper / analysis). */
-    val decoyShower: Boolean = true,
+    /** Enable the fake-stream shower (decoy responses under tamper / analysis). Default false to guarantee playback. */
+    val decoyShower: Boolean = false,
     /** Verbose internal logging (NEVER enabled implicitly; scrubbed even when on). */
     val logDebug: Boolean = false,
     /** Optional pinned visitor data (advanced; leave null to let the engine manage sessions). */

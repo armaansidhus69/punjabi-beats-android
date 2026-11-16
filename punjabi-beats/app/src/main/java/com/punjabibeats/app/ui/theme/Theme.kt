@@ -44,11 +44,38 @@ private val PbShapes = androidx.compose.material3.Shapes(
 )
 
 @Composable
-fun PunjabiBeatsTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = PbColorScheme,
-        typography = PbTypography,
-        shapes = PbShapes,
-        content = content,
+fun PunjabiBeatsTheme(
+    theme: PBTheme = pbThemeById("punjab"),
+    content: @Composable () -> Unit,
+) {
+    val dynamicScheme = darkColorScheme(
+        primary = theme.accent,
+        onPrimary = theme.background,
+        primaryContainer = theme.panel2,
+        onPrimaryContainer = theme.accent,
+        secondary = theme.accent2,
+        onSecondary = theme.background,
+        secondaryContainer = theme.panel,
+        onSecondaryContainer = theme.text,
+        tertiary = theme.accent2,
+        background = theme.background,
+        onBackground = theme.text,
+        surface = theme.panel,
+        onSurface = theme.text,
+        surfaceVariant = theme.panel2,
+        onSurfaceVariant = theme.muted,
+        outline = theme.muted.copy(alpha = 0.35f),
+        outlineVariant = theme.panel2,
+        error = AccentRed,
+        onError = Color.White,
+        scrim = Color.Black,
     )
+    androidx.compose.runtime.CompositionLocalProvider(LocalPBTheme provides theme) {
+        MaterialTheme(
+            colorScheme = dynamicScheme,
+            typography = PbTypography,
+            shapes = PbShapes,
+            content = content,
+        )
+    }
 }

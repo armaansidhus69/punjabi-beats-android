@@ -10,6 +10,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.TransferListener
 import com.punjabibeats.app.data.security.EncryptedFileDataSource
+import java.util.concurrent.CopyOnWriteArrayList
 
 /** Routes `pbenc://` schemes to the AES/GCM offline DataSource, everything else upstream. */
 @UnstableApi
@@ -39,26 +40,29 @@ private class RoutingDataSource(
     private val upstream: DataSource,
 ) : DataSource {
 
+    private val transferListeners = CopyOnWriteArrayList<TransferListener>()
     private var httpDelegate: DataSource? = null
     private var encryptedDelegate: EncryptedFileDataSource? = null
     private var zenDelegate: DataSource? = null
 
     override fun addTransferListener(transferListener: TransferListener) {
+        transferListeners.add(transferListener)
         upstream.addTransferListener(transferListener)
     }
 
     override fun open(dataSpec: DataSpec): Long = when {
         dataSpec.uri.scheme.equals("pbenc", ignoreCase = true) -> {
             val source = EncryptedFileDataSource(context)
+            transferListeners.forEach { source.addTransferListener(it) }
             encryptedDelegate = source
             source.open(dataSpec)
         }
         // Zen engine stream/artwork uris are served by the engine's channel
         // transport — the real media location never leaves the engine.
         dataSpec.uri.scheme.equals("zen", ignoreCase = true) -> {
-            val engine = com.zenmusic.ZenMusic.get()
-                ?: throw java.io.IOException("zen engine not initialised")
+            val engine = com.zenmusic.ZenMusic.get() ?: com.zenmusic.ZenMusic.initialize(context)
             val source = engine.dataSourceFactory.createDataSource()
+            transferListeners.forEach { source.addTransferListener(it) }
             zenDelegate = source
             source.open(dataSpec)
         }
@@ -77,6 +81,12 @@ private class RoutingDataSource(
 
     override fun getUri(): android.net.Uri? =
         encryptedDelegate?.getUri() ?: zenDelegate?.getUri() ?: httpDelegate?.getUri()
+
+    override fun getResponseHeaders(): Map<String, List<String>> =
+        encryptedDelegate?.responseHeaders
+            ?: zenDelegate?.responseHeaders
+            ?: httpDelegate?.responseHeaders
+            ?: emptyMap()
 
     override fun close() {
         runCatching { encryptedDelegate?.close() }

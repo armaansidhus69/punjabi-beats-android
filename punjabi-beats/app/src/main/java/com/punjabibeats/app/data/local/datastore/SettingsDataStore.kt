@@ -47,7 +47,11 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val LAST_JAM_CODE = stringPreferencesKey("last_jam_code")
         val PENDING_JAM_CODE = stringPreferencesKey("pending_jam_code")
         val PODCAST_FEEDS_JSON = stringPreferencesKey("podcast_feeds_json")
+        val THEME_ID = stringPreferencesKey("theme_id")
     }
+
+    fun themeId(): Flow<String> = context.pbDataStore.data.map { it[Keys.THEME_ID] ?: "punjab" }
+    suspend fun saveThemeId(themeId: String) = context.pbDataStore.edit { it[Keys.THEME_ID] = themeId }
 
     /** Jam room code arriving via a punjabibeats://jam/… deep link, consumed once. */
     suspend fun savePendingJamCode(code: String) =

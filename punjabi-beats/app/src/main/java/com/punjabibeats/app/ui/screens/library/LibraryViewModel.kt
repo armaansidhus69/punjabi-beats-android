@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +37,12 @@ class LibraryViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<String>(extraBufferCapacity = 8)
     val events: SharedFlow<String> = _events.asSharedFlow()
+
+    private val _localSongs = MutableStateFlow<List<Song>>(emptyList())
+    val localSongs: StateFlow<List<Song>> = _localSongs.asStateFlow()
+
+    private val _isScanningLocal = MutableStateFlow(false)
+    val isScanningLocal: StateFlow<Boolean> = _isScanningLocal.asStateFlow()
 
     val uiState: StateFlow<LibraryUiState> = combine(
         libraryRepository.observeLikedSongs(),
@@ -96,6 +103,18 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch {
             downloadRepository.remove(song.id)
             _events.tryEmit("Removed from offline")
+        }
+    }
+
+    fun scanLocalSongs(context: android.content.Context) {
+        viewModelScope.launch {
+            _isScanningLocal.value = true
+            val songs = com.punjabibeats.app.data.local.LocalMusicScanner.scanLocalAudio(context)
+            _localSongs.value = songs
+            _isScanningLocal.value = false
+            if (songs.isNotEmpty()) {
+                _events.tryEmit("Found ${songs.size} local tracks on device")
+            }
         }
     }
 }
