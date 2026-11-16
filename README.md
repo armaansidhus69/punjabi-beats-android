@@ -1,8 +1,10 @@
 # Punjabi Beats — Complete Code (v1.1.0, zen-integrated)
 
-[![Download APK](https://img.shields.io/badge/Download-APK%20(25%20MB)-brightgreen?style=for-the-badge&logo=android)](https://github.com/armaansidhus69/punjabi-beats-android/raw/main/apk/punjabi-beats-zen-v1.1-debug.apk)
+[![Download Latest APK](https://img.shields.io/badge/Download-Latest%20APK%20(v1.1.0)-brightgreen?style=for-the-badge&logo=android)](https://github.com/armaansidhus69/punjabi-beats-android/releases/download/v1.1.0/PunjabiBeats-v1.1.0-zen-debug.apk)
+[![Download Legacy APK](https://img.shields.io/badge/Download-Legacy%20APK%20(v1.0.0)-gray?style=for-the-badge&logo=android)](https://github.com/armaansidhus69/punjabi-beats-android/releases/download/v1.0.0/punjabi-beats-v1.0.0-legacy.apk)
 
-Direct APK Download Link: [**Download Punjabi Beats APK (v1.1)**](https://github.com/armaansidhus69/punjabi-beats-android/raw/main/apk/punjabi-beats-zen-v1.1-debug.apk)
+- 🚀 **Latest Release (v1.1.0)**: [**Download Punjabi Beats v1.1.0 (25.08 MB)**](https://github.com/armaansidhus69/punjabi-beats-android/releases/download/v1.1.0/PunjabiBeats-v1.1.0-zen-debug.apk) — includes 4 core themes, Turntable vinyl deck, 22 seekbar sliders, local music scanner, artist & album pages, audio codec badges, song DNA, and offline lyrics caching.
+- 📦 **Previous Version (v1.0.0)**: [**Download Punjabi Beats v1.0.0 (24.46 MB)**](https://github.com/armaansidhus69/punjabi-beats-android/releases/download/v1.0.0/punjabi-beats-v1.0.0-legacy.apk) — original legacy build.
 
 One archive with everything: the full Android project source, the build/integration
 scripts, and the compiled debug APK.
@@ -12,7 +14,8 @@ scripts, and the compiled debug APK.
 | Path | What it is |
 |---|---|
 | `punjabi-beats/` | Complete Android project source, ready to build |
-| `apk/punjabi-beats-zen-v1.1-debug.apk` | Compiled debug APK — install directly on a device |
+| `apk/punjabi-beats-zen-v1.1-debug.apk` | Latest compiled debug APK (v1.1.0) |
+| `apk/punjabi-beats-v1.0.0-legacy.apk` | Preserved previous legacy APK (v1.0.0) |
 | `scripts/` | Everything used to integrate, fix and build (reproducible pipeline) |
 
 Inside `punjabi-beats/`:
