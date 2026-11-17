@@ -11,6 +11,14 @@ class PunjabiBeatsApp : Application() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannels()
+
+        // Protect SQLite queries from CursorWindow 2MB limitation on large playlists
+        try {
+            val field = android.database.CursorWindow::class.java.getDeclaredField("sCursorWindowSize")
+            field.isAccessible = true
+            field.set(null, 10 * 1024 * 1024) // 10MB
+        } catch (_: Throwable) {}
+
         // Zen engine: warms the whole playback chain in the background
         // (session visitor, PO-token WebView, cipher) — search and playback
         // then run entirely on-device with no backend API.

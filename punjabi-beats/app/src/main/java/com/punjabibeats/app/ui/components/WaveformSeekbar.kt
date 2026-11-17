@@ -23,17 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import com.punjabibeats.app.ui.theme.AccentGold
+import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.TextSecondary
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sin
 
 /**
- * Animated waveform seekbar: deterministic bar envelope, gold fill for the
- * played part, shimmer while playing, tap + horizontal drag to seek.
+ * Animated waveform seekbar: deterministic bar envelope, dynamic theme accent fill for the
+ * played part (adapts to Vice City pink, Cyber cyan, Punjab gold), shimmer while playing, tap + horizontal drag to seek.
  */
 @Composable
 fun WaveformSeekbar(
@@ -43,6 +44,7 @@ fun WaveformSeekbar(
     onSeek: (Long) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    accentColor: Color = LocalPBTheme.current.accent,
 ) {
     val fraction = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
     val animatedFraction by animateFloatAsState(
@@ -105,7 +107,7 @@ fun WaveformSeekbar(
                 val shimmer = if (isPlaying) 0.78f + 0.22f * sin(phase + index * 0.35f) else 1f
                 val height = size.height * 0.82f * base * (if (played) shimmer else 0.6f)
                 drawRoundRect(
-                    color = if (played) AccentGold else TextSecondary.copy(alpha = 0.35f),
+                    color = if (played) accentColor else TextSecondary.copy(alpha = 0.35f),
                     topLeft = Offset(index * (effectiveBarWidth + gap), centerY - height / 2f),
                     size = Size(effectiveBarWidth, height),
                     cornerRadius = CornerRadius(effectiveBarWidth / 2f),

@@ -90,12 +90,16 @@ class PlayerControllerImpl @Inject constructor(
     private var sleepJob: Job? = null
     private var restored = false
     private val pendingActions = ConcurrentLinkedQueue<(MediaController) -> Unit>()
+    private val isConnecting = java.util.concurrent.atomic.AtomicBoolean(false)
 
     init {
         connectController()
     }
 
     private fun connectController() {
+        if (_mediaController.value?.isConnected == true) return
+        if (!isConnecting.compareAndSet(false, true)) return
+
         val sessionToken = SessionToken(
             context,
             ComponentName(context, MediaPlaybackService::class.java),
@@ -105,15 +109,18 @@ class PlayerControllerImpl @Inject constructor(
             .setListener(object : MediaController.Listener {
                 override fun onDisconnected(controller: MediaController) {
                     _mediaController.value = null
-                    scope.launch {
-                        delay(1_000)
-                        connectController()
-                    }
+                    _isPlaying.value = false
+                    stopTicker()
+                    isConnecting.set(false)
+                    // Do NOT auto-reconnect here: if the user dismissed the notification
+                    // or the service stopped, auto-reconnecting creates a zombie service loop!
+                    // Connection will be re-established on-demand when the user performs a playback action.
                 }
             })
             .buildAsync()
         future.addListener(
             {
+                isConnecting.set(false)
                 val controller = runCatching { future.get() }.getOrNull()
                 if (controller != null) {
                     _mediaController.value = controller
@@ -373,10 +380,11 @@ class PlayerControllerImpl @Inject constructor(
 
     private fun withController(block: (MediaController) -> Unit) {
         val controller = _mediaController.value
-        if (controller != null) {
+        if (controller != null && controller.isConnected) {
             block(controller)
         } else {
             pendingActions.offer(block)
+            connectController()
         }
     }
 

@@ -93,6 +93,7 @@ fun UniversalSeekbar(
             onSeek = onSeek,
             modifier = modifier,
             enabled = enabled,
+            accentColor = theme.accent,
         )
         return
     }

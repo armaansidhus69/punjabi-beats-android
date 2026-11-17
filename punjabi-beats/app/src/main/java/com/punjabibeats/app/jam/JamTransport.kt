@@ -95,9 +95,10 @@ class PollingTransport(
     override suspend fun connect(code: String) {
         this.code = code
         pollJob = scope.launch {
+            runCatching { fetchOnce() }
             while (isActive) {
-                runCatching { fetchOnce() }
                 delay(POLL_INTERVAL_MS)
+                runCatching { fetchOnce() }
             }
         }
     }
@@ -105,7 +106,12 @@ class PollingTransport(
     override suspend fun send(message: JamMessage): Boolean = runCatching {
         val payload = PbJson.json.encodeToString(JamMessage.serializer(), message)
         val body = PbJson.requestBody(payload)
-        backend.publish(body).isSuccessful
+        val success = backend.publish(body).isSuccessful
+        if (success) {
+            // Immediately trigger fetch without waiting for polling tick
+            scope.launch { runCatching { fetchOnce() } }
+        }
+        success
     }.getOrDefault(false)
 
     private suspend fun fetchOnce() {
@@ -131,7 +137,7 @@ class PollingTransport(
     }
 
     private companion object {
-        const val POLL_INTERVAL_MS = 2_000L
+        const val POLL_INTERVAL_MS = 600L
     }
 }
 

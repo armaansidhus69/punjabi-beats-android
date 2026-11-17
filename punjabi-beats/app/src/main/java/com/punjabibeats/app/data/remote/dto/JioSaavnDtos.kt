@@ -133,3 +133,17 @@ data class JioSaavnSearchResponse(
     val status: String? = null,
     val data: JioSaavnSearchData? = null,
 )
+
+@Serializable
+data class JioSaavnLyricsData(
+    val lyrics: String? = null,
+    val snippet: String? = null,
+    val copyright: String? = null,
+)
+
+@Serializable
+data class JioSaavnLyricsResponse(
+    val success: Boolean? = null,
+    val status: String? = null,
+    val data: JioSaavnLyricsData? = null,
+)

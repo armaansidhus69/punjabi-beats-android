@@ -1,24 +1,28 @@
 package com.punjabibeats.app.data.repository
 
 import com.punjabibeats.app.core.util.runSuspendCatching
+import com.punjabibeats.app.core.util.transliterateGurmukhi
+import com.punjabibeats.app.core.util.unescapeHtml
 import com.punjabibeats.app.data.local.db.LyricsCacheDao
 import com.punjabibeats.app.data.local.db.LyricsCacheEntity
 import com.punjabibeats.app.data.parser.LrcParser
+import com.punjabibeats.app.data.remote.api.JioSaavnApi
 import com.punjabibeats.app.data.remote.api.LrcLibApi
 import com.punjabibeats.app.domain.model.LyricLine
 import com.punjabibeats.app.domain.model.SyncedLyrics
 import com.punjabibeats.app.domain.repository.LyricsRepository
-import com.punjabibeats.app.core.util.transliterateGurmukhi
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Lyrics source: LRCLIB synced LRC first, cached offline in Room DB so subsequent
+ * Lyrics source: LRCLIB synced LRC first, with automatic fallback to regional JioSaavn
+ * Punjabi lyrics catalogue for native tracks. Cached offline in Room DB so subsequent
  * plays load instantly without any network call. Gurmukhi lines get roman transliteration.
  */
 @Singleton
 class LyricsRepositoryImpl @Inject constructor(
     private val lrcLibApi: LrcLibApi,
+    private val jioSaavnApi: JioSaavnApi,
     private val lyricsCacheDao: LyricsCacheDao,
 ) : LyricsRepository {
 
@@ -48,12 +52,17 @@ class LyricsRepositoryImpl @Inject constructor(
         val exact = runSuspendCatching {
             lrcLibApi.get(cleanTitle, artist.trim(), durationSec).body()
         }.getOrNull()
-        val synced = exact?.toSyncedLyrics(cleanTitle, artist)
+        var synced = exact?.toSyncedLyrics(cleanTitle, artist)
             ?: runSuspendCatching {
                 lrcLibApi.search("$artist $cleanTitle", limit = 3).firstOrNull()
             }.getOrNull()?.toSyncedLyrics(cleanTitle, artist)
 
-        // 3. Cache result for offline access
+        // 3. Fallback: Regional Punjabi lyrics from JioSaavn catalogue
+        if (synced == null) {
+            synced = fetchJioSaavnLyrics(cleanTitle, artist, durationMs)
+        }
+
+        // 4. Cache result for offline access
         if (synced != null) {
             runSuspendCatching {
                 lyricsCacheDao.insert(
@@ -71,6 +80,51 @@ class LyricsRepositoryImpl @Inject constructor(
 
         return synced
     }
+
+    private suspend fun fetchJioSaavnLyrics(
+        cleanTitle: String,
+        artist: String,
+        durationMs: Long,
+    ): SyncedLyrics? = runSuspendCatching {
+        val query = "$cleanTitle $artist".trim()
+        val search = jioSaavnApi.searchSongs(query, limit = 3)
+        val songs = search.data?.results.orEmpty()
+        val candidate = songs.firstOrNull { it.id != null } ?: return@runSuspendCatching null
+        val songId = candidate.id ?: return@runSuspendCatching null
+
+        val lyricsResp = jioSaavnApi.getLyrics(songId)
+        val rawLyrics = lyricsResp.data?.lyrics?.takeIf { it.isNotBlank() } ?: return@runSuspendCatching null
+
+        val cleaned = rawLyrics
+            .replace(Regex("(?i)<br\\s*/?>"), "\n")
+            .replace(Regex("<[^>]+>"), "")
+            .let(::unescapeHtml)
+
+        val rawLines = cleaned.lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .toList()
+
+        if (rawLines.isEmpty()) return@runSuspendCatching null
+
+        val totalMs = if (durationMs > 10_000L) durationMs - 5_000L else rawLines.size * UNSYNCED_STEP_MS
+        val stepMs = (totalMs / rawLines.size).coerceIn(2_000L, 5_000L)
+
+        val lines = rawLines.mapIndexed { index, lineText ->
+            LyricLine(
+                timeMs = index * stepMs,
+                text = lineText,
+            ).withTransliteration()
+        }
+
+        SyncedLyrics(
+            trackName = candidate.name ?: candidate.title ?: cleanTitle,
+            artistName = candidate.primaryArtists ?: artist,
+            lines = lines,
+            provider = "JioSaavn",
+            isSynced = false,
+        )
+    }.getOrNull()
 
     private fun encodeLines(lines: List<LyricLine>): String =
         lines.joinToString("\n") { "${it.timeMs}|${it.text}|${it.romanized.orEmpty()}" }

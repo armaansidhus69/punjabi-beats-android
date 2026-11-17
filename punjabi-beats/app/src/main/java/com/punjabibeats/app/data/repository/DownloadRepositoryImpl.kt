@@ -144,6 +144,13 @@ class DownloadRepositoryImpl @Inject constructor(
     }
 
     private suspend fun performDownload(song: Song) {
+        val targetDir = context.filesDir
+        val usableSpace = targetDir.usableSpace
+        if (usableSpace < MIN_FREE_SPACE_BYTES) {
+            val freeMb = usableSpace / (1024 * 1024)
+            error("Device storage is low ($freeMb MB free). At least 50MB free space is required to download songs safely.")
+        }
+
         val targetFile = DownloadCrypto.fileFor(context, song.id)
         val tempFile = File(context.cacheDir, "dl_${DownloadCrypto.sanitize(song.id)}_${System.currentTimeMillis()}.tmp")
 
@@ -158,6 +165,12 @@ class DownloadRepositoryImpl @Inject constructor(
                 if (!response.isSuccessful) error("Download failed with HTTP ${response.code}")
                 val body = response.body ?: error("Download returned an empty body")
                 val totalLength = body.contentLength()
+
+                if (totalLength > 0 && targetDir.usableSpace < totalLength + MIN_FREE_SPACE_BYTES) {
+                    val neededMb = (totalLength + MIN_FREE_SPACE_BYTES) / (1024 * 1024)
+                    val freeMb = targetDir.usableSpace / (1024 * 1024)
+                    error("Insufficient storage space for '${song.title}' ($freeMb MB free, need $neededMb MB).")
+                }
 
                 val sizeBytes = DownloadCrypto.encryptTo(
                     input = body.byteStream(),
@@ -211,5 +224,9 @@ class DownloadRepositoryImpl @Inject constructor(
 
             downloadDao.delete(songId)
         }
+    }
+
+    private companion object {
+        const val MIN_FREE_SPACE_BYTES = 50L * 1024 * 1024L // 50MB safety reserve
     }
 }
