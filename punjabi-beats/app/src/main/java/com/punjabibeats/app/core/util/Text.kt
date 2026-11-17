@@ -3,17 +3,26 @@ package com.punjabibeats.app.core.util
 import android.os.Build
 import android.text.Html
 
-/** Strips HTML entities that JioSaavn titles/artists frequently contain ("&amp;"). */
+/** Strips HTML entities that JioSaavn titles/artists and subtitles frequently contain ("&amp;"). */
 fun unescapeHtml(raw: String): String {
     if (!raw.contains('&')) return raw
+    val fast = raw
+        .replace("&amp;", "&")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'")
+        .replace("&apos;", "'")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&nbsp;", " ")
+    if (!fast.contains('&')) return fast
     return runCatching {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Html.fromHtml(raw, Html.FROM_HTML_MODE_LEGACY)
+            Html.fromHtml(fast, Html.FROM_HTML_MODE_LEGACY)
         } else {
             @Suppress("DEPRECATION")
-            Html.fromHtml(raw)
+            Html.fromHtml(fast)
         }.toString()
-    }.getOrDefault(raw)
+    }.getOrDefault(fast)
 }
 
 private val consonants: Map<Char, String> = mapOf(

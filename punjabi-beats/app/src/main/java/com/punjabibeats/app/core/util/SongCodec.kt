@@ -18,8 +18,8 @@ object SongCodec {
         PbJson.json.encodeToString(Song.serializer(), sanitizeForStorage(song))
     }.getOrDefault("")
 
-    fun decode(json: String): Song? = runCatching { PbJson.json.decodeFromString(Song.serializer(), json) }
-        .getOrNull()
+    fun decode(json: String): Song? =
+        if (json.isBlank()) null else runCatching { PbJson.json.decodeFromString(Song.serializer(), json) }.getOrNull()
 
     fun encodeList(songs: List<Song>): String =
         runCatching {
@@ -27,5 +27,5 @@ object SongCodec {
         }.getOrDefault("[]")
 
     fun decodeList(json: String): List<Song> =
-        runCatching { PbJson.json.decodeFromString(listSerializer, json) }.getOrDefault(emptyList())
+        if (json.isBlank()) emptyList() else runCatching { PbJson.json.decodeFromString(listSerializer, json) }.getOrDefault(emptyList())
 }

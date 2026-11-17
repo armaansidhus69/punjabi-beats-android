@@ -73,4 +73,16 @@ class ParsersTest {
         assertEquals("Hello world", cues[0].text)
         assertEquals(7_500L, cues[1].endMs)
     }
+
+    @Test
+    fun `parses SRT with HTML entities and unescapes them`() {
+        val srt = """
+            1
+            00:00:01,000 --> 00:00:03,000
+            Rock &amp; Roll &#39;n&#39; Beats
+        """.trimIndent()
+        val cues = SubtitleParser.parse(srt)
+        assertEquals(1, cues.size)
+        assertEquals("Rock & Roll 'n' Beats", cues[0].text)
+    }
 }

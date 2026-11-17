@@ -8,6 +8,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -129,6 +130,7 @@ class PollingTransport(
     override fun close() {
         pollJob?.cancel()
         pollJob = null
+        scope.cancel()
     }
 
     class Factory @Inject constructor(private val backend: BackendApi) : JamTransport.Factory {

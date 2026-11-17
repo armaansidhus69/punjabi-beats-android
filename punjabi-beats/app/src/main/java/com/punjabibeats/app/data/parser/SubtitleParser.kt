@@ -1,6 +1,7 @@
 package com.punjabibeats.app.data.parser
 
 import com.punjabibeats.app.core.util.parseTimestampToMs
+import com.punjabibeats.app.core.util.unescapeHtml
 import com.punjabibeats.app.domain.model.TranscriptCue
 
 /** Parses SRT and WebVTT subtitle files into auto-scrollable transcript cues. */
@@ -24,6 +25,7 @@ object SubtitleParser {
                 .drop(1)
                 .joinToString(" ") { markupRegex.replace(it, "") }
                 .trim()
+                .let(::unescapeHtml)
             if (text.isNotBlank() && endMs > startMs) cues += TranscriptCue(startMs, endMs, text)
         }
         return cues.sortedBy { it.startMs }
