@@ -67,7 +67,7 @@ class LyricsViewModel @Inject constructor(
                 val maxLimit = if (duration > 0) duration else Long.MAX_VALUE
                 (lastBasePos + elapsed.toLong()).coerceIn(0L, maxLimit)
             } else {
-                lastBasePos
+                currentPos
             }
 
             emit(interpolated)

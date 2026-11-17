@@ -37,6 +37,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -309,21 +311,28 @@ class MediaPlaybackService : MediaSessionService() {
             }
         }
         serviceScope.launch {
-            settings.equalizerEnabled().collect { applyEffectsIfEnabled() }
-        }
-        serviceScope.launch {
-            settings.equalizerBands().collect { applyEffectsIfEnabled() }
-        }
-        serviceScope.launch {
-            settings.bassBoostStrength().collect { applyEffectsIfEnabled() }
-        }
-        serviceScope.launch {
-            settings.virtualizerStrength().collect { applyEffectsIfEnabled() }
+            combine(
+                settings.equalizerEnabled(),
+                settings.equalizerBands(),
+                settings.bassBoostStrength(),
+                settings.virtualizerStrength(),
+            ) { eqEnabled, bands, bass, virtualizer ->
+                EffectConfig(eqEnabled, bands, bass, virtualizer)
+            }
+                .debounce(50)
+                .collect { config ->
+                    audioEffects.setEqualizerEnabled(config.eqEnabled, config.bands)
+                    audioEffects.setBassBoostEnabled(config.eqEnabled && config.bass > 0, config.bass.toShort())
+                    audioEffects.setVirtualizerEnabled(config.eqEnabled && config.virtualizer > 0, config.virtualizer.toShort())
+                }
         }
     }
 
+    private var applyEffectsJob: kotlinx.coroutines.Job? = null
+
     private fun applyEffectsIfEnabled() {
-        serviceScope.launch {
+        applyEffectsJob?.cancel()
+        applyEffectsJob = serviceScope.launch {
             val eqEnabled = settings.equalizerEnabled().first()
             val bands = settings.equalizerBands().first()
             val bass = settings.bassBoostStrength().first()
@@ -457,3 +466,10 @@ class MediaPlaybackService : MediaSessionService() {
             .setUri(SilenceAsset.DATA_URI_PREFIX + SilenceAsset.SILENT_WAV_BASE64)
             .build()
 }
+
+private data class EffectConfig(
+    val eqEnabled: Boolean,
+    val bands: List<Short>,
+    val bass: Int,
+    val virtualizer: Int,
+)

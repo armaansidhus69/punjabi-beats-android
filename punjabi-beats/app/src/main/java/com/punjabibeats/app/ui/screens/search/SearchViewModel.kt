@@ -13,6 +13,7 @@ import com.punjabibeats.app.domain.repository.SongRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,6 +50,7 @@ class SearchViewModel @Inject constructor(
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
     private val queryFlow = MutableStateFlow("")
+    private var searchJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -60,37 +62,41 @@ class SearchViewModel @Inject constructor(
             queryFlow
                 .debounce(300)
                 .collectLatest { query ->
-                    if (query.isBlank()) {
-                        _uiState.update { it.copy(results = null, isSearching = false, error = null) }
-                        return@collectLatest
-                    }
-                    _uiState.update { it.copy(isSearching = true, error = null) }
-                    coroutineScope {
-                        val songsDeferred = async { runSuspendCatching { songRepository.searchAll(query) } }
-                        val podcastsDeferred = async {
-                            runSuspendCatching { podcastRepository.searchLocalChannels(query) }
-                                .getOrDefault(emptyList<PodcastChannel>())
-                        }
-                        val searchResult = songsDeferred.await()
-                        val podcasts = podcastsDeferred.await()
-                        searchResult.fold(
-                            onSuccess = { results ->
-                                _uiState.update {
-                                    it.copy(
-                                        results = results.copy(podcasts = podcasts),
-                                        isSearching = false,
-                                        error = null,
-                                    )
-                                }
-                            },
-                            onFailure = { failure ->
-                                _uiState.update {
-                                    it.copy(isSearching = false, error = failure.userMessage())
-                                }
-                            },
+                    executeSearch(query)
+                }
+        }
+    }
+
+    private suspend fun executeSearch(query: String) {
+        if (query.isBlank()) {
+            _uiState.update { it.copy(results = null, isSearching = false, error = null) }
+            return
+        }
+        _uiState.update { it.copy(isSearching = true, error = null) }
+        coroutineScope {
+            val songsDeferred = async { runSuspendCatching { songRepository.searchAll(query) } }
+            val podcastsDeferred = async {
+                runSuspendCatching { podcastRepository.searchLocalChannels(query) }
+                    .getOrDefault(emptyList<PodcastChannel>())
+            }
+            val searchResult = songsDeferred.await()
+            val podcasts = podcastsDeferred.await()
+            searchResult.fold(
+                onSuccess = { results ->
+                    _uiState.update {
+                        it.copy(
+                            results = results.copy(podcasts = podcasts),
+                            isSearching = false,
+                            error = null,
                         )
                     }
-                }
+                },
+                onFailure = { failure ->
+                    _uiState.update {
+                        it.copy(isSearching = false, error = failure.userMessage())
+                    }
+                },
+            )
         }
     }
 
@@ -102,16 +108,25 @@ class SearchViewModel @Inject constructor(
     fun submitSearch() {
         val query = _uiState.value.query.trim()
         if (query.isBlank()) return
-        viewModelScope.launch { libraryRepository.addRecentSearch(query) }
+        viewModelScope.launch {
+            runSuspendCatching { libraryRepository.addRecentSearch(query) }
+        }
     }
 
     fun onSuggestionClick(query: String) {
-        onQueryChange(query)
+        _uiState.update { it.copy(query = query) }
+        queryFlow.value = query
         submitSearch()
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            executeSearch(query)
+        }
     }
 
     fun clearRecentSearches() {
-        viewModelScope.launch { libraryRepository.clearRecentSearches() }
+        viewModelScope.launch {
+            runSuspendCatching { libraryRepository.clearRecentSearches() }
+        }
     }
 
     fun setTab(tab: SearchTab) {

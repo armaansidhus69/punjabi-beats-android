@@ -9,6 +9,8 @@ import kotlinx.serialization.json.JsonPrimitive
 import okhttp3.OkHttpClient
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Audius requires choosing a discovery node at runtime. The official
@@ -22,7 +24,7 @@ class AudiusHostProvider @Inject constructor(private val okHttpClient: OkHttpCli
     var host: String = DEFAULT_HOST
         private set
 
-    suspend fun refreshHost() {
+    suspend fun refreshHost() = withContext(Dispatchers.IO) {
         val result = runSuspendCatching {
             val request = okhttp3.Request.Builder()
                 .url("https://api.audius.co")

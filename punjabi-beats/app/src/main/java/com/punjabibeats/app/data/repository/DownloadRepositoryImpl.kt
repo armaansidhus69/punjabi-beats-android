@@ -3,6 +3,7 @@ package com.punjabibeats.app.data.repository
 import android.content.Context
 import com.punjabibeats.app.core.di.ApplicationScope
 import com.punjabibeats.app.core.util.SongCodec
+import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.data.local.db.DownloadDao
 import com.punjabibeats.app.data.local.db.DownloadedSongEntity
 import com.punjabibeats.app.data.resolver.StreamResolver
@@ -98,10 +99,10 @@ class DownloadRepositoryImpl @Inject constructor(
             }
         }.flowOn(Dispatchers.IO)
 
-    override suspend fun get(songId: String): Song? {
-        val row = downloadDao.get(songId) ?: return null
+    override suspend fun get(songId: String): Song? = withContext(Dispatchers.IO) {
+        val row = downloadDao.get(songId) ?: return@withContext null
         val file = File(row.filePath)
-        return if (file.exists() && file.length() > 0) {
+        if (file.exists() && file.length() > 0) {
             SongCodec.decode(row.songJson)
         } else {
             downloadDao.delete(songId)
@@ -109,10 +110,10 @@ class DownloadRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun filePath(songId: String): String? {
-        val path = downloadDao.get(songId)?.filePath ?: return null
+    override suspend fun filePath(songId: String): String? = withContext(Dispatchers.IO) {
+        val path = downloadDao.get(songId)?.filePath ?: return@withContext null
         val file = File(path)
-        return if (file.exists() && file.length() > 0) path else {
+        if (file.exists() && file.length() > 0) path else {
             downloadDao.delete(songId)
             null
         }
@@ -129,7 +130,7 @@ class DownloadRepositoryImpl @Inject constructor(
         // Deduplication: if already in-flight, await existing task
         val existing = activeDownloads[song.id]
         if (existing != null && existing.isActive) {
-            return runCatching { existing.await() }
+            return runSuspendCatching { existing.await() }
         }
 
         val deferred = appScope.async(Dispatchers.IO) {
@@ -137,7 +138,7 @@ class DownloadRepositoryImpl @Inject constructor(
         }
         activeDownloads[song.id] = deferred
 
-        return runCatching {
+        return runSuspendCatching {
             deferred.await()
         }.also {
             activeDownloads.remove(song.id)

@@ -274,12 +274,12 @@ class JamEngine(
         val controller = playerController
         val song = controller.currentSong.value
         val snapshot = _roomState.value.snapshot ?: emptySnapshot()
-        val participants = (snapshot.participants + me.copy(
+        val hostParticipant = me.copy(
             isHost = true,
             isMe = true,
             lastSeenMs = serverNow(),
-        ))
-            .distinctBy { it.userId }
+        )
+        val participants = (snapshot.participants.filterNot { it.userId == me.userId } + hostParticipant)
             .filter { serverNow() - it.lastSeenMs < PRESENCE_TTL_MS }
 
         val message = JamMessage.HostState(

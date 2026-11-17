@@ -12,6 +12,7 @@ import com.punjabibeats.app.playback.ResolutionBus
 import com.punjabibeats.app.playback.SleepMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -58,12 +59,16 @@ class PlayerViewModel @Inject constructor(
     val bassBoostStrength = settingsDataStore.bassBoostStrength()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
+    private var bandUpdateJob: Job? = null
+    private var bassJob: Job? = null
+
     fun setEqualizerEnabled(enabled: Boolean) {
         viewModelScope.launch { settingsDataStore.saveEqualizerEnabled(enabled) }
     }
 
     fun setBandLevel(bandIndex: Int, levelMilliBel: Short) {
-        viewModelScope.launch {
+        bandUpdateJob?.cancel()
+        bandUpdateJob = viewModelScope.launch {
             val current = equalizerBands.value
             val next = current.toMutableList()
             while (next.size < 5) next.add(0.toShort())
@@ -75,6 +80,8 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun resetEqualizer() {
+        bandUpdateJob?.cancel()
+        bassJob?.cancel()
         viewModelScope.launch {
             settingsDataStore.saveEqualizerBands(listOf<Short>(0, 0, 0, 0, 0))
             settingsDataStore.saveBassBoostStrength(0)
@@ -82,7 +89,8 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun setBassBoost(strength: Int) {
-        viewModelScope.launch { settingsDataStore.saveBassBoostStrength(strength) }
+        bassJob?.cancel()
+        bassJob = viewModelScope.launch { settingsDataStore.saveBassBoostStrength(strength) }
     }
 
     private val _isLiked = MutableStateFlow(false)
