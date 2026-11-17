@@ -24,5 +24,5 @@ fun parseTimestampToMs(raw: String): Long? {
     val seconds = secondsPart.toDoubleOrNull() ?: return null
     val minutes = parts.getOrNull(parts.size - 2)?.trim()?.toLongOrNull() ?: 0L
     val hours = parts.getOrNull(parts.size - 3)?.trim()?.toLongOrNull() ?: 0L
-    return hours * 3_600_000L + minutes * 60_000L + (seconds * 1000L).toLong()
+    return (hours * 3_600_000L + minutes * 60_000L + (seconds * 1000L).toLong()).coerceAtLeast(0L)
 }

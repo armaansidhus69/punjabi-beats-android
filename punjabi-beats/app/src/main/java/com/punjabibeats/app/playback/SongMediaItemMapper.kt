@@ -12,11 +12,14 @@ const val EXTRA_SONG_JSON = "pb.song.json"
 
 fun Song.toMediaItem(uri: String? = streamUrl): MediaItem {
     val extras = Bundle().apply { putString(EXTRA_SONG_JSON, SongCodec.encode(this@toMediaItem)) }
+    val artworkUri = artworkUrl?.takeIf { it.isNotBlank() }?.let { url ->
+        runCatching { url.toUri() }.getOrNull()
+    }
     val metadata = MediaMetadata.Builder()
         .setTitle(title)
         .setArtist(artist)
         .setAlbumTitle(albumName)
-        .setArtworkUri(artworkUrl?.toUri())
+        .setArtworkUri(artworkUri)
         .setExtras(extras)
         .build()
     val builder = MediaItem.Builder()

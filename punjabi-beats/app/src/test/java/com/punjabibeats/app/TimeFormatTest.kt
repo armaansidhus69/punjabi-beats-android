@@ -9,6 +9,7 @@ class TimeFormatTest {
 
     @Test
     fun `formats minutes and seconds`() {
+        assertEquals("0:00", formatDuration(-500))
         assertEquals("0:00", formatDuration(0))
         assertEquals("0:59", formatDuration(59_500))
         assertEquals("3:04", formatDuration(184_000))
@@ -19,6 +20,7 @@ class TimeFormatTest {
     fun `parses LRC timestamps`() {
         assertEquals(61_240L, parseTimestampToMs("[01:01.24]"))
         assertEquals(0L, parseTimestampToMs("[00:00.00]"))
+        assertEquals(0L, parseTimestampToMs("[-01:00.00]"))
     }
 
     @Test

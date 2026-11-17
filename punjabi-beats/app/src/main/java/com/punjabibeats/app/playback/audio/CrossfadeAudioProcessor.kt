@@ -55,7 +55,7 @@ class CrossfadeAudioProcessor : BaseAudioProcessor() {
     }
 
     override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
-        sampleRate = inputAudioFormat.sampleRate
+        sampleRate = if (inputAudioFormat.sampleRate > 0) inputAudioFormat.sampleRate else 44_100
         // Passthrough is fine for non-16-bit encodings; the gain math below
         // only handles PCM 16-bit samples.
         return inputAudioFormat
@@ -90,7 +90,8 @@ class CrossfadeAudioProcessor : BaseAudioProcessor() {
     private fun currentGain(): Float {
         val fadeMs = fadeDurationMs
         if (fadeMs <= 0) return 1f
-        val positionUs = frameCount * 1_000_000L / sampleRate
+        val rate = if (sampleRate > 0) sampleRate else 44_100
+        val positionUs = frameCount * 1_000_000L / rate
         val nominalFadeUs = fadeMs * 1_000L
         // For short tracks where duration < 2 * fadeDuration, scale down the fade window
         // so the track reaches 100% volume at its midpoint rather than staying permanently attenuated.
@@ -111,5 +112,5 @@ class CrossfadeAudioProcessor : BaseAudioProcessor() {
 
     private fun bytesPerFrame(): Int =
         if (inputAudioFormat.bytesPerFrame > 0) inputAudioFormat.bytesPerFrame
-        else 2 * inputAudioFormat.channelCount
+        else maxOf(1, 2 * maxOf(1, inputAudioFormat.channelCount))
 }

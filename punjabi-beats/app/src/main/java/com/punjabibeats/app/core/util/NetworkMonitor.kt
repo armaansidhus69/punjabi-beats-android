@@ -19,22 +19,24 @@ class NetworkMonitor @Inject constructor(@ApplicationContext context: Context) {
     val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
 
     init {
-        val manager = context.getSystemService(ConnectivityManager::class.java)
-        manager?.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                _isOnline.value = true
-            }
+        runCatching {
+            val manager = context.getSystemService(ConnectivityManager::class.java)
+            manager?.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    _isOnline.value = true
+                }
 
-            override fun onLost(network: Network) {
-                _isOnline.value = queryOnline(context)
-            }
+                override fun onLost(network: Network) {
+                    _isOnline.value = queryOnline(context)
+                }
 
-            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                val notSuspended = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
-                _isOnline.value = hasInternet && notSuspended
-            }
-        })
+                override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+                    val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    val notSuspended = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
+                    _isOnline.value = hasInternet && notSuspended
+                }
+            })
+        }
     }
 
     private fun queryOnline(context: Context): Boolean = runCatching {

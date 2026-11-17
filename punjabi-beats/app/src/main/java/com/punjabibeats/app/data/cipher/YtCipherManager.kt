@@ -157,8 +157,21 @@ class YtCipherManager @Inject constructor(
 
     private fun queryParam(raw: String, key: String): String? =
         runCatching {
-            val parseable = if (raw.contains("?")) raw else "?$raw"
-            Uri.parse(parseable).getQueryParameter(key)
+            if (raw.startsWith("http://") || raw.startsWith("https://")) {
+                Uri.parse(raw).getQueryParameter(key)
+            } else {
+                val pairs = raw.removePrefix("?").split('&')
+                for (pair in pairs) {
+                    val eq = pair.indexOf('=')
+                    if (eq > 0) {
+                        val name = java.net.URLDecoder.decode(pair.substring(0, eq), "UTF-8")
+                        if (name == key) {
+                            return@runCatching java.net.URLDecoder.decode(pair.substring(eq + 1), "UTF-8")
+                        }
+                    }
+                }
+                null
+            }
         }.getOrNull()?.takeIf { it.isNotBlank() }
 
     private companion object {
@@ -173,7 +186,9 @@ object HttpUrlRewriter {
         val builder = uri.buildUpon().clearQuery()
         for (name in uri.queryParameterNames) {
             if (name != key) {
-                uri.getQueryParameters(name).firstOrNull()?.let { builder.appendQueryParameter(name, it) }
+                for (paramValue in uri.getQueryParameters(name)) {
+                    builder.appendQueryParameter(name, paramValue)
+                }
             }
         }
         builder.appendQueryParameter(key, value)

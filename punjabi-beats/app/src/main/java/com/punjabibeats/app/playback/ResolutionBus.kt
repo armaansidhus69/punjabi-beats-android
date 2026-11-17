@@ -3,6 +3,7 @@ package com.punjabibeats.app.playback
 import com.punjabibeats.app.domain.model.Song
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -15,10 +16,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 @Singleton
 class ResolutionBus @Inject constructor() {
 
-    private val _resolutionFailures = MutableSharedFlow<Song>(extraBufferCapacity = 16)
+    private val _resolutionFailures = MutableSharedFlow<Song>(
+        extraBufferCapacity = 16,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
     val resolutionFailures: SharedFlow<Song> = _resolutionFailures.asSharedFlow()
 
     suspend fun emitResolutionFailure(song: Song) {
-        _resolutionFailures.emit(song)
+        _resolutionFailures.tryEmit(song)
     }
 }

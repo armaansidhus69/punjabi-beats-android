@@ -101,8 +101,14 @@ class PlayerConfigStore @Inject constructor(
 
     private fun writeCache(config: CipherConfig) {
         runCatching {
-            cacheFile.parentFile?.mkdirs()
-            cacheFile.writeText(PbJson.json.encodeToString(CipherConfig.serializer(), config))
+            val parent = cacheFile.parentFile ?: return@runCatching
+            parent.mkdirs()
+            val tempFile = File(parent, "${cacheFile.name}.tmp")
+            tempFile.writeText(PbJson.json.encodeToString(CipherConfig.serializer(), config))
+            if (tempFile.exists()) {
+                if (cacheFile.exists()) cacheFile.delete()
+                tempFile.renameTo(cacheFile)
+            }
         }
     }
 

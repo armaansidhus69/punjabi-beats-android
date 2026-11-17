@@ -139,6 +139,7 @@ class PlayerControllerImpl @Inject constructor(
                         runCatching { action(controller) }
                     }
                 } else {
+                    pendingActions.clear()
                     _playerErrors.tryEmit("Could not start the audio engine. Please reopen the app.")
                 }
             },
@@ -244,7 +245,8 @@ class PlayerControllerImpl @Inject constructor(
     }
 
     override fun playNext(song: Song) = withController { controller ->
-        controller.addMediaItems(controller.currentMediaItemIndex + 1, listOf(song.toMediaItem()))
+        val nextIndex = (controller.currentMediaItemIndex + 1).coerceIn(0, controller.mediaItemCount)
+        controller.addMediaItems(nextIndex, listOf(song.toMediaItem()))
     }
 
     override fun addToQueue(songs: List<Song>) = withController { controller ->
