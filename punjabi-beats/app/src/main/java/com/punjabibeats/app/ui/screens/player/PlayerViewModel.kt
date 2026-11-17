@@ -12,6 +12,8 @@ import com.punjabibeats.app.playback.ResolutionBus
 import com.punjabibeats.app.playback.SleepMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -106,12 +109,18 @@ class PlayerViewModel @Inject constructor(
                 .distinctUntilChangedBy { it?.id }
                 .collectLatest { song ->
                     if (song == null) return@collectLatest
-                    // Industry-standard threshold: require at least 15s of continuous listening
+                    // Industry-standard threshold: require at least 15s of actual playback
                     // before recording to play_history. Rapid skips cancel this job via collectLatest
                     // so play history and Top Artists are never polluted by skipped tracks.
-                    kotlinx.coroutines.delay(15_000L)
-                    if (player.isPlaying.value) {
-                        runSuspendCatching { libraryRepository.recordPlay(song) }
+                    while (currentCoroutineContext().isActive) {
+                        delay(1_000L)
+                        val pos = player.positionMs.value
+                        val dur = player.durationMs.value
+                        val thresholdMet = pos >= 15_000L || (dur in 1..20_000L && pos >= dur / 2)
+                        if (player.isPlaying.value && thresholdMet) {
+                            runSuspendCatching { libraryRepository.recordPlay(song) }
+                            break
+                        }
                     }
                 }
         }

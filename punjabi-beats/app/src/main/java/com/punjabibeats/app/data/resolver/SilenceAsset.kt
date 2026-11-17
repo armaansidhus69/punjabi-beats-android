@@ -45,6 +45,10 @@ object SilenceAsset {
         val fullWav = ByteArray(44 + dataSize)
         System.arraycopy(header, 0, fullWav, 0, 44)
         // fullWav data bytes remain 0x00 (silence in 16-bit signed PCM)
-        return android.util.Base64.encodeToString(fullWav, android.util.Base64.NO_WRAP)
+        return runCatching {
+            java.util.Base64.getEncoder().encodeToString(fullWav)
+        }.getOrElse {
+            android.util.Base64.encodeToString(fullWav, android.util.Base64.NO_WRAP)
+        }
     }
 }

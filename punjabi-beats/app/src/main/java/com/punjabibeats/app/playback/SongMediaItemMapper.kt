@@ -27,7 +27,8 @@ fun Song.toMediaItem(uri: String? = streamUrl): MediaItem {
 }
 
 fun MediaItem.toSong(): Song? {
-    val liveUri = localConfiguration?.uri?.toString()
+    val rawUri = localConfiguration?.uri?.toString()
+    val liveUri = if (!rawUri.isNullOrBlank() && !rawUri.startsWith("data:", ignoreCase = true)) rawUri else null
     val restored = mediaMetadata.extras?.getString(EXTRA_SONG_JSON)?.let { SongCodec.decode(it) }
     if (restored != null) {
         return if (!liveUri.isNullOrBlank() && restored.streamUrl == null) {

@@ -16,7 +16,7 @@
 - Surface `#130E1B` (Dark Glass)
 - Golden Crown `#FFAA00` with cursive script "Punjabi Beats"
 - Must pass `.\gradlew.bat testDebugUnitTest` without regressions
-- Output debug APK must be assembled and verified
+- Strict Constraint: Do NOT generate new APK binaries (keep existing `apk/punjabi-beats-v1.0.0-legacy.apk` untouched)
 
 ## Review Focus
 1. Palette contrast: White text on Obsidian background `#08060D` must maintain crisp legibility.
@@ -36,11 +36,11 @@
 **Interfaces:**
 - Produces: `PBTheme.kt` with Vice City / Neon palette as the default / primary theme (`id = "classic"` / `"vice"`) featuring `#FF2E93` accent, `#08060D` background, `#130E1B` surface, `#1B1224` card, `#FFAA00` secondary, and dusk sunset hero gradient.
 
-- [ ] **Step 1: Write failing test in ThemeEngineTest for the Vice City Neon palette**
-- [ ] **Step 2: Run test to verify it fails**
-- [ ] **Step 3: Update `PBTheme.kt` with exact neon pink palette and dusk hero gradient**
-- [ ] **Step 4: Run test to verify it passes**
-- [ ] **Step 5: Commit changes**
+- [x] **Step 1: Write failing test in ThemeEngineTest for the Vice City Neon palette**
+- [x] **Step 2: Run test to verify it fails**
+- [x] **Step 3: Update `PBTheme.kt` with exact neon pink palette and dusk hero gradient**
+- [x] **Step 4: Run test to verify it passes**
+- [x] **Step 5: Commit changes**
 
 ---
 
@@ -54,10 +54,10 @@
 - Consumes: `LocalPBTheme.current`
 - Produces: `ArtistCard` with double neon pink glowing rings (`#FF2E93`), `MoodTile` with individual neon borders (amber, cyan, purple, crimson), and category filter chips.
 
-- [ ] **Step 1: Write test verifying double-ring styling parameters**
-- [ ] **Step 2: Implement double neon glowing rings in `ArtistCard` and updated `MoodTile` in `CommonUi.kt`**
-- [ ] **Step 3: Run tests to verify they pass**
-- [ ] **Step 4: Commit changes**
+- [x] **Step 1: Write test verifying double-ring styling parameters**
+- [x] **Step 2: Implement double neon glowing rings in `ArtistCard` and updated `MoodTile` in `CommonUi.kt`**
+- [x] **Step 3: Run tests to verify they pass**
+- [x] **Step 4: Commit changes**
 
 ---
 
@@ -70,9 +70,9 @@
 - Consumes: `CommonUi.kt`, `PBTheme.kt`
 - Produces: Top header with menu icon `☰`, centered Golden Crown `👑` with cursive "Punjabi Beats" and subtitle `"YOUR MUSIC • YOUR UNIVERSE"`, notification bell `🔔` with unread dot, glowing pink pill search bar with microphone icon, "JATTWAAD - DAILY PUNJABI HITS" hero banner with glowing play button, category chips, curated artists row, and 4-card horizontal moods row.
 
-- [ ] **Step 1: Implement custom top bar header, glowing search bar pill, category chips, hero banner, and moods row**
-- [ ] **Step 2: Verify `HomeScreen` compiles and runs cleanly**
-- [ ] **Step 3: Commit changes**
+- [x] **Step 1: Implement custom top bar header, glowing search bar pill, category chips, hero banner, and moods row**
+- [x] **Step 2: Verify `HomeScreen` compiles and runs cleanly**
+- [x] **Step 3: Commit changes**
 
 ---
 
@@ -85,10 +85,10 @@
 **Interfaces:**
 - Produces: `MiniPlayerBar` with glowing `#FF2E93` border, live audio waveform equalizer at bottom, heart icon, and `PbBottomBar` with hot-pink pill highlight on active tab.
 
-- [ ] **Step 1: Implement glowing border and audio equalizer waveform in `MiniPlayerBar.kt`**
-- [ ] **Step 2: Implement active hot-pink pill dock styling in `PunjabiBeatsAppRoot.kt`**
-- [ ] **Step 3: Run unit tests to verify no regressions**
-- [ ] **Step 4: Commit changes**
+- [x] **Step 1: Implement glowing border and audio equalizer waveform in `MiniPlayerBar.kt`**
+- [x] **Step 2: Implement active hot-pink pill dock styling in `PunjabiBeatsAppRoot.kt`**
+- [x] **Step 3: Run unit tests to verify no regressions**
+- [x] **Step 4: Commit changes**
 
 ---
 
@@ -101,22 +101,21 @@
 - Consumes: `TurntableDeck.kt`, `UniversalSeekbar.kt`
 - Produces: Header `∨`, `// NOW PLAYING //`, `⋮`, turntable vinyl centerpiece with **vibrant circular neon pink halo glow** and dusk palm backdrop, dancing pink spectrum equalizer bars, 76dp circular double-ring glowing Play/Pause button, and 4 bottom action cards (`66 Lyrics`, `ııll Equalizer`, `⏱ Timer`, `≡🎵 Queue`).
 
-- [ ] **Step 1: Implement neon halo glow behind turntable and cover art**
-- [ ] **Step 2: Implement dancing pink bars spectrum equalizer above seekbar**
-- [ ] **Step 3: Implement 76dp double-ring glowing Play/Pause button**
-- [ ] **Step 4: Implement 4 bottom action cards (`66 Lyrics`, `ııll Equalizer`, `⏱ Timer`, `≡🎵 Queue`)**
-- [ ] **Step 5: Run tests and verify compilation**
-- [ ] **Step 6: Commit changes**
+- [x] **Step 1: Implement neon halo glow behind turntable and cover art**
+- [x] **Step 2: Implement dancing pink bars spectrum equalizer above seekbar**
+- [x] **Step 3: Implement 76dp double-ring glowing Play/Pause button**
+- [x] **Step 4: Implement 4 bottom action cards (`66 Lyrics`, `ııll Equalizer`, `⏱ Timer`, `≡🎵 Queue`)**
+- [x] **Step 5: Run tests and verify compilation**
+- [x] **Step 6: Commit changes**
 
 ---
 
-### Task 6: Verification, Test Suite & APK Assembly
+### Task 6: Verification & Test Suite
 
 **Files:**
 - Verify: Full codebase
-- Build: `apk/punjabi-beats-zen-v1.1-debug.apk` and `apk/punjabi-beats-v1.1.0-latest.apk`
+- Constraints: Do NOT assemble new APKs or modify `apk/punjabi-beats-v1.0.0-legacy.apk`
 
-- [ ] **Step 1: Run full unit test suite `.\gradlew.bat testDebugUnitTest`**
-- [ ] **Step 2: Assemble debug APK `.\gradlew.bat :app:assembleDebug`**
-- [ ] **Step 3: Copy output APK to `apk/` directory**
-- [ ] **Step 4: Commit and push changes to GitHub**
+- [x] **Step 1: Run full unit test suite `.\gradlew.bat testDebugUnitTest`**
+- [x] **Step 2: Verify zero regression across all test cases**
+- [x] **Step 3: Commit and push clean source changes to GitHub `main` branch**

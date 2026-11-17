@@ -45,11 +45,11 @@ class StreamResolver @Inject constructor(
     suspend fun resolve(song: Song): Song {
         // Fast path for local device songs: never scrape the web or timeout offline
         if (song.source == MusicSource.LOCAL) {
-            if (!song.streamUrl.isNullOrBlank()) return song
+            if (!song.streamUrl.isNullOrBlank() && !song.streamUrl.startsWith("data:", ignoreCase = true)) return song
             throw StreamResolutionException(song.id)
         }
 
-        if (!song.streamUrl.isNullOrBlank()) return song
+        if (!song.streamUrl.isNullOrBlank() && !song.streamUrl.startsWith("data:", ignoreCase = true)) return song
 
         // Fast path: In-memory LRU cache with 45-minute TTL
         val cached = streamCache.get(song.id)
