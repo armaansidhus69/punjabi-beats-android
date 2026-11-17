@@ -76,10 +76,18 @@ object LocalMusicScanner {
                     val year = if (yearCol != -1 && !cursor.isNull(yearCol)) cursor.getInt(yearCol) else null
 
                     val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
-                    val artworkUri = ContentUris.withAppendedId(
-                        Uri.parse("content://media/external/audio/albumart"),
-                        albumId,
-                    ).toString()
+                    val artworkUri = if (albumId > 0) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            ContentUris.withAppendedId(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId).toString()
+                        } else {
+                            ContentUris.withAppendedId(
+                                Uri.parse("content://media/external/audio/albumart"),
+                                albumId,
+                            ).toString()
+                        }
+                    } else {
+                        null
+                    }
 
                     songs.add(
                         Song(
