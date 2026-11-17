@@ -183,11 +183,15 @@ class PlayerViewModel @Inject constructor(
 
     fun removeFromQueue(index: Int) = player.removeFromQueue(index)
 
+    private var seekbarStyleJob: Job? = null
     fun setSeekbarStyle(style: String) {
-        viewModelScope.launch { settingsDataStore.saveSeekbarStyle(style) }
+        seekbarStyleJob?.cancel()
+        seekbarStyleJob = viewModelScope.launch { settingsDataStore.saveSeekbarStyle(style) }
     }
 
+    private var turntableModeJob: Job? = null
     fun setTurntableMode(enabled: Boolean) {
-        viewModelScope.launch { settingsDataStore.saveTurntableMode(enabled) }
+        turntableModeJob?.cancel()
+        turntableModeJob = viewModelScope.launch { settingsDataStore.saveTurntableMode(enabled) }
     }
 }

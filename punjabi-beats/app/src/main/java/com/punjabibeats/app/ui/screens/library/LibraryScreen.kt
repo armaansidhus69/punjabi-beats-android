@@ -559,6 +559,20 @@ private fun LocalTab(
         }
     }
 
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                val current = LocalMusicScanner.hasAudioPermission(context)
+                if (current != hasPermission) {
+                    hasPermission = current
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     LaunchedEffect(hasPermission) {
         if (hasPermission && localSongs.isEmpty() && !isScanning) {
             viewModel.scanLocalSongs(context)

@@ -3,6 +3,7 @@ package com.punjabibeats.app.ui.screens.album
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.domain.repository.SongRepository
 import com.punjabibeats.app.ui.navigation.Routes
@@ -51,10 +52,13 @@ class AlbumViewModel @Inject constructor(
         loadAlbumTracks()
     }
 
+    private var loadTracksJob: kotlinx.coroutines.Job? = null
+
     fun loadAlbumTracks() {
-        viewModelScope.launch {
+        loadTracksJob?.cancel()
+        loadTracksJob = viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            try {
+            runSuspendCatching {
                 val query = if (artistName.isNotBlank() && !artistName.equals("Unknown", ignoreCase = true)) {
                     "$albumName $artistName"
                 } else {
@@ -73,7 +77,7 @@ class AlbumViewModel @Inject constructor(
                     year = year,
                     totalDurationMs = totalDuration,
                 )
-            } catch (_: Exception) {
+            }.onFailure {
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }
         }

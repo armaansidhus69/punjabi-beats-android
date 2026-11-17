@@ -304,7 +304,11 @@ class PlayerControllerImpl @Inject constructor(
         }
     }
 
-    override fun seekTo(positionMs: Long) = withController { it.seekTo(positionMs.coerceAtLeast(0L)) }
+    override fun seekTo(positionMs: Long) {
+        val targetPos = positionMs.coerceAtLeast(0L)
+        _positionMs.value = targetPos
+        withController { it.seekTo(targetPos) }
+    }
 
     override fun seekToIndex(index: Int) = withController { controller ->
         if (index in 0 until controller.mediaItemCount) {
@@ -339,20 +343,26 @@ class PlayerControllerImpl @Inject constructor(
         scope.launch { settings.saveShuffle(controller.shuffleModeEnabled) }
     }
 
-    override fun setPlaybackSpeed(speed: Float) = withController { controller ->
-        controller.playbackParameters = controller.playbackParameters.withSpeed(speed)
+    override fun setPlaybackSpeed(speed: Float) {
+        _playbackSpeed.value = speed
+        withController { controller ->
+            controller.playbackParameters = controller.playbackParameters.withSpeed(speed)
+        }
         scope.launch { settings.savePlaybackSpeed(speed) }
     }
 
-    override fun setPlaybackPitch(pitch: Float) = withController { controller ->
-        controller.playbackParameters = androidx.media3.common.PlaybackParameters(
-            controller.playbackParameters.speed,
-            pitch,
-        )
+    override fun setPlaybackPitch(pitch: Float) {
+        _playbackPitch.value = pitch
+        withController { controller ->
+            controller.playbackParameters = androidx.media3.common.PlaybackParameters(
+                controller.playbackParameters.speed,
+                pitch,
+            )
+        }
         scope.launch { settings.savePlaybackPitch(pitch) }
     }
 
-    override fun setSkipSilence(enabled: Boolean) = withController { controller ->
+    override fun setSkipSilence(enabled: Boolean) {
         _skipSilenceEnabled.value = enabled
         scope.launch { settings.saveSkipSilence(enabled) }
     }

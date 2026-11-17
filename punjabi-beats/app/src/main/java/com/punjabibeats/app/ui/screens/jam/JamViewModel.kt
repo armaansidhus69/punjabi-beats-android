@@ -2,6 +2,7 @@ package com.punjabibeats.app.ui.screens.jam
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.data.local.db.JamDao
 import com.punjabibeats.app.data.local.db.JamRoomHistoryEntity
 import com.punjabibeats.app.data.local.datastore.SettingsDataStore
@@ -103,6 +104,7 @@ class JamViewModel @Inject constructor(
                 jamDao.upsert(JamRoomHistoryEntity(code = code))
                 settings.saveLastJamCode(code)
             } catch (failure: Exception) {
+                if (failure is kotlinx.coroutines.CancellationException) throw failure
                 pendingEngine?.close()
                 engine?.close()
                 engine = null
@@ -152,8 +154,13 @@ class JamViewModel @Inject constructor(
         }
         searchJob = viewModelScope.launch {
             kotlinx.coroutines.delay(250)
-            val results = songRepository.searchSongs(query, limit = 12)
-            _uiState.update { it.copy(searchResults = results) }
+            runSuspendCatching {
+                songRepository.searchSongs(query, limit = 12)
+            }.onSuccess { results ->
+                _uiState.update { it.copy(searchResults = results) }
+            }.onFailure {
+                _uiState.update { it.copy(searchResults = emptyList()) }
+            }
         }
     }
 
@@ -165,7 +172,7 @@ class JamViewModel @Inject constructor(
         val code = _uiState.value.engineState.snapshot?.code ?: return
         val deepLink = "punjabibeats://jam/$code"
         viewModelScope.launch {
-            val shared = runCatching {
+            val shared = runSuspendCatching {
                 val payload = com.punjabibeats.app.core.util.PbJson.requestBody(
                     """{"type":"jam_room","code":"$code","link":"$deepLink"}"""
                 )

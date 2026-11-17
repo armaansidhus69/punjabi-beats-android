@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.punjabibeats.app.MainActivity
 import com.punjabibeats.app.R
+import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.data.local.datastore.SettingsDataStore
 import com.punjabibeats.app.data.resolver.SilenceAsset
 import com.punjabibeats.app.data.resolver.StreamResolver
@@ -438,7 +439,7 @@ class MediaPlaybackService : MediaSessionService() {
         if (permanentlyFailedIds.contains(song.id)) {
             return item.withSilence()
         }
-        val offline = runCatching { downloadRepository.get(song.id) }.getOrNull()
+        val offline = runSuspendCatching { downloadRepository.get(song.id) }.getOrNull()
         if (offline != null && com.punjabibeats.app.data.security.DownloadCrypto.fileFor(this, offline.id).exists()) {
             return item.buildUpon().setUri("pbenc://${offline.id}").build()
         }
@@ -455,6 +456,7 @@ class MediaPlaybackService : MediaSessionService() {
                 item.buildUpon().setUri(resolved.streamUrl).build()
             }
         } catch (resolutionFailure: Exception) {
+            if (resolutionFailure is kotlinx.coroutines.CancellationException) throw resolutionFailure
             permanentlyFailedIds.add(song.id)
             resolutionBus.emitResolutionFailure(song)
             item.withSilence()

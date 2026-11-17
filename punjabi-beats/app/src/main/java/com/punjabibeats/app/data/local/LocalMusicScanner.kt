@@ -57,22 +57,23 @@ object LocalMusicScanner {
                 null,
                 sortOrder,
             )?.use { cursor ->
-                val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-                val albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-                val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-                val albumIdCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+                val idCol = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
+                if (idCol == -1) return@use
+                val titleCol = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
+                val artistCol = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+                val albumCol = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
+                val durationCol = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)
+                val albumIdCol = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
                 val yearCol = cursor.getColumnIndex(MediaStore.Audio.Media.YEAR)
 
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idCol)
-                    val title = cursor.getString(titleCol) ?: "Unknown Track"
-                    var artist = cursor.getString(artistCol) ?: "Unknown Artist"
+                    val title = if (titleCol != -1) cursor.getString(titleCol) ?: "Unknown Track" else "Unknown Track"
+                    var artist = if (artistCol != -1) cursor.getString(artistCol) ?: "Unknown Artist" else "Unknown Artist"
                     if (artist.equals("<unknown>", ignoreCase = true)) artist = "Local Artist"
-                    val album = cursor.getString(albumCol) ?: "Local Music"
-                    val duration = cursor.getLong(durationCol)
-                    val albumId = cursor.getLong(albumIdCol)
+                    val album = if (albumCol != -1) cursor.getString(albumCol) ?: "Local Music" else "Local Music"
+                    val duration = if (durationCol != -1) cursor.getLong(durationCol) else 0L
+                    val albumId = if (albumIdCol != -1) cursor.getLong(albumIdCol) else -1L
                     val year = if (yearCol != -1 && !cursor.isNull(yearCol)) cursor.getInt(yearCol) else null
 
                     val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
@@ -103,6 +104,7 @@ object LocalMusicScanner {
                 }
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             e.printStackTrace()
         }
 

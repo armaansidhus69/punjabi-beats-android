@@ -114,9 +114,13 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
+    private var scanJob: kotlinx.coroutines.Job? = null
+
     fun scanLocalSongs(context: android.content.Context) {
+        if (_isScanningLocal.value) return
         val appContext = context.applicationContext
-        viewModelScope.launch {
+        scanJob?.cancel()
+        scanJob = viewModelScope.launch {
             _isScanningLocal.value = true
             try {
                 val songs = com.punjabibeats.app.data.local.LocalMusicScanner.scanLocalAudio(appContext)
@@ -125,6 +129,7 @@ class LibraryViewModel @Inject constructor(
                     _events.tryEmit("Found ${songs.size} local tracks on device")
                 }
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 _events.tryEmit("Could not scan device music: ${e.message}")
             } finally {
                 _isScanningLocal.value = false

@@ -3,6 +3,7 @@ package com.punjabibeats.app.ui.screens.artist
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.domain.model.AlbumCard
 import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.domain.repository.SongRepository
@@ -54,10 +55,13 @@ class ArtistViewModel @Inject constructor(
         loadArtistData()
     }
 
+    private var loadArtistJob: kotlinx.coroutines.Job? = null
+
     fun loadArtistData() {
-        viewModelScope.launch {
+        loadArtistJob?.cancel()
+        loadArtistJob = viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            try {
+            runSuspendCatching {
                 val results = songRepository.searchAll(artistName)
                 val songs = if (results.songs.isNotEmpty()) {
                     results.songs
@@ -90,7 +94,7 @@ class ArtistViewModel @Inject constructor(
                     albums = albums,
                     artworkUrl = topArtwork,
                 )
-            } catch (e: Exception) {
+            }.onFailure {
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }
         }

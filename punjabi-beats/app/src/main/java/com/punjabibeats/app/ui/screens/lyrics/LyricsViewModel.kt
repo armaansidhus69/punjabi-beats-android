@@ -153,6 +153,11 @@ class LyricsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(timingOffsetMs = 0L)
     }
 
+    fun retry() {
+        val song = player.currentSong.value ?: return
+        viewModelScope.launch { loadLyrics(song) }
+    }
+
     fun notifyShared(count: Int) {
         _events.tryEmit("Lyric card with $count lines ready to share")
     }

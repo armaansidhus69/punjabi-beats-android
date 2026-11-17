@@ -214,7 +214,9 @@ fun FullPlayerScreen(
             .allowHardware(false)
             .size(160)
             .build()
-        val bitmap = (context.imageLoader.execute(request).drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+        val bitmap = runCatching {
+            (context.imageLoader.execute(request).drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+        }.getOrNull()
         if (bitmap != null) {
             val (vibrant, dominant) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
                 val palette = Palette.from(bitmap).maximumColorCount(24).generate()
