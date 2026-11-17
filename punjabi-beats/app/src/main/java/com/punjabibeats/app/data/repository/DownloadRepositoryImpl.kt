@@ -22,8 +22,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -36,6 +38,8 @@ import okhttp3.Request
  * - Runs in @ApplicationScope so navigation away from screen does NOT abort the download.
  * - Writes to atomic temporary file (.tmp) first; never leaves corrupt partial .pbenc files.
  * - Deduplicates concurrent download requests for the same songId.
+ * - Cloud Restore & Keystore Desync Resilience: Prunes phantom DB records whose files
+ *   do not exist on disk or cannot be read.
  * - Emits real 1..100% progress updates.
  */
 @Singleton
@@ -50,22 +54,76 @@ class DownloadRepositoryImpl @Inject constructor(
     private val progress = MutableStateFlow<Map<String, Int>>(emptyMap())
     private val activeDownloads = ConcurrentHashMap<String, Deferred<Unit>>()
 
+    init {
+        // Startup sweep: purge any phantom download records whose files were excluded
+        // from Google Drive cloud backup/device restore or wiped by OS storage manager
+        appScope.launch(Dispatchers.IO) {
+            val list = downloadDao.downloads().firstOrNull() ?: emptyList()
+            for (row in list) {
+                val f = File(row.filePath)
+                if (!f.exists() || f.length() <= 0) {
+                    downloadDao.delete(row.songId)
+                }
+            }
+        }
+    }
+
     override fun observeDownloads(): Flow<List<Song>> =
-        downloadDao.downloads().map { rows -> rows.mapNotNull { SongCodec.decode(it.songJson) } }
+        downloadDao.downloads().map { rows ->
+            rows.mapNotNull { row ->
+                val file = File(row.filePath)
+                if (file.exists() && file.length() > 0) {
+                    SongCodec.decode(row.songJson)
+                } else {
+                    appScope.launch(Dispatchers.IO) { downloadDao.delete(row.songId) }
+                    null
+                }
+            }
+        }
 
     override fun observeProgress(): Flow<Map<String, Int>> = progress.asStateFlow()
 
-    override fun observeIsDownloaded(songId: String): Flow<Boolean> = downloadDao.isDownloaded(songId)
+    override fun observeIsDownloaded(songId: String): Flow<Boolean> =
+        downloadDao.isDownloaded(songId).map { existsInDb ->
+            if (!existsInDb) false
+            else {
+                val row = downloadDao.get(songId)
+                val file = row?.filePath?.let { File(it) }
+                if (file != null && file.exists() && file.length() > 0) true
+                else {
+                    appScope.launch(Dispatchers.IO) { downloadDao.delete(songId) }
+                    false
+                }
+            }
+        }
 
-    override suspend fun get(songId: String): Song? =
-        downloadDao.get(songId)?.let { SongCodec.decode(it.songJson) }
+    override suspend fun get(songId: String): Song? {
+        val row = downloadDao.get(songId) ?: return null
+        val file = File(row.filePath)
+        return if (file.exists() && file.length() > 0) {
+            SongCodec.decode(row.songJson)
+        } else {
+            downloadDao.delete(songId)
+            null
+        }
+    }
 
-    override suspend fun filePath(songId: String): String? =
-        downloadDao.get(songId)?.filePath
+    override suspend fun filePath(songId: String): String? {
+        val path = downloadDao.get(songId)?.filePath ?: return null
+        val file = File(path)
+        return if (file.exists() && file.length() > 0) path else {
+            downloadDao.delete(songId)
+            null
+        }
+    }
 
     override suspend fun download(song: Song): Result<Unit> {
-        // Fast path: already saved in DB
-        if (downloadDao.get(song.id) != null) return Result.success(Unit)
+        // Fast path: already saved in DB and file exists
+        val existingRow = downloadDao.get(song.id)
+        if (existingRow != null) {
+            val f = File(existingRow.filePath)
+            if (f.exists() && f.length() > 0) return Result.success(Unit)
+        }
 
         // Deduplication: if already in-flight, await existing task
         val existing = activeDownloads[song.id]
@@ -148,7 +206,6 @@ class DownloadRepositoryImpl @Inject constructor(
             downloadDao.get(songId)?.filePath?.let { path ->
                 runCatching { File(path).delete() }
             }
-            // Clean up any matching target file directly
             val targetFile = DownloadCrypto.fileFor(context, songId)
             if (targetFile.exists()) runCatching { targetFile.delete() }
 
