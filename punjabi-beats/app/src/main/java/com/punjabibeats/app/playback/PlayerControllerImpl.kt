@@ -439,9 +439,12 @@ class PlayerControllerImpl @Inject constructor(
             val persisted = settings.lastQueue().first()
             val songs = SongCodec.decodeList(persisted.songsJson)
             if (songs.isNotEmpty()) {
-                restoreQueue(songs, persisted.startIndex)
-                publishTimeline()
-                publishCurrent()
+                val safeIndex = persisted.startIndex.coerceIn(0, songs.lastIndex)
+                _queue.value = songs
+                _currentIndex.value = safeIndex
+                _currentSong.value = songs[safeIndex]
+                _durationMs.value = songs[safeIndex].durationMs
+                restoreQueue(songs, safeIndex)
             }
             _repeatMode.value = settings.repeatMode().first()
             _shuffleEnabled.value = settings.shuffleEnabled().first()

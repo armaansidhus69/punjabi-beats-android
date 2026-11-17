@@ -23,8 +23,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.punjabibeats.app.ui.theme.AccentGold
 import com.punjabibeats.app.ui.theme.BgBase
+import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.OutlineDim
 import com.punjabibeats.app.ui.theme.SurfaceElevated
 import com.punjabibeats.app.ui.theme.SurfaceHigh
@@ -40,13 +40,16 @@ fun VinylArtwork(
     modifier: Modifier = Modifier,
     size: Dp = 280.dp,
 ) {
+    val theme = LocalPBTheme.current
     val rotation = remember { Animatable(0f) }
 
     LaunchedEffect(isPlaying) {
         if (isPlaying) {
             while (true) {
+                val normalized = rotation.value % 360f
+                rotation.snapTo(normalized)
                 rotation.animateTo(
-                    targetValue = rotation.value + 360f,
+                    targetValue = normalized + 360f,
                     animationSpec = tween(durationMillis = 20_000, easing = LinearEasing),
                 )
             }
@@ -60,7 +63,7 @@ fun VinylArtwork(
                 .graphicsLayer { rotationZ = rotation.value }
                 .clip(CircleShape)
                 .background(Brush.sweepGradient(listOf(SurfaceElevated, SurfaceHigh, SurfaceElevated)))
-                .border(2.dp, AccentGold.copy(alpha = 0.35f), CircleShape),
+                .border(2.dp, theme.accent.copy(alpha = 0.35f), CircleShape),
         ) {
             AsyncImage(
                 model = artworkUrl,
@@ -90,7 +93,7 @@ fun VinylArtwork(
                 modifier = Modifier
                     .size(6.dp)
                     .clip(CircleShape)
-                    .background(AccentGold),
+                    .background(theme.accent),
             )
         }
     }

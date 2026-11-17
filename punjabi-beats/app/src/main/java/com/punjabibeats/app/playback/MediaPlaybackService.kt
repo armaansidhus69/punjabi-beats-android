@@ -120,6 +120,10 @@ class MediaPlaybackService : MediaSessionService() {
                     if (currentSongId != null) {
                         errorRetryCounts.remove(currentSongId)
                     }
+                    val dur = player.duration
+                    if (dur > 0) {
+                        crossfadeProcessor.updateDuration(dur)
+                    }
                 }
             }
 
@@ -291,7 +295,6 @@ class MediaPlaybackService : MediaSessionService() {
         mainScope.launch {
             settings.crossfadeSeconds().collect { seconds ->
                 crossfadeProcessor.fadeDurationMs = seconds * 1_000
-                crossfadeProcessor.onTrackChanged(player.duration.coerceAtLeast(0L))
             }
         }
         mainScope.launch {

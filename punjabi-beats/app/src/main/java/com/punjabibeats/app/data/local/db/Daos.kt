@@ -33,6 +33,18 @@ interface LibraryDao {
     @Query("DELETE FROM playlists WHERE id = :id")
     suspend fun deletePlaylist(id: String)
 
+    @Query("DELETE FROM playlist_songs WHERE playlistId = :playlistId")
+    suspend fun deletePlaylistSongs(playlistId: String)
+
+    @Query("""
+        SELECT p.id, p.name, p.createdAt, COUNT(ps.songId) AS songCount
+        FROM playlists p
+        LEFT JOIN playlist_songs ps ON p.id = ps.playlistId
+        GROUP BY p.id
+        ORDER BY p.createdAt DESC
+    """)
+    fun playlistsWithCounts(): Flow<List<PlaylistWithCount>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addSongToPlaylist(entity: PlaylistSongEntity)
 
@@ -83,6 +95,14 @@ interface HistoryDao {
 
 /** Lightweight projection for GROUP BY artist queries. */
 data class ArtistCount(val artist: String, val plays: Int)
+
+/** Lightweight projection for playlists with counted songs. */
+data class PlaylistWithCount(
+    val id: String,
+    val name: String,
+    val createdAt: Long,
+    val songCount: Int,
+)
 
 @Dao
 interface DownloadDao {

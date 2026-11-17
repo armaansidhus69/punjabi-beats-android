@@ -1,6 +1,7 @@
 package com.punjabibeats.app.data.local.db
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
@@ -37,7 +38,13 @@ data class RecentSearchEntity(
     val searchedAt: Long = System.currentTimeMillis(),
 )
 
-@Entity(tableName = "play_history")
+@Entity(
+    tableName = "play_history",
+    indices = [
+        Index(value = ["playedAt"]),
+        Index(value = ["artist"]),
+    ],
+)
 data class PlayHistoryEntity(
     @PrimaryKey(autoGenerate = true) val rowId: Long = 0L,
     val songId: String,

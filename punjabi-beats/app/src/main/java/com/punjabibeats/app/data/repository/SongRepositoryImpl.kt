@@ -223,7 +223,7 @@ class SongRepositoryImpl @Inject constructor(
         repeat(PIPED_ATTEMPTS) {
             val host = pipedHostProvider.currentHost
             val result = runSuspendCatching {
-                withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
+                withTimeoutOrNull(PIPED_TIMEOUT_MS) {
                     pipedApi.search("$host/search", query).items.mapNotNull { it.toSong() }
                 }
             }
@@ -236,6 +236,7 @@ class SongRepositoryImpl @Inject constructor(
     private companion object {
         const val ARTIST_TIMEOUT_MS = 6_000L
         const val SEARCH_TIMEOUT_MS = 8_000L
+        const val PIPED_TIMEOUT_MS = 2_500L
         const val HERO_QUERY = "punjabi top hits"
         const val TRENDING_QUERY = "punjabi trending songs"
         const val PIPED_ATTEMPTS = 3

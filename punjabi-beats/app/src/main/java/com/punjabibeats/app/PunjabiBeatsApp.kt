@@ -3,10 +3,24 @@ package com.punjabibeats.app
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import com.punjabibeats.app.data.local.db.LyricsCacheDao
+import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import javax.inject.Inject
 
 @HiltAndroidApp
-class PunjabiBeatsApp : Application() {
+class PunjabiBeatsApp : Application(), ImageLoaderFactory {
+
+    @Inject lateinit var okHttpClient: Lazy<OkHttpClient>
+    @Inject lateinit var lyricsCacheDao: Lazy<LyricsCacheDao>
 
     override fun onCreate() {
         super.onCreate()
@@ -23,6 +37,33 @@ class PunjabiBeatsApp : Application() {
         // (session visitor, PO-token WebView, cipher) — search and playback
         // then run entirely on-device with no backend API.
         runCatching { com.zenmusic.ZenMusic.initialize(applicationContext) }
+
+        // Periodic cache hygiene: prune lyrics cached older than 30 days so the database does not accumulate unbounded blobs
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching {
+                val thirtyDaysAgo = System.currentTimeMillis() - (30L * 24L * 60L * 60L * 1000L)
+                lyricsCacheDao.get().pruneOld(thirtyDaysAgo)
+            }
+        }
+    }
+
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .okHttpClient { okHttpClient.get() }
+            .memoryCache {
+                MemoryCache.Builder(this)
+                    .maxSizePercent(0.25)
+                    .build()
+            }
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(cacheDir.resolve("image_cache"))
+                    .maxSizeBytes(50L * 1024L * 1024L)
+                    .build()
+            }
+            .respectCacheHeaders(false)
+            .crossfade(true)
+            .build()
     }
 
     private fun createNotificationChannels() {

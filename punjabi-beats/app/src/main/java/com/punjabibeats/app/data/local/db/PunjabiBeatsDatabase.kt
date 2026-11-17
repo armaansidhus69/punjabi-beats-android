@@ -18,7 +18,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         JamRoomHistoryEntity::class,
         LyricsCacheEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class PunjabiBeatsDatabase : RoomDatabase() {
@@ -57,9 +57,21 @@ abstract class PunjabiBeatsDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Migration from version 2 to 3:
+         * Adds indices on `playedAt` and `artist` in `play_history` for fast O(log N)
+         * recent plays and top artist queries.
+         */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_play_history_playedAt` ON `play_history` (`playedAt`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_play_history_artist` ON `play_history` (`artist`)")
+            }
+        }
+
         fun build(context: Context): PunjabiBeatsDatabase =
             Room.databaseBuilder(context, PunjabiBeatsDatabase::class.java, NAME)
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .fallbackToDestructiveMigrationOnDowngrade() // Only wipe on version downgrades, NEVER on upgrades
                 .build()
     }

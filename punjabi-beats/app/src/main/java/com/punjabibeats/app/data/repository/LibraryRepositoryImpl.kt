@@ -44,13 +44,13 @@ class LibraryRepositoryImpl @Inject constructor(
     }
 
     override fun observePlaylists(): Flow<List<Playlist>> =
-        libraryDao.playlists().map { rows ->
-            rows.map { entity ->
+        libraryDao.playlistsWithCounts().map { rows ->
+            rows.map { row ->
                 Playlist(
-                    id = entity.id,
-                    name = entity.name,
-                    createdAt = entity.createdAt,
-                    songCount = libraryDao.playlistSize(entity.id).first(),
+                    id = row.id,
+                    name = row.name,
+                    createdAt = row.createdAt,
+                    songCount = row.songCount,
                 )
             }
         }
@@ -65,9 +65,9 @@ class LibraryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deletePlaylist(playlistId: String) {
+        // Atomic cleanup of playlist songs and the playlist itself
+        libraryDao.deletePlaylistSongs(playlistId)
         libraryDao.deletePlaylist(playlistId)
-        // Cascade is not declared on the cross-ref table; clean it up manually.
-        playlistSongIds(playlistId).forEach { libraryDao.removeSongFromPlaylist(playlistId, it) }
     }
 
     override fun observePlaylistSongs(playlistId: String): Flow<List<Song>> =

@@ -37,6 +37,13 @@ class CrossfadeAudioProcessor : BaseAudioProcessor() {
         trackDurationUs = if (durationMs > 0) durationMs * 1_000L else C.TIME_UNSET
     }
 
+    /** Called when the player duration becomes available (STATE_READY) without resetting the frame counter. */
+    fun updateDuration(durationMs: Long) {
+        if (durationMs > 0) {
+            trackDurationUs = durationMs * 1_000L
+        }
+    }
+
     /** Called by the service when the user seeks, resynchronizing the PCM frame counter. */
     fun onSeek(positionMs: Long) {
         val safeMs = positionMs.coerceAtLeast(0L)
