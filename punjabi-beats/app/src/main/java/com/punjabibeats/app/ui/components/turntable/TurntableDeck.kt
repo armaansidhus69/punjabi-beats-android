@@ -176,8 +176,8 @@ fun TurntableDeck(
                     .fillMaxSize()
                     .graphicsLayer { rotationZ = rotation.value },
             ) {
-                val center = Offset(size.toPx() / 2f, size.toPx() / 2f)
-                val outerRadius = size.toPx() / 2f - 2.dp.toPx()
+                val center = Offset(this.size.width / 2f, this.size.height / 2f)
+                val outerRadius = this.size.width / 2f - 2.dp.toPx()
                 // Brushed platter rim
                 drawCircle(
                     color = Color(0xFF2C2A36),
@@ -208,8 +208,8 @@ fun TurntableDeck(
             ) {
                 // Microgroove track lines & sweeping light reflections
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val center = Offset(size.toPx() / 2f, size.toPx() / 2f)
-                    val r = (size - 18.dp).toPx() / 2f
+                    val center = Offset(this.size.width / 2f, this.size.height / 2f)
+                    val r = this.size.width / 2f
                     // Concentric vinyl grooves
                     val grooveRadii = listOf(0.42f, 0.50f, 0.58f, 0.66f, 0.74f, 0.82f, 0.90f)
                     for (frac in grooveRadii) {

@@ -13,6 +13,8 @@ import com.punjabibeats.app.domain.repository.SongRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,25 +65,31 @@ class SearchViewModel @Inject constructor(
                         return@collectLatest
                     }
                     _uiState.update { it.copy(isSearching = true, error = null) }
-                    val searchResult = runSuspendCatching { songRepository.searchAll(query) }
-                    val podcasts = runSuspendCatching { podcastRepository.searchLocalChannels(query) }
-                        .getOrDefault(emptyList<PodcastChannel>())
-                    searchResult.fold(
-                        onSuccess = { results ->
-                            _uiState.update {
-                                it.copy(
-                                    results = results.copy(podcasts = podcasts),
-                                    isSearching = false,
-                                    error = null,
-                                )
-                            }
-                        },
-                        onFailure = { failure ->
-                            _uiState.update {
-                                it.copy(isSearching = false, error = failure.userMessage())
-                            }
-                        },
-                    )
+                    coroutineScope {
+                        val songsDeferred = async { runSuspendCatching { songRepository.searchAll(query) } }
+                        val podcastsDeferred = async {
+                            runSuspendCatching { podcastRepository.searchLocalChannels(query) }
+                                .getOrDefault(emptyList<PodcastChannel>())
+                        }
+                        val searchResult = songsDeferred.await()
+                        val podcasts = podcastsDeferred.await()
+                        searchResult.fold(
+                            onSuccess = { results ->
+                                _uiState.update {
+                                    it.copy(
+                                        results = results.copy(podcasts = podcasts),
+                                        isSearching = false,
+                                        error = null,
+                                    )
+                                }
+                            },
+                            onFailure = { failure ->
+                                _uiState.update {
+                                    it.copy(isSearching = false, error = failure.userMessage())
+                                }
+                            },
+                        )
+                    }
                 }
         }
     }

@@ -53,6 +53,9 @@ class JamViewModel @Inject constructor(
     val events: SharedFlow<String> = _events.asSharedFlow()
 
     private var engine: JamEngine? = null
+    private var roomStateJob: kotlinx.coroutines.Job? = null
+    private var reactionsJob: kotlinx.coroutines.Job? = null
+    private var searchJob: kotlinx.coroutines.Job? = null
 
     init {
         viewModelScope.launch {
@@ -81,18 +84,20 @@ class JamViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _uiState.update { it.copy(connecting = true, error = null) }
+            roomStateJob?.cancel()
+            reactionsJob?.cancel()
             var pendingEngine: JamEngine? = null
             try {
                 val newEngine = jamEngineFactory.create(code)
                 pendingEngine = newEngine
                 newEngine.join(asHost = asHost)
                 engine = newEngine
-                viewModelScope.launch {
+                roomStateJob = viewModelScope.launch {
                     newEngine.roomState.collect { roomUi ->
                         _uiState.update { it.copy(engineState = roomUi) }
                     }
                 }
-                viewModelScope.launch {
+                reactionsJob = viewModelScope.launch {
                     newEngine.reactions.collect { reaction -> _reactions.value = reaction }
                 }
                 jamDao.upsert(JamRoomHistoryEntity(code = code))
@@ -101,6 +106,10 @@ class JamViewModel @Inject constructor(
                 pendingEngine?.close()
                 engine?.close()
                 engine = null
+                roomStateJob?.cancel()
+                roomStateJob = null
+                reactionsJob?.cancel()
+                reactionsJob = null
                 _uiState.update { it.copy(connecting = false, error = failure.message) }
             } finally {
                 _uiState.update { it.copy(connecting = false) }
@@ -109,6 +118,12 @@ class JamViewModel @Inject constructor(
     }
 
     fun leaveRoom() {
+        roomStateJob?.cancel()
+        roomStateJob = null
+        reactionsJob?.cancel()
+        reactionsJob = null
+        searchJob?.cancel()
+        searchJob = null
         engine?.close()
         engine = null
         _uiState.update {
@@ -130,11 +145,13 @@ class JamViewModel @Inject constructor(
     fun hostSkip() = engine?.hostSkip()
 
     fun searchSongsForQueue(query: String) {
+        searchJob?.cancel()
         if (query.isBlank()) {
             _uiState.update { it.copy(searchResults = emptyList()) }
             return
         }
-        viewModelScope.launch {
+        searchJob = viewModelScope.launch {
+            kotlinx.coroutines.delay(250)
             val results = songRepository.searchSongs(query, limit = 12)
             _uiState.update { it.copy(searchResults = results) }
         }
@@ -175,6 +192,9 @@ class JamViewModel @Inject constructor(
     }
 
     override fun onCleared() {
+        roomStateJob?.cancel()
+        reactionsJob?.cancel()
+        searchJob?.cancel()
         engine?.close()
         engine = null
         super.onCleared()

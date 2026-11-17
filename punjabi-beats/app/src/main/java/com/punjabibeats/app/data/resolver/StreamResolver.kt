@@ -101,9 +101,10 @@ class StreamResolver @Inject constructor(
         throw StreamResolutionException(song.id)
     }
 
-    /** Evicts a stale or expired stream URL from cache. */
+    /** Evicts a stale or expired stream URL from cache and cancels any in-flight resolution. */
     fun invalidate(songId: String) {
         streamCache.remove(songId)
+        activeResolutions.remove(songId)?.cancel()
     }
 
     private fun chainFor(source: MusicSource): List<TrackResolver> {

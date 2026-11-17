@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.punjabibeats.app.core.util.UiState
 import com.punjabibeats.app.core.util.runSuspendCatching
+import com.punjabibeats.app.core.util.userMessage
 import com.punjabibeats.app.domain.model.ScriptMode
 import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.domain.model.SyncedLyrics
@@ -94,12 +95,21 @@ class LyricsViewModel @Inject constructor(
             lyrics = UiState.Loading,
             scriptMode = currentScriptMode,
         )
-        val lyrics = runSuspendCatching {
+        runSuspendCatching {
             lyricsRepository.fetchLyrics(song.title, song.artist, song.durationMs)
-        }.getOrNull()
-        _uiState.value = _uiState.value.copy(
-            lyrics = UiState.Success(lyrics),
-            scriptMode = currentScriptMode,
+        }.fold(
+            onSuccess = { lyrics ->
+                _uiState.value = _uiState.value.copy(
+                    lyrics = UiState.Success(lyrics),
+                    scriptMode = currentScriptMode,
+                )
+            },
+            onFailure = { failure ->
+                _uiState.value = _uiState.value.copy(
+                    lyrics = UiState.Error(failure.userMessage()),
+                    scriptMode = currentScriptMode,
+                )
+            },
         )
     }
 

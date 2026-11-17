@@ -268,7 +268,7 @@ private fun EpisodeList(
                             }
                             if (episode.transcriptUrl != null) {
                                 IconButton(onClick = { viewModel.openTranscript(episode) }) {
-                                    Icon(Icons.AutoMirrored.Rounded.Notes, contentDescription = "Transcript", tint = TextSecondary)
+                                    Icon(Icons.Rounded.Notes, contentDescription = "Transcript", tint = TextSecondary)
                                 }
                             }
                         }

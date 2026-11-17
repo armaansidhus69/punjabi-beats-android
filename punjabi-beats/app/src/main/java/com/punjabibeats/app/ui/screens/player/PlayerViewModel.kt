@@ -141,10 +141,15 @@ class PlayerViewModel @Inject constructor(
 
     fun toggleLike() {
         val song = player.currentSong.value ?: return
-        _isLiked.value = !_isLiked.value // optimistic heart animation
+        val currentLiked = _isLiked.value
+        _isLiked.value = !currentLiked // optimistic heart animation
         viewModelScope.launch {
             runSuspendCatching { libraryRepository.toggleLike(song) }
-                .onFailure { _isLiked.value = !_isLiked.value } // revert on failure
+                .onFailure {
+                    if (player.currentSong.value?.id == song.id) {
+                        _isLiked.value = currentLiked // revert on failure only if still same song
+                    }
+                }
         }
     }
 

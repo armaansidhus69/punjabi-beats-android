@@ -85,18 +85,28 @@ class SettingsViewModel @Inject constructor(
     fun setEqualizerEnabled(enabled: Boolean) =
         viewModelScope.launch { settings.saveEqualizerEnabled(enabled) }
 
-    fun setBandLevel(index: Int, level: Int) = viewModelScope.launch {
-        val current = settings.equalizerBands().first()
-        val next = MutableList(maxOf(current.size, index + 1)) { i -> current.getOrNull(i) ?: 0.toShort() }
-        next[index] = level.toShort()
-        settings.saveEqualizerBands(next)
+    private var bandUpdateJob: kotlinx.coroutines.Job? = null
+    fun setBandLevel(index: Int, level: Int) {
+        bandUpdateJob?.cancel()
+        bandUpdateJob = viewModelScope.launch {
+            val current = settings.equalizerBands().first()
+            val next = MutableList(maxOf(current.size, index + 1)) { i -> current.getOrNull(i) ?: 0.toShort() }
+            next[index] = level.toShort()
+            settings.saveEqualizerBands(next)
+        }
     }
 
-    fun setBassBoost(strength: Int) =
-        viewModelScope.launch { settings.saveBassBoostStrength(strength) }
+    private var bassJob: kotlinx.coroutines.Job? = null
+    fun setBassBoost(strength: Int) {
+        bassJob?.cancel()
+        bassJob = viewModelScope.launch { settings.saveBassBoostStrength(strength) }
+    }
 
-    fun setVirtualizer(strength: Int) =
-        viewModelScope.launch { settings.saveVirtualizerStrength(strength) }
+    private var virtualizerJob: kotlinx.coroutines.Job? = null
+    fun setVirtualizer(strength: Int) {
+        virtualizerJob?.cancel()
+        virtualizerJob = viewModelScope.launch { settings.saveVirtualizerStrength(strength) }
+    }
 
     private companion object {
         val DEFAULT_BANDS = listOf("60 Hz", "230 Hz", "910 Hz", "3.6 kHz", "14 kHz")
