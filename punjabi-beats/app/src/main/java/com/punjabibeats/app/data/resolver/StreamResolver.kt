@@ -18,6 +18,9 @@ interface TrackResolver {
  * Priority chain from the product spec:
  * JioSaavn (320kbps) → Backend YouTube stream → InnerTube + cipher decipher → Audius → iTunes preview.
  * The source the song came from is always tried first, then the full chain.
+ *
+ * Local device tracks are validated directly without futilely scraping remote providers,
+ * preventing 20-second timeout hangs in offline scenarios.
  * Never throws anything except [StreamResolutionException] after every step fails.
  */
 @Singleton
@@ -34,6 +37,12 @@ class StreamResolver @Inject constructor(
     private val streamCache = LruCache<String, CachedStream>(CACHE_MAX_ENTRIES)
 
     suspend fun resolve(song: Song): Song {
+        // Fast path for local device songs: never scrape the web or timeout offline
+        if (song.source == MusicSource.LOCAL) {
+            if (!song.streamUrl.isNullOrBlank()) return song
+            throw StreamResolutionException(song.id)
+        }
+
         if (!song.streamUrl.isNullOrBlank()) return song
 
         // Fast path: In-memory LRU cache with 45-minute TTL
@@ -70,6 +79,7 @@ class StreamResolver @Inject constructor(
 
     private fun chainFor(source: MusicSource): List<TrackResolver> {
         return when (source) {
+            MusicSource.LOCAL -> emptyList()
             MusicSource.YOUTUBE -> listOf(
                 zenMusicResolver,
                 innerTubeResolver,
@@ -100,14 +110,6 @@ class StreamResolver @Inject constructor(
                 innerTubeResolver,
                 youTubeStreamResolver,
                 audiusResolver,
-                jioSaavnResolver,
-            )
-            MusicSource.LOCAL -> listOf(
-                zenMusicResolver,
-                innerTubeResolver,
-                youTubeStreamResolver,
-                audiusResolver,
-                iTunesResolver,
                 jioSaavnResolver,
             )
         }.distinct()
