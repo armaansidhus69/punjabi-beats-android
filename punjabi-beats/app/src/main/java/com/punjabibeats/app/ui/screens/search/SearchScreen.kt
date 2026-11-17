@@ -65,11 +65,7 @@ import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.ArtworkThumb
 import com.punjabibeats.app.ui.components.PbLoading
 import com.punjabibeats.app.ui.components.SongRow
-import com.punjabibeats.app.ui.theme.Background
-import com.punjabibeats.app.ui.theme.Grey
 import com.punjabibeats.app.ui.theme.LocalPBTheme
-import com.punjabibeats.app.ui.theme.TextSecondary
-import com.punjabibeats.app.ui.theme.White
 
 private data class SearchTabItem(val tab: SearchTab, val label: String, val icon: ImageVector)
 
@@ -559,8 +555,8 @@ private fun ResultsSection(
                     ) {
                         ArtworkThumb(url = channel.artworkUrl, size = 52.dp, cornerRadius = 12.dp)
                         Column(Modifier.padding(horizontal = 12.dp)) {
-                            Text(channel.title, color = White, style = MaterialTheme.typography.titleSmall, maxLines = 1)
-                            Text("Podcast • your library", style = MaterialTheme.typography.bodySmall, color = Grey)
+                            Text(channel.title, color = theme.text, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+                            Text("Podcast • your library", style = MaterialTheme.typography.bodySmall, color = theme.muted)
                         }
                     }
                 }
@@ -596,7 +592,7 @@ private fun ArtistChipCard(
         Spacer(Modifier.height(6.dp))
         Text(
             artist.name,
-            color = White,
+            color = theme.text,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
@@ -633,7 +629,7 @@ private fun ArtistListRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 artist.name,
-                color = White,
+                color = theme.text,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -681,7 +677,7 @@ private fun AlbumCardItem(
         Spacer(Modifier.height(8.dp))
         Text(
             album.name,
-            color = White,
+            color = theme.text,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -691,7 +687,7 @@ private fun AlbumCardItem(
             Text(
                 album.artist,
                 style = MaterialTheme.typography.bodySmall,
-                color = Grey,
+                color = theme.muted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -708,6 +704,7 @@ private fun AlbumCardItem(
 
 @Composable
 private fun EmptyTabMessage(message: String) {
+    val theme = LocalPBTheme.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -716,7 +713,7 @@ private fun EmptyTabMessage(message: String) {
     ) {
         Text(
             message,
-            color = TextSecondary,
+            color = theme.muted,
             fontSize = 15.sp,
         )
     }
@@ -724,10 +721,11 @@ private fun EmptyTabMessage(message: String) {
 
 @Composable
 private fun SectionLabel(title: String?) {
+    val theme = LocalPBTheme.current
     if (title != null) {
         Text(
             title,
-            color = White,
+            color = theme.text,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),

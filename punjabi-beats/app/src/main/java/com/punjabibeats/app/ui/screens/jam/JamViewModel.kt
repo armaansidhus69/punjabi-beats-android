@@ -81,8 +81,11 @@ class JamViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _uiState.update { it.copy(connecting = true, error = null) }
+            var pendingEngine: JamEngine? = null
             try {
                 val newEngine = jamEngineFactory.create(code)
+                pendingEngine = newEngine
+                newEngine.join(asHost = asHost)
                 engine = newEngine
                 viewModelScope.launch {
                     newEngine.roomState.collect { roomUi ->
@@ -92,10 +95,12 @@ class JamViewModel @Inject constructor(
                 viewModelScope.launch {
                     newEngine.reactions.collect { reaction -> _reactions.value = reaction }
                 }
-                newEngine.join(asHost = asHost)
                 jamDao.upsert(JamRoomHistoryEntity(code = code))
                 settings.saveLastJamCode(code)
             } catch (failure: Exception) {
+                pendingEngine?.close()
+                engine?.close()
+                engine = null
                 _uiState.update { it.copy(connecting = false, error = failure.message) }
             } finally {
                 _uiState.update { it.copy(connecting = false) }

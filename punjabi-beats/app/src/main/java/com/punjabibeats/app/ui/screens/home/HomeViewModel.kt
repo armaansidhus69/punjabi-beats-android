@@ -38,6 +38,13 @@ class HomeViewModel @Inject constructor(
 
     init {
         load()
+        viewModelScope.launch {
+            networkMonitor.isOnline.collect { online ->
+                if (online && _uiState.value.feed is UiState.Error) {
+                    load()
+                }
+            }
+        }
     }
 
     fun load() {

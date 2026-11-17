@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.punjabibeats.app.ui.theme.BgBase
+import com.punjabibeats.app.ui.theme.LocalPBTheme
 
 /**
  * Full-bleed artwork backdrop with a heavy blur — the "blur placeholder" layer
@@ -28,6 +28,7 @@ fun BlurredBackdropImage(
     blurRadius: Dp = 48.dp,
     scrimAlpha: Float = 0.55f,
 ) {
+    val theme = LocalPBTheme.current
     Box(modifier = modifier.fillMaxSize()) {
         if (url != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             AsyncImage(
@@ -47,7 +48,7 @@ fun BlurredBackdropImage(
                     .background(Color.Black.copy(alpha = scrimAlpha)),
             )
         } else {
-            Box(modifier = Modifier.fillMaxSize().background(BgBase))
+            Box(modifier = Modifier.fillMaxSize().background(theme.background))
         }
     }
 }

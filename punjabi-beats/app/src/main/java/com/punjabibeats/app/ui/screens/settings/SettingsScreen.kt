@@ -34,7 +34,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.punjabibeats.app.BuildConfig
 import com.punjabibeats.app.ui.theme.LocalPBTheme
-import com.punjabibeats.app.ui.theme.BgBase
 import com.punjabibeats.app.ui.theme.SurfaceBase
 import com.punjabibeats.app.ui.theme.TextSecondary
 
@@ -181,10 +180,11 @@ fun SettingsScreen(
             )
             if (uiState.equalizerEnabled) {
                 bands.forEachIndexed { index, band ->
+                    val db = band.level / 100
                     LabeledSlider(
                         label = band.label,
                         value = band.level.toFloat(),
-                        valueLabel = "${band.level}",
+                        valueLabel = "${if (db > 0) "+$db" else "$db"} dB",
                         valueRange = band.minLevel.toFloat()..band.maxLevel.toFloat().coerceAtLeast(band.minLevel.toFloat() + 1f),
                         steps = 0,
                         onValueChangeFinished = null,

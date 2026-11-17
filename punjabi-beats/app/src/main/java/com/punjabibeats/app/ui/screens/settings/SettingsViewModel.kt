@@ -57,22 +57,24 @@ class SettingsViewModel @Inject constructor(
     val playbackSpeed: StateFlow<Float> = player.playbackSpeed
     val playbackPitch: StateFlow<Float> = player.playbackPitch
 
-    /** EQ band descriptors from the live audio session; empty before first playback. */
+    /** EQ band descriptors; falls back to standard 5-band configuration before first playback. */
     val bands: StateFlow<List<EqBandUi>> = settings.equalizerBands().map { saved ->
         val range = effects.bandRange
-        val max = range.toInt()
+        val max = if (range > 0) range.toInt() else 1000
         val min = -max
-        if (effects.bandCount <= 0) {
-            emptyList()
-        } else {
-            (0 until effects.bandCount).map { band ->
-                EqBandUi(
-                    label = effects.bandFrequencies().getOrNull(band) ?: "${band + 1}",
-                    level = saved.getOrNull(band)?.toInt() ?: 0,
-                    minLevel = min,
-                    maxLevel = max,
-                )
+        val count = if (effects.bandCount > 0) effects.bandCount else DEFAULT_BANDS.size
+        (0 until count).map { band ->
+            val label = if (effects.bandCount > 0) {
+                effects.bandFrequencies().getOrNull(band) ?: "${band + 1}"
+            } else {
+                DEFAULT_BANDS.getOrElse(band) { "Band ${band + 1}" }
             }
+            EqBandUi(
+                label = label,
+                level = saved.getOrNull(band)?.toInt() ?: 0,
+                minLevel = min,
+                maxLevel = max,
+            )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -95,4 +97,8 @@ class SettingsViewModel @Inject constructor(
 
     fun setVirtualizer(strength: Int) =
         viewModelScope.launch { settings.saveVirtualizerStrength(strength) }
+
+    private companion object {
+        val DEFAULT_BANDS = listOf("60 Hz", "230 Hz", "910 Hz", "3.6 kHz", "14 kHz")
+    }
 }

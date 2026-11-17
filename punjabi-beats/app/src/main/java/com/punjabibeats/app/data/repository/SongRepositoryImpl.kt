@@ -168,15 +168,17 @@ class SongRepositoryImpl @Inject constructor(
         historyDao.observeTopArtists(limit).map { rows -> rows.map { it.artist } }
 
     /** Quick Picks: up to three songs per top artist from the play history, else trending. */
-    private suspend fun loadQuickPicks(fallback: List<Song>): List<Song> {
+    private suspend fun loadQuickPicks(fallback: List<Song>): List<Song> = coroutineScope {
         val topArtists = runSuspendCatching {
             withTimeoutOrNull(2_000L) {
                 historyDao.observeTopArtists(3).first().map { it.artist }
             } ?: emptyList()
         }.getOrDefault(emptyList())
-        if (topArtists.isEmpty()) return fallback.take(10)
-        val picks = topArtists.flatMap { artist -> searchSongs(artist, limit = 4) }
-        return picks.ifEmpty { fallback.take(10) }.distinctBy { it.id }
+        if (topArtists.isEmpty()) return@coroutineScope fallback.take(10)
+        val picks = topArtists.map { artist ->
+            async { searchSongs(artist, limit = 4) }
+        }.awaitAll().flatten()
+        picks.ifEmpty { fallback.take(10) }.distinctBy { it.id }
     }
 
     /**

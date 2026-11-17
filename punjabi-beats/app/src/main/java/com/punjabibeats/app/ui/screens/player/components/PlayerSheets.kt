@@ -32,7 +32,6 @@ import com.punjabibeats.app.playback.SleepMode
 import com.punjabibeats.app.ui.components.dragContainer
 import com.punjabibeats.app.ui.components.draggableItem
 import com.punjabibeats.app.ui.components.rememberDragDropState
-import com.punjabibeats.app.ui.theme.TextSecondary
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -57,6 +56,7 @@ fun SleepTimerSheet(
     onCancel: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val theme = LocalPBTheme.current
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -80,7 +80,7 @@ fun SleepTimerSheet(
             Text(
                 statusText,
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.muted,
                 modifier = Modifier.padding(vertical = 8.dp),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

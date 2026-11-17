@@ -258,6 +258,7 @@ fun LyricsScreen(
                         subtitle = "No lyrics found for this track",
                     )
                 } else {
+                    val effectivePositionMs = positionMs + uiState.timingOffsetMs
                     LazyColumn(
                         state = listState,
                         contentPadding = PaddingValues(
@@ -275,7 +276,7 @@ fun LyricsScreen(
                             if (isActive && lyricsState.data.isSynced && line.words.isEmpty()) {
                                 val nextTime = lines.getOrNull(index + 1)?.timeMs ?: (line.timeMs + 6_000)
                                 val span = (nextTime - line.timeMs).coerceAtLeast(1)
-                                fillFraction = ((positionMs - line.timeMs).toFloat() / span).coerceIn(0f, 1f)
+                                fillFraction = ((effectivePositionMs - line.timeMs).toFloat() / span).coerceIn(0f, 1f)
                             }
                             LyricLineItem(
                                 text = uiState.scriptTextFor(line),
@@ -285,7 +286,7 @@ fun LyricsScreen(
                                 isSelected = isSelected,
                                 selectMode = uiState.selectMode,
                                 words = if (isActive && uiState.scriptMode != ScriptMode.ROMAN) line.words else emptyList(),
-                                positionMs = positionMs,
+                                positionMs = effectivePositionMs,
                                 onClick = {
                                     if (uiState.selectMode) viewModel.toggleSelected(index)
                                     else viewModel.player.seekTo(line.timeMs)

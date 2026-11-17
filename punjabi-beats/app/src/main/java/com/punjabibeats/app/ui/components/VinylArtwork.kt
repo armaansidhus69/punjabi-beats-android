@@ -23,7 +23,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.punjabibeats.app.ui.theme.BgBase
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.OutlineDim
 import com.punjabibeats.app.ui.theme.SurfaceElevated
@@ -85,7 +84,7 @@ fun VinylArtwork(
             modifier = Modifier
                 .size(size * 0.14f)
                 .clip(CircleShape)
-                .background(BgBase)
+                .background(theme.background)
                 .border(1.dp, OutlineDim, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
