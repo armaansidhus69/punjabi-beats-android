@@ -357,10 +357,17 @@ class PlayerControllerImpl @Inject constructor(
             when (mode) {
                 is SleepMode.Minutes -> delay(mode.minutes * 60_000L)
                 SleepMode.EndOfTrack -> {
+                    val initialIndex = _mediaController.value?.currentMediaItemIndex ?: -1
+                    val initialSongId = _currentSong.value?.id
                     while (isActive) {
                         val controller = _mediaController.value ?: break
+                        val currentIndex = controller.currentMediaItemIndex
+                        val currentSongId = _currentSong.value?.id
+                        val trackChanged = (initialIndex != -1 && currentIndex != initialIndex) ||
+                                (initialSongId != null && currentSongId != null && currentSongId != initialSongId)
                         val duration = controller.duration
-                        if (duration > 0 && controller.currentPosition >= duration - 300) break
+                        val reachedEnd = duration > 0 && controller.currentPosition >= duration - 300
+                        if (trackChanged || reachedEnd) break
                         delay(250)
                     }
                 }

@@ -77,14 +77,11 @@ object LocalMusicScanner {
 
                     val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
                     val artworkUri = if (albumId > 0) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            ContentUris.withAppendedId(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId).toString()
-                        } else {
-                            ContentUris.withAppendedId(
-                                Uri.parse("content://media/external/audio/albumart"),
-                                albumId,
-                            ).toString()
-                        }
+                        // Standard MediaProvider album art URI supported by Coil & Android MediaStore across all OS versions (8..15)
+                        ContentUris.withAppendedId(
+                            Uri.parse("content://media/external/audio/albumart"),
+                            albumId,
+                        ).toString()
                     } else {
                         null
                     }

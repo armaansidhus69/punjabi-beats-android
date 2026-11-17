@@ -104,7 +104,14 @@ class PlayerViewModel @Inject constructor(
             player.currentSong
                 .distinctUntilChangedBy { it?.id }
                 .collectLatest { song ->
-                    if (song != null) runSuspendCatching { libraryRepository.recordPlay(song) }
+                    if (song == null) return@collectLatest
+                    // Industry-standard threshold: require at least 15s of continuous listening
+                    // before recording to play_history. Rapid skips cancel this job via collectLatest
+                    // so play history and Top Artists are never polluted by skipped tracks.
+                    kotlinx.coroutines.delay(15_000L)
+                    if (player.isPlaying.value) {
+                        runSuspendCatching { libraryRepository.recordPlay(song) }
+                    }
                 }
         }
         viewModelScope.launch {

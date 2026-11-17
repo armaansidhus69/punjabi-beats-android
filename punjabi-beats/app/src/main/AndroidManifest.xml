@@ -58,10 +58,6 @@
             </intent-filter>
         </service>
 
-        <receiver
-            android:name=".playback.NotificationDismissReceiver"
-            android:exported="false" />
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.punjabibeats.app.fileprovider"

@@ -172,8 +172,14 @@ class MediaPlaybackService : MediaSessionService() {
                     }
                 }
 
-                val nextIdx = currentIdx + 1
-                if (nextIdx in 0 until player.mediaItemCount) {
+                // Pre-resolve the real next track in queue (accounts for shuffle mode & repeat all)
+                val timeline = player.currentTimeline
+                val nextIdx = if (!timeline.isEmpty) {
+                    timeline.getNextWindowIndex(currentIdx, player.repeatMode, player.shuffleModeEnabled)
+                } else {
+                    currentIdx + 1
+                }
+                if (nextIdx != androidx.media3.common.C.INDEX_UNSET && nextIdx in 0 until player.mediaItemCount) {
                     val nextItem = player.getMediaItemAt(nextIdx)
                     val nextUri = nextItem.localConfiguration?.uri?.toString().orEmpty()
                     if (nextUri.isEmpty() || nextUri.startsWith(SilenceAsset.DATA_URI_PREFIX)) {
@@ -204,8 +210,8 @@ class MediaPlaybackService : MediaSessionService() {
                 streamResolver.invalidate(song.id)
                 val retries = errorRetryCounts.getOrDefault(song.id, 0)
                 if (retries < 1) {
-                    // CRITICAL FIX P1.2: Expired CDN token or transient socket disconnect.
-                    // Retry once with a freshly resolved stream URL instead of freezing in STATE_IDLE!
+                    // Capture current position before retrying so playback resumes exactly where it stalled!
+                    val resumePositionMs = player.currentPosition.coerceAtLeast(0L)
                     errorRetryCounts[song.id] = retries + 1
                     activeTransitionJob?.cancel()
                     activeTransitionJob = serviceScope.launch {
@@ -217,7 +223,7 @@ class MediaPlaybackService : MediaSessionService() {
                                     ?.startsWith(SilenceAsset.DATA_URI_PREFIX) == true
                                 if (!isSilence) {
                                     player.replaceMediaItem(currentIdx, resolved)
-                                    player.seekToDefaultPosition(currentIdx)
+                                    player.seekTo(currentIdx, resumePositionMs)
                                     player.playWhenReady = true
                                     player.prepare()
                                     player.play()
@@ -367,9 +373,14 @@ class MediaPlaybackService : MediaSessionService() {
                 // Unblock playback immediately!
                 future.set(MediaSession.MediaItemsWithStartPosition(initialList, safeIndex, startPositionMs))
 
-                // Pre-resolve the immediate next track first so its transition is seamless
-                val nextIdx = safeIndex + 1
-                if (nextIdx in initialList.indices) {
+                // Pre-resolve the immediate next track first so its transition is seamless (accounts for shuffle)
+                val timeline = mediaSession.player.currentTimeline
+                val nextIdx = if (!timeline.isEmpty) {
+                    timeline.getNextWindowIndex(safeIndex, mediaSession.player.repeatMode, mediaSession.player.shuffleModeEnabled)
+                } else {
+                    safeIndex + 1
+                }
+                if (nextIdx != androidx.media3.common.C.INDEX_UNSET && nextIdx in initialList.indices) {
                     val resolvedNext = resolveItemSafely(mediaItems[nextIdx])
                     withContext(Dispatchers.Main) {
                         if (nextIdx < mediaSession.player.mediaItemCount) {

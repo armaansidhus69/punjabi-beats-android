@@ -5,7 +5,12 @@ import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.domain.model.MusicSource
 import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.domain.model.StreamResolutionException
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,6 +40,7 @@ class StreamResolver @Inject constructor(
 
     private data class CachedStream(val streamUrl: String, val cachedAt: Long)
     private val streamCache = LruCache<String, CachedStream>(CACHE_MAX_ENTRIES)
+    private val activeResolutions = ConcurrentHashMap<String, Deferred<Song>>()
 
     suspend fun resolve(song: Song): Song {
         // Fast path for local device songs: never scrape the web or timeout offline
@@ -56,6 +62,27 @@ class StreamResolver @Inject constructor(
             }
         }
 
+        // Deduplication: await existing in-flight resolution for the same songId
+        val inFlight = activeResolutions[song.id]
+        if (inFlight != null && inFlight.isActive) {
+            return inFlight.await()
+        }
+
+        return coroutineScope {
+            val deferred = activeResolutions.compute(song.id) { _, current ->
+                if (current != null && current.isActive) current
+                else async(Dispatchers.IO) { performResolve(song) }
+            }!!
+
+            try {
+                deferred.await()
+            } finally {
+                activeResolutions.remove(song.id, deferred)
+            }
+        }
+    }
+
+    private suspend fun performResolve(song: Song): Song {
         val result = withTimeoutOrNull(TOTAL_RESOLVE_TIMEOUT_MS) {
             for (resolver in chainFor(song.source)) {
                 val resolved = runSuspendCatching {

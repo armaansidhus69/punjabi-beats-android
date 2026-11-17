@@ -81,8 +81,10 @@ fun TurntableDeck(
     LaunchedEffect(isPlaying, is45Rpm) {
         if (isPlaying) {
             while (true) {
+                val normalized = rotation.value % 360f
+                rotation.snapTo(normalized)
                 rotation.animateTo(
-                    targetValue = rotation.value + 360f,
+                    targetValue = normalized + 360f,
                     animationSpec = tween(durationMillis = rpmSpeedMs, easing = LinearEasing),
                 )
             }
