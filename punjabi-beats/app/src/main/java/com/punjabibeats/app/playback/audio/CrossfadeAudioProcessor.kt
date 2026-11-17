@@ -91,7 +91,16 @@ class CrossfadeAudioProcessor : BaseAudioProcessor() {
         val fadeMs = fadeDurationMs
         if (fadeMs <= 0) return 1f
         val positionUs = frameCount * 1_000_000L / sampleRate
-        val fadeUs = fadeMs * 1_000L
+        val nominalFadeUs = fadeMs * 1_000L
+        // For short tracks where duration < 2 * fadeDuration, scale down the fade window
+        // so the track reaches 100% volume at its midpoint rather than staying permanently attenuated.
+        val fadeUs = if (trackDurationUs != C.TIME_UNSET && trackDurationUs > 0) {
+            minOf(nominalFadeUs, trackDurationUs / 2)
+        } else {
+            nominalFadeUs
+        }
+        if (fadeUs <= 0) return 1f
+
         val fadeIn = positionUs.coerceAtMost(fadeUs)
         val fadeOut = trackDurationUs.takeIf { it != C.TIME_UNSET }
             ?.let { duration -> (duration - positionUs).coerceAtLeast(0).coerceAtMost(fadeUs) }

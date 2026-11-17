@@ -426,7 +426,7 @@ class MediaPlaybackService : MediaSessionService() {
         if (offline != null && com.punjabibeats.app.data.security.DownloadCrypto.fileFor(this, offline.id).exists()) {
             return item.buildUpon().setUri("pbenc://${offline.id}").build()
         }
-        if (!song.streamUrl.isNullOrBlank()) {
+        if (!song.streamUrl.isNullOrBlank() && !song.streamUrl.startsWith("data:", ignoreCase = true)) {
             return item.buildUpon().setUri(song.streamUrl).build()
         }
         return try {

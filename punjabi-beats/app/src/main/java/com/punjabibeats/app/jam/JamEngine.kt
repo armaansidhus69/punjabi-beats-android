@@ -55,6 +55,7 @@ class JamEngine(
     private var clockOffsetMs = 0L
     private var isHost = false
     private var jobs = mutableListOf<Job>()
+    private var broadcastJob: Job? = null
     private var playedCounts = mutableMapOf<String, Int>()
     private var missedHostCycles = 0
 
@@ -130,6 +131,8 @@ class JamEngine(
     fun close() {
         val currentTransport = transport
         transport = null
+        broadcastJob?.cancel()
+        broadcastJob = null
         jobs.forEach { it.cancel() }
         jobs.clear()
         scope.cancel()
@@ -267,7 +270,8 @@ class JamEngine(
             participants = participants,
             queue = snapshot.queue,
         )
-        scope.launch { transport?.send(message) }
+        broadcastJob?.cancel()
+        broadcastJob = scope.launch { transport?.send(message) }
         update {
             it.copy(
                 snapshot = JamRoomSnapshot(

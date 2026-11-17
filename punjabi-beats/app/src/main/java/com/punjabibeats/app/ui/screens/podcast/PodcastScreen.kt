@@ -57,8 +57,7 @@ import com.punjabibeats.app.ui.components.ArtworkThumb
 import com.punjabibeats.app.ui.components.EmptyState
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.PbLoading
-import com.punjabibeats.app.ui.theme.AccentGold
-import com.punjabibeats.app.ui.theme.BgBase
+import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.TextSecondary
 
 @Composable
@@ -67,6 +66,7 @@ fun PodcastScreen(
     bottomPadding: PaddingValues,
     viewModel: PodcastViewModel = hiltViewModel(),
 ) {
+    val theme = LocalPBTheme.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = LocalPbSnackbar.current
     var showAddDialog by remember { mutableStateOf(false) }
@@ -98,7 +98,7 @@ fun PodcastScreen(
             }
             Text("Podcasts", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             IconButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Rounded.Add, contentDescription = "Add RSS feed", tint = AccentGold)
+                Icon(Icons.Rounded.Add, contentDescription = "Add RSS feed", tint = theme.accent)
             }
         }
 
@@ -114,8 +114,8 @@ fun PodcastScreen(
                     onClick = { viewModel.setSpeed(speed) },
                     label = { Text("${speed}x") },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = if (uiState.speed == speed) AccentGold else MaterialTheme.colorScheme.surfaceVariant,
-                        labelColor = if (uiState.speed == speed) Color.Black else TextSecondary,
+                        containerColor = if (uiState.speed == speed) theme.accent else MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = if (uiState.speed == speed) Color.White else TextSecondary,
                     ),
                 )
             }
@@ -202,6 +202,7 @@ private fun EpisodeList(
     viewModel: PodcastViewModel,
     bottomPadding: PaddingValues,
 ) {
+    val theme = LocalPBTheme.current
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -257,7 +258,7 @@ private fun EpisodeList(
                                 )
                             }
                             IconButton(onClick = { viewModel.playEpisode(episode) }) {
-                                Icon(Icons.Rounded.PlayArrow, contentDescription = "Play", tint = AccentGold)
+                                Icon(Icons.Rounded.PlayArrow, contentDescription = "Play", tint = theme.accent)
                             }
                             if (episode.transcriptUrl != null) {
                                 IconButton(onClick = { viewModel.openTranscript(episode) }) {

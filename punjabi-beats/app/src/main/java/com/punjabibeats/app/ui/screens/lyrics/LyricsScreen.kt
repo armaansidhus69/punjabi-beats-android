@@ -56,8 +56,8 @@ import com.punjabibeats.app.domain.model.TimedWord
 import com.punjabibeats.app.ui.components.EmptyState
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.PbLoading
-import com.punjabibeats.app.ui.theme.AccentGold
-import com.punjabibeats.app.ui.theme.BgBase
+import com.punjabibeats.app.ui.theme.LocalPBTheme
+import com.punjabibeats.app.ui.theme.TextSecondary
 import com.punjabibeats.app.ui.theme.TextSecondary
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.SpanStyle
@@ -81,6 +81,7 @@ fun LyricsScreen(
     val snackbar = LocalPbSnackbar.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val theme = LocalPBTheme.current
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { message -> snackbar.showSnackbar(message) }
@@ -113,7 +114,7 @@ fun LyricsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgBase)
+            .background(theme.background)
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {
@@ -135,7 +136,7 @@ fun LyricsScreen(
                 Text(
                     song?.artist ?: "",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
+                    color = theme.muted,
                     maxLines = 1,
                 )
             }
@@ -143,14 +144,14 @@ fun LyricsScreen(
                 Icon(
                     Icons.Rounded.Translate,
                     contentDescription = "Script toggle",
-                    tint = if (uiState.scriptMode != ScriptMode.BOTH) AccentGold else TextSecondary,
+                    tint = if (uiState.scriptMode != ScriptMode.BOTH) theme.accent else theme.muted,
                 )
             }
             IconButton(onClick = { viewModel.toggleSelectMode() }) {
                 Icon(
                     Icons.Rounded.CheckCircle,
                     contentDescription = "Select lines",
-                    tint = if (uiState.selectMode) AccentGold else TextSecondary,
+                    tint = if (uiState.selectMode) theme.accent else theme.muted,
                 )
             }
             IconButton(
@@ -181,7 +182,7 @@ fun LyricsScreen(
                     }
                 },
             ) {
-                Icon(Icons.Rounded.IosShare, contentDescription = "Share lyric card", tint = AccentGold)
+                Icon(Icons.Rounded.IosShare, contentDescription = "Share lyric card", tint = theme.accent)
             }
         }
         Text(
@@ -191,7 +192,7 @@ fun LyricsScreen(
                 ScriptMode.GURMUKHI -> "Gurmukhi"
             } + "  •  ${if (lyrics?.isSynced == true) "synced by " + lyrics.provider else "unsynced"}",
             style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary,
+            color = theme.muted,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
         )
 
@@ -205,7 +206,7 @@ fun LyricsScreen(
                 Text(
                     text = "Offset: ${if (uiState.timingOffsetMs > 0) "+" else ""}${uiState.timingOffsetMs}ms",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (uiState.timingOffsetMs != 0L) AccentGold else TextSecondary,
+                    color = if (uiState.timingOffsetMs != 0L) theme.accent else theme.muted,
                     modifier = Modifier.weight(1f),
                 )
                 Box(
@@ -232,11 +233,11 @@ fun LyricsScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(AccentGold.copy(alpha = 0.2f))
+                            .background(theme.accent.copy(alpha = 0.2f))
                             .clickable { viewModel.resetTimingOffset() }
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                     ) {
-                        Text("Reset", style = MaterialTheme.typography.labelSmall, color = AccentGold)
+                        Text("Reset", style = MaterialTheme.typography.labelSmall, color = theme.accent)
                     }
                 }
             }
@@ -254,7 +255,7 @@ fun LyricsScreen(
                     EmptyState(
                         icon = Icons.Rounded.MusicNote,
                         title = "No lyrics found",
-                        subtitle = "LRCLIB had no match for this track",
+                        subtitle = "No lyrics found for this track",
                     )
                 } else {
                     LazyColumn(
@@ -320,6 +321,7 @@ private fun LyricLineItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
+    val theme = LocalPBTheme.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -327,7 +329,7 @@ private fun LyricLineItem(
             .clip(RoundedCornerShape(12.dp))
             .background(
                 when {
-                    isSelected -> AccentGold.copy(alpha = 0.18f)
+                    isSelected -> theme.accent.copy(alpha = 0.18f)
                     isActive -> Color.White.copy(alpha = 0.04f)
                     else -> Color.Transparent
                 }
@@ -342,13 +344,13 @@ private fun LyricLineItem(
                     Text(
                         text,
                         style = MaterialTheme.typography.titleLarge,
-                        color = TextSecondary,
+                        color = theme.muted,
                         textAlign = TextAlign.Start,
                     )
                     Text(
                         text,
                         style = MaterialTheme.typography.titleLarge,
-                        color = AccentGold,
+                        color = theme.accent,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .fillMaxWidth(fillFraction)
@@ -359,7 +361,7 @@ private fun LyricLineItem(
             else -> Text(
                 text,
                 style = MaterialTheme.typography.titleLarge,
-                color = if (isActive) AccentGold else TextSecondary,
+                color = if (isActive) theme.accent else theme.muted,
                 textAlign = TextAlign.Start,
             )
         }
@@ -367,7 +369,7 @@ private fun LyricLineItem(
             Text(
                 roman,
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary.copy(alpha = 0.8f),
+                color = theme.muted.copy(alpha = 0.8f),
                 textAlign = TextAlign.Start,
             )
         }
@@ -375,14 +377,14 @@ private fun LyricLineItem(
             Text(
                 if (isSelected) "✓ selected — tap to unselect" else "tap to select for share card",
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected) AccentGold else TextSecondary.copy(alpha = 0.6f),
+                color = if (isSelected) theme.accent else theme.muted.copy(alpha = 0.6f),
             )
         }
     }
 }
 
 /**
- * Word-by-word karaoke line (Better-Lyrics pattern): sung words turn gold,
+ * Word-by-word karaoke line (Better-Lyrics pattern): sung words turn accent color,
  * upcoming ones stay dim.
  */
 @Composable
@@ -390,8 +392,9 @@ private fun WordKaraokeLine(
     words: List<TimedWord>,
     positionMs: Long,
 ) {
-    val baseStyle = SpanStyle(color = TextSecondary)
-    val sungStyle = SpanStyle(color = AccentGold)
+    val theme = LocalPBTheme.current
+    val baseStyle = SpanStyle(color = theme.muted)
+    val sungStyle = SpanStyle(color = theme.accent)
     val annotated = buildAnnotatedString {
         words.forEachIndexed { index, word ->
             withStyle(if (positionMs >= word.startMs) sungStyle else baseStyle) {

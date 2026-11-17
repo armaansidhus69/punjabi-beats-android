@@ -32,7 +32,6 @@ import com.punjabibeats.app.playback.SleepMode
 import com.punjabibeats.app.ui.components.dragContainer
 import com.punjabibeats.app.ui.components.draggableItem
 import com.punjabibeats.app.ui.components.rememberDragDropState
-import com.punjabibeats.app.ui.theme.AccentGold
 import com.punjabibeats.app.ui.theme.TextSecondary
 
 import androidx.compose.foundation.background
@@ -113,12 +112,13 @@ fun SleepTimerSheet(
 
 @Composable
 private fun TimerChip(label: String, active: Boolean, onClick: () -> Unit) {
+    val theme = LocalPBTheme.current
     androidx.compose.material3.AssistChip(
         onClick = onClick,
         label = { Text(label) },
         colors = androidx.compose.material3.AssistChipDefaults.assistChipColors(
-            containerColor = if (active) AccentGold else MaterialTheme.colorScheme.surfaceVariant,
-            labelColor = if (active) androidx.compose.ui.graphics.Color.Black else MaterialTheme.colorScheme.onSurface,
+            containerColor = if (active) theme.accent else MaterialTheme.colorScheme.surfaceVariant,
+            labelColor = if (active) androidx.compose.ui.graphics.Color.White else MaterialTheme.colorScheme.onSurface,
         ),
     )
 }
@@ -132,12 +132,16 @@ fun QueueDrawer(
     onRemove: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val theme = LocalPBTheme.current
     val queue by controller.queue.collectAsStateWithLifecycle()
     val currentIndex by controller.currentIndex.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val dragState = rememberDragDropState(listState = listState, onMove = onMove)
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = theme.surface,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -147,6 +151,7 @@ fun QueueDrawer(
             Text(
                 "Up Next — ${queue.size} songs",
                 style = MaterialTheme.typography.titleLarge,
+                color = theme.text,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
             LazyColumn(
@@ -169,7 +174,7 @@ fun QueueDrawer(
                             Icon(
                                 Icons.Rounded.MusicNote,
                                 contentDescription = null,
-                                tint = if (index == currentIndex) AccentGold else TextSecondary,
+                                tint = if (index == currentIndex) theme.accent else theme.muted,
                             )
                         }
                         Column(
@@ -180,14 +185,14 @@ fun QueueDrawer(
                             Text(
                                 song.title,
                                 style = MaterialTheme.typography.titleSmall,
-                                color = if (index == currentIndex) AccentGold else MaterialTheme.colorScheme.onSurface,
+                                color = if (index == currentIndex) theme.accent else theme.text,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Text(
                                 song.artist,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondary,
+                                color = theme.muted,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -195,15 +200,15 @@ fun QueueDrawer(
                         Text(
                             formatDuration(song.durationMs),
                             style = MaterialTheme.typography.labelMedium,
-                            color = TextSecondary,
+                            color = theme.muted,
                         )
                         Icon(
                             Icons.Rounded.DragHandle,
                             contentDescription = "Reorder (hold & drag)",
-                            tint = TextSecondary,
+                            tint = theme.muted,
                         )
                         IconButton(onClick = { onRemove(index) }) {
-                            Icon(Icons.Rounded.Close, contentDescription = "Remove", tint = TextSecondary)
+                            Icon(Icons.Rounded.Close, contentDescription = "Remove", tint = theme.muted)
                         }
                     }
                 }

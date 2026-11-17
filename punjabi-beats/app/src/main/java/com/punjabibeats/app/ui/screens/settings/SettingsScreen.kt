@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.punjabibeats.app.BuildConfig
-import com.punjabibeats.app.ui.theme.AccentGold
+import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.BgBase
 import com.punjabibeats.app.ui.theme.SurfaceBase
 import com.punjabibeats.app.ui.theme.TextSecondary
@@ -237,10 +237,11 @@ private fun SectionCard(
     title: String,
     content: @Composable () -> Unit,
 ) {
+    val theme = LocalPBTheme.current
     Text(
         title,
         style = MaterialTheme.typography.titleMedium,
-        color = AccentGold,
+        color = theme.accent,
         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
     )
     Surface(
@@ -265,6 +266,7 @@ private fun ToggleRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
+    val theme = LocalPBTheme.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -278,7 +280,7 @@ private fun ToggleRow(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(checkedTrackColor = AccentGold),
+            colors = SwitchDefaults.colors(checkedTrackColor = theme.accent),
         )
     }
 }
@@ -293,10 +295,11 @@ private fun LabeledSlider(
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: (() -> Unit)?,
 ) {
+    val theme = LocalPBTheme.current
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-            Text(valueLabel, style = MaterialTheme.typography.bodyMedium, color = AccentGold)
+            Text(valueLabel, style = MaterialTheme.typography.bodyMedium, color = theme.accent)
         }
         Slider(
             value = value,
@@ -304,7 +307,7 @@ private fun LabeledSlider(
             onValueChangeFinished = onValueChangeFinished,
             valueRange = valueRange,
             steps = steps,
-            colors = androidx.compose.material3.SliderDefaults.colors(thumbColor = AccentGold, activeTrackColor = AccentGold),
+            colors = androidx.compose.material3.SliderDefaults.colors(thumbColor = theme.accent, activeTrackColor = theme.accent),
         )
     }
 }

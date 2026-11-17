@@ -27,9 +27,11 @@ class LyricsRepositoryImpl @Inject constructor(
 ) : LyricsRepository {
 
     override suspend fun fetchLyrics(title: String, artist: String, durationMs: Long): SyncedLyrics? {
-        val cleanTitle = title.trim()
-        if (cleanTitle.isEmpty()) return null
-        val cacheKey = "${cleanTitle.lowercase()}_${artist.trim().lowercase()}"
+        val rawTitle = title.trim()
+        if (rawTitle.isEmpty()) return null
+        val cleanTitle = sanitizeTitle(rawTitle)
+        val cleanArtist = artist.trim()
+        val cacheKey = "${cleanTitle.lowercase()}_${cleanArtist.lowercase()}"
 
         // 1. Check offline Room DB cache first
         val cached = runSuspendCatching { lyricsCacheDao.getLyrics(cacheKey) }.getOrNull()
@@ -50,16 +52,16 @@ class LyricsRepositoryImpl @Inject constructor(
 
         // 2. Fetch from LRCLIB
         val exact = runSuspendCatching {
-            lrcLibApi.get(cleanTitle, artist.trim(), durationSec).body()
+            lrcLibApi.get(cleanTitle, cleanArtist, durationSec).body()
         }.getOrNull()
-        var synced = exact?.toSyncedLyrics(cleanTitle, artist)
+        var synced = exact?.toSyncedLyrics(cleanTitle, cleanArtist)
             ?: runSuspendCatching {
-                lrcLibApi.search("$artist $cleanTitle", limit = 3).firstOrNull()
-            }.getOrNull()?.toSyncedLyrics(cleanTitle, artist)
+                lrcLibApi.search("$cleanArtist $cleanTitle", limit = 3).firstOrNull()
+            }.getOrNull()?.toSyncedLyrics(cleanTitle, cleanArtist)
 
         // 3. Fallback: Regional Punjabi lyrics from JioSaavn catalogue
         if (synced == null) {
-            synced = fetchJioSaavnLyrics(cleanTitle, artist, durationMs)
+            synced = fetchJioSaavnLyrics(cleanTitle, cleanArtist, durationMs)
         }
 
         // 4. Cache result for offline access
@@ -79,6 +81,15 @@ class LyricsRepositoryImpl @Inject constructor(
         }
 
         return synced
+    }
+
+    private fun sanitizeTitle(title: String): String {
+        return title
+            .replace(Regex("(?i)\\s*[\\[(](official\\s*(music\\s*)?(video|audio|track|hd|4k)|lyric\\s*(video)?|audio|visualizer|full\\s*song|remix|slowed\\s*\\+\\s*reverb)[\\])]"), "")
+            .replace(Regex("(?i)\\s*[\\[(]feat\\.?\\s+[^)\\]]+[\\])]"), "")
+            .replace(Regex("(?i)\\s*\\|.*$"), "")
+            .trim()
+            .ifEmpty { title.trim() }
     }
 
     private suspend fun fetchJioSaavnLyrics(
