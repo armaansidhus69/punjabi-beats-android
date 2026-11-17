@@ -27,8 +27,15 @@ fun Song.toMediaItem(uri: String? = streamUrl): MediaItem {
 }
 
 fun MediaItem.toSong(): Song? {
+    val liveUri = localConfiguration?.uri?.toString()
     val restored = mediaMetadata.extras?.getString(EXTRA_SONG_JSON)?.let { SongCodec.decode(it) }
-    if (restored != null) return restored
+    if (restored != null) {
+        return if (!liveUri.isNullOrBlank() && restored.streamUrl == null) {
+            restored.copy(streamUrl = liveUri)
+        } else {
+            restored
+        }
+    }
     if (mediaId.isBlank()) return null
     return Song(
         id = mediaId,
@@ -36,6 +43,7 @@ fun MediaItem.toSong(): Song? {
         artist = mediaMetadata.artist?.toString() ?: "Unknown Artist",
         albumName = mediaMetadata.albumTitle?.toString().orEmpty(),
         artworkUrl = mediaMetadata.artworkUri?.toString(),
+        streamUrl = liveUri,
     )
 }
 

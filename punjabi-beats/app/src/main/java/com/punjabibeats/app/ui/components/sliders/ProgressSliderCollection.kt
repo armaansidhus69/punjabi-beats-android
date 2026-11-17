@@ -121,7 +121,7 @@ fun UniversalSeekbar(
         label = "pulseAnim",
     )
 
-    BoxWithConstraints(modifier = modifier.height(54.dp)) {
+    BoxWithConstraints(modifier = modifier.height(54.dp).padding(horizontal = 4.dp)) {
         val widthPx = constraints.maxWidth.toFloat()
         fun commitSeek(x: Float) {
             if (durationMs > 0) {
@@ -133,7 +133,6 @@ fun UniversalSeekbar(
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 4.dp)
                 .pointerInput(durationMs, enabled) {
                     if (!enabled) return@pointerInput
                     detectTapGestures { offset -> commitSeek(offset.x) }

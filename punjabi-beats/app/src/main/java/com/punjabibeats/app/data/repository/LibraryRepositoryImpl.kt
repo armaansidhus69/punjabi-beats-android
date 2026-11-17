@@ -17,6 +17,8 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @Singleton
 class LibraryRepositoryImpl @Inject constructor(
@@ -25,12 +27,14 @@ class LibraryRepositoryImpl @Inject constructor(
     private val historyDao: HistoryDao,
 ) : LibraryRepository {
 
+    private val likeMutex = Mutex()
+
     override fun observeLikedSongs(): Flow<List<Song>> =
         libraryDao.likedSongs().map { rows -> rows.mapNotNull { SongCodec.decode(it.songJson) } }
 
     override fun observeIsLiked(songId: String): Flow<Boolean> = libraryDao.isLiked(songId)
 
-    override suspend fun toggleLike(song: Song) {
+    override suspend fun toggleLike(song: Song) = likeMutex.withLock {
         if (libraryDao.isLiked(song.id).first()) {
             libraryDao.unlike(song.id)
         } else {

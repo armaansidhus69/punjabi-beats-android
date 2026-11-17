@@ -215,7 +215,13 @@ class MediaPlaybackService : MediaSessionService() {
                 val retries = errorRetryCounts.getOrDefault(song.id, 0)
                 if (retries < 1) {
                     // Capture current position before retrying so playback resumes exactly where it stalled!
-                    val resumePositionMs = player.currentPosition.coerceAtLeast(0L)
+                    val rawPosition = player.currentPosition.coerceAtLeast(0L)
+                    val duration = player.duration
+                    val resumePositionMs = if (duration > 1500L) {
+                        rawPosition.coerceAtMost(duration - 1000L)
+                    } else {
+                        rawPosition
+                    }
                     errorRetryCounts[song.id] = retries + 1
                     activeTransitionJob?.cancel()
                     activeTransitionJob = serviceScope.launch {

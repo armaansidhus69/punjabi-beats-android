@@ -236,6 +236,7 @@ fun FullPlayerScreen(
     var showEqualizerSheet by remember { mutableStateOf(false) }
 
     val audioFormat by player.audioFormatInfo.collectAsStateWithLifecycle()
+    val sleepTimeRemainingMs by player.sleepTimeRemainingMs.collectAsStateWithLifecycle()
     val rawSeekbarStyle by viewModel.seekbarStyle.collectAsStateWithLifecycle()
     val currentSeekbarStyle = remember(rawSeekbarStyle) { SeekbarStyle.fromId(rawSeekbarStyle) }
     val isTurntableMode by viewModel.isTurntableMode.collectAsStateWithLifecycle()
@@ -598,7 +599,7 @@ fun FullPlayerScreen(
             ) {
                 val cardShape = RoundedCornerShape(16.dp)
                 val cardBorder = theme.accent.copy(alpha = 0.35f)
-                val cardBg = Color(0xFF1B1224)
+                val cardBg = theme.card
 
                 // 1. Lyrics
                 Box(
@@ -658,7 +659,19 @@ fun FullPlayerScreen(
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.height(4.dp))
-                        Text("Timer", fontSize = 11.sp, color = theme.muted)
+                        val timerLabel = if (sleepTimeRemainingMs != null && sleepTimeRemainingMs!! > 0L) {
+                            val totalSecs = sleepTimeRemainingMs!! / 1000L
+                            val mins = totalSecs / 60L
+                            val secs = totalSecs % 60L
+                            "%02d:%02d".format(mins, secs)
+                        } else {
+                            "Timer"
+                        }
+                        Text(
+                            timerLabel,
+                            fontSize = 11.sp,
+                            color = if (sleepMode != null) theme.accent else theme.muted,
+                        )
                     }
                 }
 
@@ -692,6 +705,7 @@ fun FullPlayerScreen(
         if (showSleepSheet) {
             SleepTimerSheet(
                 sleepMode = sleepMode,
+                remainingMs = sleepTimeRemainingMs,
                 onStart = { mode -> viewModel.startSleepTimer(mode) },
                 onCancel = { viewModel.cancelSleepTimer() },
                 onDismiss = { showSleepSheet = false },

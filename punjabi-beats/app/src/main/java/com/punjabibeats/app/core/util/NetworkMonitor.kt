@@ -30,7 +30,9 @@ class NetworkMonitor @Inject constructor(@ApplicationContext context: Context) {
             }
 
             override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                _isOnline.value = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                val notSuspended = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
+                _isOnline.value = hasInternet && notSuspended
             }
         })
     }

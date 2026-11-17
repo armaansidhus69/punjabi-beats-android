@@ -35,6 +35,7 @@ interface MusicPlayerController {
     val playbackPitch: StateFlow<Float>
     val skipSilenceEnabled: StateFlow<Boolean>
     val sleepMode: StateFlow<SleepMode?>
+    val sleepTimeRemainingMs: StateFlow<Long?>
     val audioFormatInfo: StateFlow<AudioFormatInfo>
     val playerErrors: SharedFlow<String>
 

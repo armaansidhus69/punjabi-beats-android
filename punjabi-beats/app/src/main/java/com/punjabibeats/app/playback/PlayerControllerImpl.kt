@@ -66,6 +66,7 @@ class PlayerControllerImpl @Inject constructor(
     private val _playbackPitch = MutableStateFlow(1.0f)
     private val _skipSilenceEnabled = MutableStateFlow(false)
     private val _sleepMode = MutableStateFlow<SleepMode?>(null)
+    private val _sleepTimeRemainingMs = MutableStateFlow<Long?>(null)
     private val _audioFormatInfo = MutableStateFlow(AudioFormatInfo())
     private val _playerErrors = MutableSharedFlow<String>(extraBufferCapacity = 8)
 
@@ -83,6 +84,7 @@ class PlayerControllerImpl @Inject constructor(
     override val playbackPitch: StateFlow<Float> = _playbackPitch.asStateFlow()
     override val skipSilenceEnabled: StateFlow<Boolean> = _skipSilenceEnabled.asStateFlow()
     override val sleepMode: StateFlow<SleepMode?> = _sleepMode.asStateFlow()
+    override val sleepTimeRemainingMs: StateFlow<Long?> = _sleepTimeRemainingMs.asStateFlow()
     override val audioFormatInfo: StateFlow<AudioFormatInfo> = _audioFormatInfo.asStateFlow()
     override val playerErrors: SharedFlow<String> = _playerErrors.asSharedFlow()
 
@@ -158,6 +160,7 @@ class PlayerControllerImpl @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            _audioFormatInfo.value = AudioFormatInfo()
             publishTimeline()
             publishCurrent()
             publishPosition()
@@ -355,7 +358,17 @@ class PlayerControllerImpl @Inject constructor(
         _sleepMode.value = mode
         sleepJob = scope.launch {
             when (mode) {
-                is SleepMode.Minutes -> delay(mode.minutes * 60_000L)
+                is SleepMode.Minutes -> {
+                    val totalMs = mode.minutes * 60_000L
+                    val startTime = android.os.SystemClock.elapsedRealtime()
+                    while (isActive) {
+                        val elapsed = android.os.SystemClock.elapsedRealtime() - startTime
+                        val remaining = (totalMs - elapsed).coerceAtLeast(0L)
+                        _sleepTimeRemainingMs.value = remaining
+                        if (remaining <= 0L) break
+                        delay(1000L.coerceAtMost(remaining))
+                    }
+                }
                 SleepMode.EndOfTrack -> {
                     val initialIndex = _mediaController.value?.currentMediaItemIndex ?: -1
                     val initialSongId = _currentSong.value?.id
@@ -366,7 +379,10 @@ class PlayerControllerImpl @Inject constructor(
                         val trackChanged = (initialIndex != -1 && currentIndex != initialIndex) ||
                                 (initialSongId != null && currentSongId != null && currentSongId != initialSongId)
                         val duration = controller.duration
-                        val reachedEnd = duration > 0 && controller.currentPosition >= duration - 300
+                        val position = controller.currentPosition
+                        val remaining = if (duration > 0) (duration - position).coerceAtLeast(0L) else null
+                        _sleepTimeRemainingMs.value = remaining
+                        val reachedEnd = duration > 0 && position >= duration - 300
                         if (trackChanged || reachedEnd) break
                         delay(250)
                     }
@@ -374,6 +390,7 @@ class PlayerControllerImpl @Inject constructor(
             }
             _mediaController.value?.pause()
             _sleepMode.value = null
+            _sleepTimeRemainingMs.value = null
         }
     }
 
@@ -381,6 +398,7 @@ class PlayerControllerImpl @Inject constructor(
         sleepJob?.cancel()
         sleepJob = null
         _sleepMode.value = null
+        _sleepTimeRemainingMs.value = null
     }
 
     // ------------------------------------------------------------------ internals

@@ -53,6 +53,7 @@ import com.punjabibeats.app.ui.theme.LocalPBTheme
 @Composable
 fun SleepTimerSheet(
     sleepMode: SleepMode?,
+    remainingMs: Long? = null,
     onStart: (SleepMode) -> Unit,
     onCancel: () -> Unit,
     onDismiss: () -> Unit,
@@ -65,12 +66,20 @@ fun SleepTimerSheet(
                 .padding(bottom = 32.dp),
         ) {
             Text("Sleep Timer", style = MaterialTheme.typography.titleLarge)
+            val statusText = when {
+                sleepMode == null -> "Playback keeps playing until you stop it"
+                sleepMode is SleepMode.EndOfTrack -> "Music stops at the end of this track"
+                remainingMs != null && remainingMs > 0L -> {
+                    val totalSecs = remainingMs / 1000L
+                    val mins = totalSecs / 60L
+                    val secs = totalSecs % 60L
+                    "Music stops in %02d:%02d".format(mins, secs)
+                }
+                sleepMode is SleepMode.Minutes -> "Music stops in ${sleepMode.minutes} minutes"
+                else -> "Playback keeps playing until you stop it"
+            }
             Text(
-                when (sleepMode) {
-                    is SleepMode.Minutes -> "Music stops in ${sleepMode.minutes} minutes"
-                    SleepMode.EndOfTrack -> "Music stops at the end of this track"
-                    null -> "Playback keeps playing until you stop it"
-                },
+                statusText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
                 modifier = Modifier.padding(vertical = 8.dp),
