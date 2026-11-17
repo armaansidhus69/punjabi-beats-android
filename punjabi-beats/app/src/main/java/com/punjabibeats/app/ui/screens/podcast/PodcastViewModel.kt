@@ -12,6 +12,7 @@ import com.punjabibeats.app.domain.repository.PodcastRepository
 import com.punjabibeats.app.playback.MusicPlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -43,6 +44,9 @@ class PodcastViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<String>(extraBufferCapacity = 8)
     val events: SharedFlow<String> = _events.asSharedFlow()
+
+    private var loadEpisodesJob: Job? = null
+    private var transcriptJob: Job? = null
 
     val positionMs: StateFlow<Long> = player.positionMs
 
@@ -77,12 +81,24 @@ class PodcastViewModel @Inject constructor(
     }
 
     fun removeFeed(channelId: String) {
-        viewModelScope.launch { podcastRepository.removeFeed(channelId) }
+        viewModelScope.launch {
+            runSuspendCatching { podcastRepository.removeFeed(channelId) }
+                .onSuccess {
+                    if (_uiState.value.selectedChannel?.id == channelId) {
+                        _uiState.update { it.copy(selectedChannel = null, episodes = emptyList()) }
+                    }
+                    _events.tryEmit("Channel removed")
+                }
+                .onFailure { failure ->
+                    _events.tryEmit(failure.userMessage())
+                }
+        }
     }
 
     fun selectChannel(channel: PodcastChannel) {
+        loadEpisodesJob?.cancel()
         _uiState.update { it.copy(selectedChannel = channel, episodes = emptyList(), loadingEpisodes = true) }
-        viewModelScope.launch {
+        loadEpisodesJob = viewModelScope.launch {
             podcastRepository.loadEpisodes(channel)
                 .onSuccess { episodes ->
                     _uiState.update { it.copy(episodes = episodes, loadingEpisodes = false) }
@@ -96,6 +112,7 @@ class PodcastViewModel @Inject constructor(
     }
 
     fun closeChannel() {
+        loadEpisodesJob?.cancel()
         _uiState.update { it.copy(selectedChannel = null, episodes = emptyList()) }
     }
 
@@ -123,8 +140,9 @@ class PodcastViewModel @Inject constructor(
             _events.tryEmit("This episode has no transcript in its feed")
             return
         }
+        transcriptJob?.cancel()
         _uiState.update { it.copy(transcriptLoading = true, transcript = null) }
-        viewModelScope.launch {
+        transcriptJob = viewModelScope.launch {
             podcastRepository.fetchTranscript(url)
                 .onSuccess { cues ->
                     _uiState.update {
@@ -144,6 +162,7 @@ class PodcastViewModel @Inject constructor(
     }
 
     fun closeTranscript() {
-        _uiState.update { it.copy(transcript = null) }
+        transcriptJob?.cancel()
+        _uiState.update { it.copy(transcript = null, transcriptLoading = false) }
     }
 }

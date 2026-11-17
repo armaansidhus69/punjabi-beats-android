@@ -137,6 +137,7 @@ class JamEngine(
         jobs.forEach { it.cancel() }
         jobs.clear()
         scope.cancel()
+        _roomState.value = _roomState.value.copy(phase = JamPhase.IDLE)
         @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
         kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
             runCatching {
@@ -318,8 +319,9 @@ class JamEngine(
             val queue = snapshot.queue + entry
             val playing = snapshot.nowPlaying
             if (playing == null) {
+                val markedQueue = queue.map { if (it.entryId == entry.entryId) it.copy(played = true) else it }
                 current.copy(
-                    snapshot = snapshot.copy(queue = queue, nowPlaying = entry.song, anchorPositionMs = 0L)
+                    snapshot = snapshot.copy(queue = markedQueue, nowPlaying = entry.song, anchorPositionMs = 0L)
                 ).also { startEntry(entry) }
             } else {
                 current.copy(snapshot = snapshot.copy(queue = queue))
@@ -339,8 +341,7 @@ class JamEngine(
     private fun startNextFairEntry() {
         if (!isHost) return
         val snapshot = _roomState.value.snapshot ?: return
-        val current = snapshot.nowPlaying
-        val remaining = snapshot.queue.filter { !it.played && it.song.id != current?.id }
+        val remaining = snapshot.queue.filter { !it.played }
         val next = remaining.minByOrNull { entry ->
             (playedCounts[entry.addedByUserId] ?: 0) * 10_000L + snapshot.queue.indexOf(entry)
         }

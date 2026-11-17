@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The single source of playback truth for the UI. Connects to
@@ -306,7 +307,11 @@ class PlayerControllerImpl @Inject constructor(
     override fun seekTo(positionMs: Long) = withController { it.seekTo(positionMs.coerceAtLeast(0L)) }
 
     override fun seekToIndex(index: Int) = withController { controller ->
-        if (index in 0 until controller.mediaItemCount) controller.seekToDefaultPosition(index)
+        if (index in 0 until controller.mediaItemCount) {
+            controller.seekToDefaultPosition(index)
+            controller.prepare()
+            controller.play()
+        }
     }
 
     override fun moveQueueItem(fromIndex: Int, toIndex: Int) = withController { controller ->
@@ -491,7 +496,10 @@ class PlayerControllerImpl @Inject constructor(
             combine(_queue, _currentIndex) { songs, index -> songs to index }
                 .debounce(1_000)
                 .collect { (songs, index) ->
-                    if (songs.isNotEmpty()) settings.saveQueue(SongCodec.encodeList(songs), index)
+                    if (songs.isNotEmpty()) {
+                        val json = withContext(Dispatchers.Default) { SongCodec.encodeList(songs) }
+                        settings.saveQueue(json, index)
+                    }
                 }
         }
     }

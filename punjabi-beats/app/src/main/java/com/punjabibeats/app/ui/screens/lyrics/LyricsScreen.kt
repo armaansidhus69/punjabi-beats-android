@@ -91,12 +91,9 @@ fun LyricsScreen(
     val lines = lyrics?.lines.orEmpty()
     val isSynced = lyrics?.isSynced == true
 
-    val activeIndex = remember(lines, isSynced, uiState.timingOffsetMs) {
-        derivedStateOf {
-            if (!isSynced) -1 else lines.indexOfLast { it.timeMs <= (positionMs + uiState.timingOffsetMs) }
-        }
+    val currentLineIndex = remember(lines, isSynced, positionMs, uiState.timingOffsetMs) {
+        if (!isSynced) -1 else lines.indexOfLast { it.timeMs <= (positionMs + uiState.timingOffsetMs) }
     }
-    val currentLineIndex by activeIndex
 
     val listState = rememberLazyListState()
     var lastUserScrollMs by remember { mutableLongStateOf(0L) }
@@ -289,7 +286,7 @@ fun LyricsScreen(
                                 positionMs = effectivePositionMs,
                                 onClick = {
                                     if (uiState.selectMode) viewModel.toggleSelected(index)
-                                    else viewModel.player.seekTo(line.timeMs)
+                                    else viewModel.player.seekTo((line.timeMs - uiState.timingOffsetMs).coerceAtLeast(0L))
                                 },
                                 onLongClick = { viewModel.toggleSelectMode() },
                             )

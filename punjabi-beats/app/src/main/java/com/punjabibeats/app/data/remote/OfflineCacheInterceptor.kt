@@ -39,12 +39,14 @@ class OfflineCacheInterceptor @Inject constructor(
         return try {
             chain.proceed(modified)
         } catch (offline: IOException) {
-            if (!online) {
-                val cacheOnly = request.newBuilder()
-                    .header("Cache-Control", "public, only-if-cached, max-stale=604800")
-                    .build()
-                chain.proceed(cacheOnly)
+            val cacheOnly = request.newBuilder()
+                .header("Cache-Control", "public, only-if-cached, max-stale=604800")
+                .build()
+            val cachedResponse = runCatching { chain.proceed(cacheOnly) }.getOrNull()
+            if (cachedResponse != null && (cachedResponse.isSuccessful || cachedResponse.code == 304)) {
+                cachedResponse
             } else {
+                cachedResponse?.close()
                 throw offline
             }
         }

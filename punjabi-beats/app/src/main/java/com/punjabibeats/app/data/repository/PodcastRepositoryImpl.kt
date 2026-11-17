@@ -11,9 +11,11 @@ import com.punjabibeats.app.domain.model.TranscriptCue
 import com.punjabibeats.app.domain.repository.PodcastRepository
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -83,11 +85,11 @@ class PodcastRepositoryImpl @Inject constructor(
         SubtitleParser.parse(fetchText(url))
     }
 
-    private suspend fun fetchText(url: String): String {
+    private suspend fun fetchText(url: String): String = withContext(Dispatchers.IO) {
         val request = Request.Builder().url(url).header("User-Agent", "PunjabiBeats/1.0").build()
         okHttpClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) error("Feed request failed with HTTP ${response.code}")
-            return response.body?.string().orEmpty()
+            response.body?.string().orEmpty()
         }
     }
 

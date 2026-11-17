@@ -3,6 +3,7 @@ package com.punjabibeats.app.ui.screens.ai
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.punjabibeats.app.core.util.UiState
+import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.core.util.userMessage
 import com.punjabibeats.app.domain.model.AiMessage
 import com.punjabibeats.app.domain.model.AiPlaylist
@@ -11,6 +12,7 @@ import com.punjabibeats.app.domain.repository.AiRepository
 import com.punjabibeats.app.domain.repository.LibraryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -41,6 +43,8 @@ class AiStudioViewModel @Inject constructor(
     private val _events = MutableSharedFlow<String>(extraBufferCapacity = 8)
     val events: SharedFlow<String> = _events.asSharedFlow()
 
+    private var generateJob: Job? = null
+
     fun onPromptChange(prompt: String) {
         _uiState.update { it.copy(prompt = prompt) }
     }
@@ -51,8 +55,9 @@ class AiStudioViewModel @Inject constructor(
             _uiState.update { it.copy(playlistState = UiState.Error("Describe the vibe you want first")) }
             return
         }
+        generateJob?.cancel()
         _uiState.update { it.copy(playlistState = UiState.Loading) }
-        viewModelScope.launch {
+        generateJob = viewModelScope.launch {
             aiRepository.generatePlaylist(prompt)
                 .onSuccess { playlist ->
                     _uiState.update { it.copy(playlistState = UiState.Success(playlist)) }
@@ -67,10 +72,11 @@ class AiStudioViewModel @Inject constructor(
 
     fun savePlaylistToLibrary() {
         val state = _uiState.value
+        if (state.savingPlaylist) return
         val playlist = (state.playlistState as? UiState.Success)?.data ?: return
         _uiState.update { it.copy(savingPlaylist = true) }
         viewModelScope.launch {
-            runCatching {
+            runSuspendCatching {
                 val created = libraryRepository.createPlaylist(playlist.title)
                 playlist.songs.forEach { song ->
                     libraryRepository.addToPlaylist(created.id, song)
