@@ -25,7 +25,7 @@ data class PBTheme(
     val muted: Color,
     val tagline: String = "",
     val style: PlayerStyle = when (id) {
-        "classic" -> PlayerStyle.CLASSIC
+        "classic", "vice" -> PlayerStyle.CLASSIC
         "anime" -> PlayerStyle.ANIME
         "cyber" -> PlayerStyle.CYBER
         "punjab" -> PlayerStyle.PUNJAB
@@ -37,12 +37,12 @@ data class PBTheme(
     val panel2: Color get() = card
     val accent2: Color get() = secondary
     val heroGradient: Brush get() = when (id) {
-        "classic" -> Brush.verticalGradient(
+        "classic", "vice" -> Brush.verticalGradient(
             listOf(
-                Color(0xFF3B165E),
-                Color(0xFF6B2175),
-                Color(0xFF8B2C58),
-                Color(0xFF4A1A2C).copy(alpha = 0.5f),
+                Color(0xFF5E124D),
+                Color(0xFF3E0B38),
+                Color(0xFF230728),
+                Color(0xFF13061A).copy(alpha = 0.5f),
                 background,
             )
         )
@@ -87,16 +87,16 @@ data class PBTheme(
 val PBThemes = listOf(
     PBTheme(
         id = "classic",
-        name = "Classic",
-        emoji = "🎵",
-        background = Color(0xFF0B0A10),
-        surface = Color(0xFF15141C),
-        card = Color(0xFF211F2B),
-        accent = Color(0xFFE2BC3F),
-        secondary = Color(0xFF9B7CEB),
+        name = "Neon Dusk",
+        emoji = "👑",
+        background = Color(0xFF08060D),
+        surface = Color(0xFF130E1B),
+        card = Color(0xFF1B1224),
+        accent = Color(0xFFFF2E93),
+        secondary = Color(0xFFFFAA00),
         text = Color.White,
-        muted = Color(0xFFA5A2AF),
-        tagline = "Black + Gold • Clean traditional player",
+        muted = Color(0xFFA592B3),
+        tagline = "Vice City Neon • Hot Pink + Golden Crown",
         style = PlayerStyle.CLASSIC,
     ),
     PBTheme(

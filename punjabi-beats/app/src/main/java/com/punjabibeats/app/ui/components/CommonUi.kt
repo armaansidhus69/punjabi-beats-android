@@ -34,6 +34,9 @@ import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -278,7 +281,7 @@ fun SongRow(
     }
 }
 
-/** Circular artist avatar with gold/accent rim matching the screenshot. */
+/** Circular artist avatar with intense double neon glowing pink rings matching the screenshot. */
 @Composable
 fun ArtistCard(
     name: String,
@@ -291,15 +294,19 @@ fun ArtistCard(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .width(96.dp)
+            .width(92.dp)
             .clickable(onClick = onClick),
     ) {
+        // Double glowing neon pink rings matching screenshot
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(theme.surface)
-                .border(2.dp, theme.accent, CircleShape),
+                .border(2.dp, theme.accent, CircleShape)
+                .padding(3.dp)
+                .clip(CircleShape)
+                .border(1.5.dp, theme.accent.copy(alpha = 0.85f), CircleShape)
+                .background(theme.surface),
             contentAlignment = Alignment.Center,
         ) {
             if (artworkUrl != null) {
@@ -310,7 +317,7 @@ fun ArtistCard(
                     modifier = Modifier.fillMaxSize().clip(CircleShape),
                 )
             } else {
-                Text(emoji, fontSize = 34.sp)
+                Text(emoji, fontSize = 32.sp)
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -410,6 +417,134 @@ fun MoodTile(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+    }
+}
+
+data class NeonMoodItem(
+    val id: String,
+    val title: String,
+    val emoji: String,
+    val borderColor: Color,
+    val bgGradient: List<Color>,
+)
+
+val NEON_MOOD_ITEMS = listOf(
+    NeonMoodItem(
+        id = "bhangra",
+        title = "Bhangra",
+        emoji = "🪘",
+        borderColor = Color(0xFFFF9E0B),
+        bgGradient = listOf(Color(0xFF2E1705), Color(0xFF130E1B)),
+    ),
+    NeonMoodItem(
+        id = "chill",
+        title = "Chill",
+        emoji = "🌙",
+        borderColor = Color(0xFF00E5FF),
+        bgGradient = listOf(Color(0xFF051B2E), Color(0xFF130E1B)),
+    ),
+    NeonMoodItem(
+        id = "drive",
+        title = "Drive",
+        emoji = "🏎️",
+        borderColor = Color(0xFF8B5CF6),
+        bgGradient = listOf(Color(0xFF1D0933), Color(0xFF130E1B)),
+    ),
+    NeonMoodItem(
+        id = "heartbreak",
+        title = "Heartbreak",
+        emoji = "💔",
+        borderColor = Color(0xFFEF4444),
+        bgGradient = listOf(Color(0xFF330914), Color(0xFF130E1B)),
+    ),
+)
+
+/**
+ * Neon Mood card with individual glowing border matching screenshot 1.
+ */
+@Composable
+fun NeonMoodCard(
+    item: NeonMoodItem,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val cardShape = RoundedCornerShape(18.dp)
+    Box(
+        modifier = modifier
+            .width(82.dp)
+            .height(96.dp)
+            .clip(cardShape)
+            .background(Brush.verticalGradient(item.bgGradient))
+            .border(1.5.dp, item.borderColor, cardShape)
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp, horizontal = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(item.borderColor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(item.emoji, fontSize = 24.sp)
+            }
+            Text(
+                item.title,
+                color = Color.White,
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+/** Category chips row matching Vice City edition screenshot. */
+@Composable
+fun CategoryChipsRow(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val categories = listOf("All" to "🎛️", "Songs" to "🎵", "Artists" to "👤", "Albums" to "💿")
+    val theme = LocalPBTheme.current
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        items(categories) { (cat, emoji) ->
+            val isSelected = cat == selectedCategory
+            val pillShape = RoundedCornerShape(20.dp)
+            Row(
+                modifier = Modifier
+                    .clip(pillShape)
+                    .background(if (isSelected) theme.accent else theme.surface)
+                    .border(
+                        1.dp,
+                        if (isSelected) theme.accent else theme.card.copy(alpha = 0.8f),
+                        pillShape
+                    )
+                    .clickable { onCategorySelected(cat) }
+                    .padding(horizontal = 14.dp, vertical = 7.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(emoji, fontSize = 13.sp)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    cat,
+                    color = if (isSelected) Color.White else theme.muted,
+                    fontSize = 13.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                )
+            }
         }
     }
 }
