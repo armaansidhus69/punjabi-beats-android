@@ -15,9 +15,11 @@ object LrcParser {
 
     private val tagRegex = Regex("""\[(\d{1,3}:\d{1,2}(?:[.:]\d{1,3})?)\]""")
     private val wordTagRegex = Regex("""<(\d{1,3}:\d{1,2}(?:[.:]\d{1,3})?)>""")
+    private val offsetRegex = Regex("""\[offset:\s*([+-]?\d+)]""", RegexOption.IGNORE_CASE)
     private const val LAST_WORD_SPAN_MS = 4_000L
 
     fun parse(raw: String): List<LyricLine> {
+        val fileOffsetMs = offsetRegex.find(raw)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
         val lines = mutableListOf<LyricLine>()
         raw.lineSequence().forEach { rawLine ->
             val tags = tagRegex.findAll(rawLine).toList()
@@ -28,15 +30,15 @@ object LrcParser {
                 val text = content.trim().let(::unescapeHtml).ifBlank { "♪" }
                 tags.forEach { tag ->
                     parseTimestampToMs(tag.groupValues[1])?.let { timeMs ->
-                        lines += LyricLine(timeMs = timeMs, text = text)
+                        lines += LyricLine(timeMs = (timeMs + fileOffsetMs).coerceAtLeast(0L), text = text)
                     }
                 }
             } else {
                 val text = content.replace(wordTagRegex, "").trim().let(::unescapeHtml).ifBlank { "♪" }
-                val words = parseWords(content, wordTags)
+                val words = parseWords(content, wordTags, fileOffsetMs)
                 tags.forEach { tag ->
                     parseTimestampToMs(tag.groupValues[1])?.let { timeMs ->
-                        lines += LyricLine(timeMs = timeMs, text = text, words = words)
+                        lines += LyricLine(timeMs = (timeMs + fileOffsetMs).coerceAtLeast(0L), text = text, words = words)
                     }
                 }
             }
@@ -45,18 +47,19 @@ object LrcParser {
     }
 
     /** Word text runs from right after one "<…>" tag to the start of the next. */
-    private fun parseWords(content: String, wordTags: List<MatchResult>): List<TimedWord> {
+    private fun parseWords(content: String, wordTags: List<MatchResult>, fileOffsetMs: Long = 0L): List<TimedWord> {
         val words = mutableListOf<TimedWord>()
         wordTags.forEachIndexed { index, match ->
-            val startMs = parseTimestampToMs(match.groupValues[1]) ?: return@forEachIndexed
+            val rawStartMs = parseTimestampToMs(match.groupValues[1]) ?: return@forEachIndexed
+            val startMs = (rawStartMs + fileOffsetMs).coerceAtLeast(0L)
             val nextTag = wordTags.getOrNull(index + 1)
             val rawWord = content.substring(
                 startIndex = match.range.last + 1,
                 endIndex = nextTag?.range?.first ?: content.length,
             ).trim()
             if (rawWord.isBlank()) return@forEachIndexed
-            val endMs = nextTag
-                ?.let { parseTimestampToMs(it.groupValues[1]) }
+            val rawEndMs = nextTag?.let { parseTimestampToMs(it.groupValues[1]) }
+            val endMs = rawEndMs?.let { (it + fileOffsetMs).coerceAtLeast(0L) }
                 ?: (startMs + LAST_WORD_SPAN_MS)
             words += TimedWord(text = rawWord, startMs = startMs, endMs = endMs)
         }

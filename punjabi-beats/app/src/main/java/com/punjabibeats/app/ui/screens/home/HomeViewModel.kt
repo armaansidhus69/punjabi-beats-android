@@ -12,9 +12,12 @@ import com.punjabibeats.app.domain.repository.SongRepository
 import com.punjabibeats.app.playback.MusicPlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -60,6 +63,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private val _events = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val events: SharedFlow<String> = _events.asSharedFlow()
+
     private val _moodLoading = MutableStateFlow<String?>(null)
     val moodLoading: StateFlow<String?> = _moodLoading.asStateFlow()
 
@@ -67,9 +73,19 @@ class HomeViewModel @Inject constructor(
     fun playMood(mood: MoodCategory) {
         viewModelScope.launch {
             _moodLoading.value = mood.id
-            val songs = runSuspendCatching { songRepository.searchSongs(mood.query, limit = 20) }
-                .getOrDefault(emptyList())
-            if (songs.isNotEmpty()) player.playQueue(songs, 0)
+            runSuspendCatching { songRepository.searchSongs(mood.query, limit = 20) }
+                .fold(
+                    onSuccess = { songs ->
+                        if (songs.isNotEmpty()) {
+                            player.playQueue(songs, 0)
+                        } else {
+                            _events.tryEmit("No songs found for \"${mood.title}\"")
+                        }
+                    },
+                    onFailure = { error ->
+                        _events.tryEmit(error.userMessage())
+                    },
+                )
             _moodLoading.value = null
         }
     }

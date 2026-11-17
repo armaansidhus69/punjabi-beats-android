@@ -73,13 +73,17 @@ class LibraryViewModel @Inject constructor(
     }
 
     fun deletePlaylist(playlistId: String) {
-        viewModelScope.launch { libraryRepository.deletePlaylist(playlistId) }
+        viewModelScope.launch {
+            runSuspendCatching { libraryRepository.deletePlaylist(playlistId) }
+                .onFailure { _events.tryEmit(it.userMessage()) }
+        }
     }
 
     fun addToPlaylist(playlistId: String, song: Song) {
         viewModelScope.launch {
             runSuspendCatching { libraryRepository.addToPlaylist(playlistId, song) }
                 .onSuccess { _events.tryEmit("Added to playlist") }
+                .onFailure { _events.tryEmit(it.userMessage()) }
         }
     }
 
@@ -87,7 +91,10 @@ class LibraryViewModel @Inject constructor(
         libraryRepository.observePlaylistSongs(playlistId)
 
     fun removeFromPlaylist(playlistId: String, songId: String) {
-        viewModelScope.launch { libraryRepository.removeFromPlaylist(playlistId, songId) }
+        viewModelScope.launch {
+            runSuspendCatching { libraryRepository.removeFromPlaylist(playlistId, songId) }
+                .onFailure { _events.tryEmit(it.userMessage()) }
+        }
     }
 
     fun downloadSong(song: Song) {
@@ -101,8 +108,9 @@ class LibraryViewModel @Inject constructor(
 
     fun removeDownload(song: Song) {
         viewModelScope.launch {
-            downloadRepository.remove(song.id)
-            _events.tryEmit("Removed from offline")
+            runSuspendCatching { downloadRepository.remove(song.id) }
+                .onSuccess { _events.tryEmit("Removed from offline") }
+                .onFailure { _events.tryEmit(it.userMessage()) }
         }
     }
 

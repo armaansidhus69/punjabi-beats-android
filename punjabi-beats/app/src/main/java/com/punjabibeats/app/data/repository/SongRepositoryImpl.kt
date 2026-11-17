@@ -20,11 +20,13 @@ import com.punjabibeats.app.domain.repository.SongRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -162,7 +164,7 @@ class SongRepositoryImpl @Inject constructor(
     override fun observeRecentlyPlayed(limit: Int): Flow<List<Song>> =
         historyDao.observeRecentPlays(limit).map { rows ->
             rows.mapNotNull { SongCodec.decode(it.songJson) }.distinctBy { it.id }
-        }
+        }.flowOn(Dispatchers.Default)
 
     override fun observeTopArtists(limit: Int): Flow<List<String>> =
         historyDao.observeTopArtists(limit).map { rows -> rows.map { it.artist } }

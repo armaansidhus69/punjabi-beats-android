@@ -43,7 +43,9 @@ class YouTubeStreamResolver @Inject constructor(
 ) : TrackResolver {
 
     override suspend fun resolve(song: Song): Song? {
-        val videoId = song.videoId ?: return null
+        val videoId = song.videoId?.takeIf { it.isNotBlank() }
+            ?: song.id.takeIf { it.startsWith("yt_") }?.removePrefix("yt_")
+            ?: return null
         val body = backend.ytStream(videoId).body()?.string().orEmpty()
         if (body.isBlank()) return null
         val root = PbJson.json.parseToJsonElement(body) as? JsonObject ?: return null
@@ -53,7 +55,7 @@ class YouTubeStreamResolver @Inject constructor(
                 format.firstString("url", "audioUrl")
             }
             ?: return null
-        return song.copy(streamUrl = url)
+        return song.copy(streamUrl = url, videoId = videoId)
     }
 }
 

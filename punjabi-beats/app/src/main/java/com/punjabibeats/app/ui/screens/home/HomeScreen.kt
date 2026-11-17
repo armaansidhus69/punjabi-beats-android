@@ -65,6 +65,7 @@ import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.ArtistCard
 import com.punjabibeats.app.ui.components.ErrorState
+import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.MoodTile
 import com.punjabibeats.app.ui.components.PbLoading
 import com.punjabibeats.app.ui.components.SectionHeader
@@ -90,9 +91,16 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val theme = LocalPBTheme.current
+    val snackbar = LocalPbSnackbar.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
     val currentSong by controller.currentSong.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { message ->
+            snackbar.showSnackbar(message)
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(theme.background).statusBarsPadding()) {
         AnimatedVisibility(visible = !isOnline) {

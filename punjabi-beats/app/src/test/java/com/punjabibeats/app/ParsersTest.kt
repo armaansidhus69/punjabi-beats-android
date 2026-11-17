@@ -44,6 +44,19 @@ class ParsersTest {
     }
 
     @Test
+    fun `parses LRC with offset tag and adjusts timestamps`() {
+        val lrc = """
+            [offset:+500]
+            [00:10.00]Line with offset
+            [00:02.00]Early line
+        """.trimIndent()
+        val lines = LrcParser.parse(lrc)
+        assertEquals(2, lines.size)
+        assertEquals(2_500L, lines[0].timeMs)
+        assertEquals(10_500L, lines[1].timeMs)
+    }
+
+    @Test
     fun `parses SRT blocks`() {
         val srt = """
             1

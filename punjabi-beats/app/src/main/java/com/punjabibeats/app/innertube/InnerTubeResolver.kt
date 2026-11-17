@@ -25,12 +25,14 @@ class InnerTubeResolver @Inject constructor(
 ) : TrackResolver {
 
     override suspend fun resolve(song: Song): Song? {
-        val playerResponse = song.videoId
+        val directVideoId = song.videoId?.takeIf { it.isNotBlank() }
+            ?: song.id.takeIf { it.startsWith("yt_") }?.removePrefix("yt_")
+        val playerResponse = directVideoId
             ?.let { client.player(it) }
             ?: searchPlayerResponse(song)
             ?: return null
         val streamUrl = cipherManager.bestAudioStreamUrl(playerResponse) ?: return null
-        val videoId = song.videoId
+        val videoId = directVideoId
             ?: playerResponse.firstObject("videoDetails")?.firstString("videoId")
         return song.copy(
             streamUrl = streamUrl,

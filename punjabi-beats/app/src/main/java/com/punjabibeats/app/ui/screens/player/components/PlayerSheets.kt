@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -137,6 +138,12 @@ fun QueueDrawer(
     val currentIndex by controller.currentIndex.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val dragState = rememberDragDropState(listState = listState, onMove = onMove)
+
+    LaunchedEffect(Unit) {
+        if (currentIndex > 0 && queue.isNotEmpty()) {
+            listState.scrollToItem((currentIndex - 1).coerceAtLeast(0))
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -453,7 +460,7 @@ fun EqualizerSheet(
                 letterSpacing = 1.sp,
             )
             androidx.compose.material3.Slider(
-                value = bassBoost.toFloat(),
+                value = bassBoost.toFloat().coerceIn(0f, 1000f),
                 onValueChange = { onBassBoostChange(it.toInt()) },
                 valueRange = 0f..1000f,
                 enabled = enabled,
@@ -499,7 +506,7 @@ fun EqualizerSheet(
                         fontWeight = FontWeight.Medium,
                     )
                     androidx.compose.material3.Slider(
-                        value = rawLevel.toFloat(),
+                        value = rawLevel.toFloat().coerceIn(-1000f, 1000f),
                         onValueChange = { onBandChange(index, it.toInt().toShort()) },
                         valueRange = -1000f..1000f,
                         enabled = enabled,

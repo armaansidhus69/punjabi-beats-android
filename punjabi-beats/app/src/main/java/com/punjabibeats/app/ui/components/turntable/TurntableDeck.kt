@@ -268,7 +268,7 @@ fun TurntableDeck(
                     .fillMaxSize()
                     .padding(4.dp),
             ) {
-                val w = size.toPx()
+                val w = this.size.width
                 val pivotX = w * 0.88f
                 val pivotY = w * 0.12f
                 val pivotCenter = Offset(pivotX, pivotY)
