@@ -93,12 +93,18 @@ import com.punjabibeats.app.ui.components.turntable.TurntableDeck
 import com.punjabibeats.app.ui.screens.player.components.QueueDrawer
 import com.punjabibeats.app.ui.screens.player.components.SleepTimerSheet
 import com.punjabibeats.app.ui.screens.player.components.SongDnaSheet
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.PBTheme
 import com.punjabibeats.app.ui.theme.PlayerStyle
 
 /**
  * Dancing vertical neon pink spectrum bars waveform equalizer matching screenshot.
+ * Rendered using a single hardware-accelerated Canvas with drawRoundRect, completely
+ * eliminating 32 Box composable measure/layout passes on every animation frame.
  */
 @Composable
 private fun FullPlayerDancingSpectrum(
@@ -139,22 +145,32 @@ private fun FullPlayerDancingSpectrum(
         anim3, anim5, anim4, anim2, anim1, anim3, anim5, anim2
     )
 
-    Row(
+    Canvas(
         modifier = modifier
             .fillMaxWidth()
             .height(34.dp)
             .padding(horizontal = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        barFactors.forEach { factor ->
-            val barH = if (isPlaying) (30.dp * factor).coerceAtLeast(3.dp) else 3.dp
-            Box(
-                modifier = Modifier
-                    .width(3.dp)
-                    .height(barH)
-                    .clip(RoundedCornerShape(1.5.dp))
-                    .background(tint),
+        val barCount = barFactors.size
+        val barWidth = 3.dp.toPx()
+        val cornerRadius = CornerRadius(barWidth / 2f, barWidth / 2f)
+        val maxBarHeight = size.height * 0.9f
+        val minBarHeight = 3.dp.toPx()
+        val gap = if (barCount > 1) {
+            (size.width - barCount * barWidth) / (barCount - 1)
+        } else 0f
+        val centerY = size.height / 2f
+
+        for (i in 0 until barCount) {
+            val factor = barFactors[i]
+            val barH = if (isPlaying) (maxBarHeight * factor).coerceAtLeast(minBarHeight) else minBarHeight
+            val left = i * (barWidth + gap)
+            val top = centerY - barH / 2f
+            drawRoundRect(
+                color = tint,
+                topLeft = Offset(left, top),
+                size = Size(barWidth, barH),
+                cornerRadius = cornerRadius,
             )
         }
     }
