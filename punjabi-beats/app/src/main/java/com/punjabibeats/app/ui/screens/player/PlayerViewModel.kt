@@ -63,6 +63,7 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val current = equalizerBands.value
             val next = current.toMutableList()
+            while (next.size < 5) next.add(0.toShort())
             if (bandIndex in next.indices) {
                 next[bandIndex] = levelMilliBel
                 settingsDataStore.saveEqualizerBands(next)

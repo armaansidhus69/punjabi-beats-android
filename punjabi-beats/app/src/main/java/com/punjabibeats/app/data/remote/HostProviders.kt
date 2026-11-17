@@ -57,10 +57,10 @@ class AudiusHostProvider @Inject constructor(private val okHttpClient: OkHttpCli
 class PipedHostProvider @Inject constructor() {
 
     private val candidates = listOf(
-        "https://pipedapi.kavin.rocks",
         "https://pipedapi.adminforge.de",
         "https://api.piped.private.coffee",
         "https://pipedapi.reallyaweso.me",
+        "https://piped-api.lunar.icu",
     )
 
     @Volatile

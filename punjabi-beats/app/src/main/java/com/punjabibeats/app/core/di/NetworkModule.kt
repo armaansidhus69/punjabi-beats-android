@@ -37,6 +37,17 @@ object NetworkModule {
     ): OkHttpClient = OkHttpClient.Builder()
         .cache(Cache(File(context.cacheDir, "http_cache"), 50L * 1024L * 1024L))
         .addInterceptor(OfflineCacheInterceptor(networkMonitor))
+        .addNetworkInterceptor { chain ->
+            val response = chain.proceed(chain.request())
+            if (chain.request().method == "GET") {
+                response.newBuilder()
+                    .removeHeader("Pragma")
+                    .header("Cache-Control", "public, max-age=120")
+                    .build()
+            } else {
+                response
+            }
+        }
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(20, TimeUnit.SECONDS)
         .writeTimeout(20, TimeUnit.SECONDS)

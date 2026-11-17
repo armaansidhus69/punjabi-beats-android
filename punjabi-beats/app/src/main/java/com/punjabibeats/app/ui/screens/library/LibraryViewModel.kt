@@ -107,9 +107,10 @@ class LibraryViewModel @Inject constructor(
     }
 
     fun scanLocalSongs(context: android.content.Context) {
+        val appContext = context.applicationContext
         viewModelScope.launch {
             _isScanningLocal.value = true
-            val songs = com.punjabibeats.app.data.local.LocalMusicScanner.scanLocalAudio(context)
+            val songs = com.punjabibeats.app.data.local.LocalMusicScanner.scanLocalAudio(appContext)
             _localSongs.value = songs
             _isScanningLocal.value = false
             if (songs.isNotEmpty()) {

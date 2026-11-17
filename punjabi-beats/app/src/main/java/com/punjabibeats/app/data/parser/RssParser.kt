@@ -97,9 +97,12 @@ object RssParser {
                             }
                         }
                         "image" -> if (!inItem) inImage = false
+                        "url" -> if (inImage && !inItem && tagText.isNotBlank()) {
+                            channelArtwork = tagText
+                        }
                         "title" -> when {
                             inItem -> currentTitle = tagText
-                            inImage -> channelArtwork = tagText
+                            inImage -> Unit // Do not treat <image><title> as artwork URL
                             else -> channelTitle = unescapeHtml(tagText)
                         }
                         "description" -> if (inItem) {

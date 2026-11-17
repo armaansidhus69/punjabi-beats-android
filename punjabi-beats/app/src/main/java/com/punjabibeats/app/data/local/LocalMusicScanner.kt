@@ -46,7 +46,7 @@ object LocalMusicScanner {
             MediaStore.Audio.Media.YEAR,
         )
 
-        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DURATION} >= 10000"
+        val selection = "(${MediaStore.Audio.Media.IS_MUSIC} != 0 OR (${MediaStore.Audio.Media.IS_NOTIFICATION} == 0 AND ${MediaStore.Audio.Media.IS_ALARM} == 0 AND ${MediaStore.Audio.Media.IS_RINGTONE} == 0)) AND ${MediaStore.Audio.Media.DURATION} >= 10000"
         val sortOrder = "${MediaStore.Audio.Media.DATE_ADDED} DESC"
 
         try {

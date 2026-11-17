@@ -323,8 +323,8 @@ class MediaPlaybackService : MediaSessionService() {
             val bass = settings.bassBoostStrength().first()
             val virtualizer = settings.virtualizerStrength().first()
             audioEffects.setEqualizerEnabled(eqEnabled, bands)
-            audioEffects.setBassBoostEnabled(bass > 0, bass.toShort())
-            audioEffects.setVirtualizerEnabled(virtualizer > 0, virtualizer.toShort())
+            audioEffects.setBassBoostEnabled(eqEnabled && bass > 0, bass.toShort())
+            audioEffects.setVirtualizerEnabled(eqEnabled && virtualizer > 0, virtualizer.toShort())
         }
     }
 

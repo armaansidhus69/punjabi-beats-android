@@ -129,12 +129,17 @@ class JamEngine(
 
     fun close() {
         val currentTransport = transport
-        scope.launch { runCatching { currentTransport?.send(JamMessage.Leave(code, me.userId)) } }
-        currentTransport?.close()
         transport = null
         jobs.forEach { it.cancel() }
         jobs.clear()
         scope.cancel()
+        @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
+        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+            runCatching {
+                currentTransport?.send(JamMessage.Leave(code, me.userId))
+                currentTransport?.close()
+            }
+        }
     }
 
     // ----------------------------------------------------------------- inbound

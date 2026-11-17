@@ -123,7 +123,7 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
 
     /** Band levels stored as a JSON array of milli-bel integers, e.g. "[0,0,100,200,100]". */
     fun equalizerBands(): Flow<List<Short>> = context.pbDataStore.data.map { prefs ->
-        runCatching {
+        val parsed = runCatching {
             PbJson.json.parseToJsonElement(prefs[Keys.EQUALIZER_BANDS] ?: "[]")
                 .let { el ->
                     when (el) {
@@ -134,6 +134,7 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
                 .mapNotNull { (it as? kotlinx.serialization.json.JsonPrimitive)?.content?.toIntOrNull() }
                 .map { it.toShort() }
         }.getOrDefault(emptyList())
+        if (parsed.size >= 5) parsed.take(5) else (parsed + List(5 - parsed.size) { 0.toShort() })
     }
 
     suspend fun saveEqualizerBands(levels: List<Short>) {

@@ -89,13 +89,17 @@ class LyricsViewModel @Inject constructor(
     }
 
     private suspend fun loadLyrics(song: Song) {
-        _uiState.value = LyricsUiState()
+        val currentScriptMode = _uiState.value.scriptMode
+        _uiState.value = LyricsUiState(
+            lyrics = UiState.Loading,
+            scriptMode = currentScriptMode,
+        )
         val lyrics = runSuspendCatching {
             lyricsRepository.fetchLyrics(song.title, song.artist, song.durationMs)
         }.getOrNull()
-        _uiState.value = LyricsUiState(
+        _uiState.value = _uiState.value.copy(
             lyrics = UiState.Success(lyrics),
-            scriptMode = _uiState.value.scriptMode,
+            scriptMode = currentScriptMode,
         )
     }
 
