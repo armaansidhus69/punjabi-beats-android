@@ -46,6 +46,7 @@ fun WaveformSeekbar(
     enabled: Boolean = true,
     accentColor: Color = LocalPBTheme.current.accent,
 ) {
+    val theme = LocalPBTheme.current
     val fraction = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
     val animatedFraction by animateFloatAsState(
         targetValue = fraction,
@@ -114,7 +115,7 @@ fun WaveformSeekbar(
                 val shimmer = if (isPlaying) 0.78f + 0.22f * sin(phase + index * 0.35f) else 1f
                 val height = size.height * 0.82f * base * (if (played) shimmer else 0.6f)
                 drawRoundRect(
-                    color = if (played) accentColor else TextSecondary.copy(alpha = 0.35f),
+                    color = if (played) accentColor else theme.muted.copy(alpha = 0.35f),
                     topLeft = Offset(index * (effectiveBarWidth + gap), centerY - height / 2f),
                     size = Size(effectiveBarWidth, height),
                     cornerRadius = CornerRadius(effectiveBarWidth / 2f),

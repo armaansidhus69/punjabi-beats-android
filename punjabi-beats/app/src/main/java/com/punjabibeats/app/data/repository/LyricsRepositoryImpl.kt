@@ -138,17 +138,29 @@ class LyricsRepositoryImpl @Inject constructor(
     }.getOrNull()
 
     private fun encodeLines(lines: List<LyricLine>): String =
-        lines.joinToString("\n") { "${it.timeMs}|${it.text}|${it.romanized.orEmpty()}" }
+        lines.joinToString("\n") { line ->
+            val safeText = line.text.replace("\u001F", " ")
+            val safeRoman = line.romanized.orEmpty().replace("\u001F", " ")
+            "${line.timeMs}\u001F$safeText\u001F$safeRoman"
+        }
 
     private fun decodeLines(raw: String): List<LyricLine> =
         raw.lineSequence().filter { it.isNotBlank() }.mapNotNull { line ->
-            val parts = line.split("|", limit = 3)
-            if (parts.size >= 2) {
+            if (line.contains('\u001F')) {
+                val parts = line.split("\u001F", limit = 3)
                 val time = parts[0].toLongOrNull() ?: 0L
-                val text = parts[1]
+                val text = parts.getOrNull(1).orEmpty()
                 val roman = parts.getOrNull(2)?.takeIf { it.isNotBlank() }
                 LyricLine(timeMs = time, text = text, romanized = roman)
-            } else null
+            } else {
+                val parts = line.split("|", limit = 3)
+                if (parts.size >= 2) {
+                    val time = parts[0].toLongOrNull() ?: 0L
+                    val text = parts[1]
+                    val roman = parts.getOrNull(2)?.takeIf { it.isNotBlank() }
+                    LyricLine(timeMs = time, text = text, romanized = roman)
+                } else null
+            }
         }.toList()
 
     private fun com.punjabibeats.app.data.remote.dto.LrcLibTrack.toSyncedLyrics(

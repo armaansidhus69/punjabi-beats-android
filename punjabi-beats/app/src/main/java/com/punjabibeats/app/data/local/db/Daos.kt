@@ -56,6 +56,9 @@ interface LibraryDao {
 
     @Query("SELECT COUNT(*) FROM playlist_songs WHERE playlistId = :playlistId")
     fun playlistSize(playlistId: String): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM playlist_songs WHERE playlistId = :playlistId")
+    suspend fun getPlaylistSongCount(playlistId: String): Int
 }
 
 @Dao

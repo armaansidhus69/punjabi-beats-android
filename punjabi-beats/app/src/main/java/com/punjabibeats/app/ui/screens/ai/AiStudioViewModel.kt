@@ -93,6 +93,8 @@ class AiStudioViewModel @Inject constructor(
         }
     }
 
+    private var chatJob: Job? = null
+
     fun onChatInputChange(input: String) {
         _uiState.update { it.copy(chatInput = input) }
     }
@@ -102,27 +104,30 @@ class AiStudioViewModel @Inject constructor(
         if (input.isBlank() || _uiState.value.isThinking) return
         val userMessage = AiMessage(role = AiRole.USER, content = input)
         _uiState.update { it.copy(messages = it.messages + userMessage, chatInput = "", isThinking = true) }
-        viewModelScope.launch {
-            aiRepository.askAssistant(_uiState.value.messages)
-                .onSuccess { reply ->
-                    _uiState.update {
-                        it.copy(
-                            messages = it.messages + AiMessage(role = AiRole.ASSISTANT, content = reply),
-                            isThinking = false,
-                        )
+        chatJob?.cancel()
+        chatJob = viewModelScope.launch {
+            try {
+                aiRepository.askAssistant(_uiState.value.messages)
+                    .onSuccess { reply ->
+                        _uiState.update {
+                            it.copy(
+                                messages = it.messages + AiMessage(role = AiRole.ASSISTANT, content = reply),
+                            )
+                        }
                     }
-                }
-                .onFailure { failure ->
-                    _uiState.update {
-                        it.copy(
-                            messages = it.messages + AiMessage(
-                                role = AiRole.ASSISTANT,
-                                content = "Sorry, I hit a snag: ${failure.userMessage()}",
-                            ),
-                            isThinking = false,
-                        )
+                    .onFailure { failure ->
+                        _uiState.update {
+                            it.copy(
+                                messages = it.messages + AiMessage(
+                                    role = AiRole.ASSISTANT,
+                                    content = "Sorry, I hit a snag: ${failure.userMessage()}",
+                                ),
+                            )
+                        }
                     }
-                }
+            } finally {
+                _uiState.update { it.copy(isThinking = false) }
+            }
         }
     }
 }

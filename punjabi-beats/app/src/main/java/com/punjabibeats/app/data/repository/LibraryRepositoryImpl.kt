@@ -14,8 +14,10 @@ import com.punjabibeats.app.domain.repository.LibraryRepository
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -30,7 +32,9 @@ class LibraryRepositoryImpl @Inject constructor(
     private val likeMutex = Mutex()
 
     override fun observeLikedSongs(): Flow<List<Song>> =
-        libraryDao.likedSongs().map { rows -> rows.mapNotNull { SongCodec.decode(it.songJson) } }
+        libraryDao.likedSongs()
+            .map { rows -> rows.mapNotNull { SongCodec.decode(it.songJson) } }
+            .flowOn(Dispatchers.Default)
 
     override fun observeIsLiked(songId: String): Flow<Boolean> = libraryDao.isLiked(songId)
 
@@ -75,12 +79,12 @@ class LibraryRepositoryImpl @Inject constructor(
     }
 
     override fun observePlaylistSongs(playlistId: String): Flow<List<Song>> =
-        libraryDao.playlistSongs(playlistId).map { rows ->
-            rows.mapNotNull { SongCodec.decode(it.songJson) }
-        }
+        libraryDao.playlistSongs(playlistId)
+            .map { rows -> rows.mapNotNull { SongCodec.decode(it.songJson) } }
+            .flowOn(Dispatchers.Default)
 
     override suspend fun addToPlaylist(playlistId: String, song: Song) {
-        val position = libraryDao.playlistSongs(playlistId).first().size
+        val position = libraryDao.getPlaylistSongCount(playlistId)
         libraryDao.addSongToPlaylist(
             PlaylistSongEntity(
                 playlistId = playlistId,

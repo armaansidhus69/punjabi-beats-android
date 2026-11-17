@@ -91,7 +91,7 @@ object RssParser {
                                     streamUrl = currentStreamUrl,
                                     durationSec = currentDurationSec,
                                     pubDate = currentPubDate,
-                                    description = currentDescription,
+                                    description = unescapeHtml(currentDescription.replace(Regex("<[^>]*>"), " ").trim()),
                                     transcriptUrl = currentTranscriptUrl,
                                 )
                             }
@@ -125,6 +125,8 @@ object RssParser {
         val text = raw.trim()
         if (text.isBlank()) return 0L
         if (text.toLongOrNull() != null) return text.toLongOrNull() ?: 0L
+        val asDouble = text.toDoubleOrNull()
+        if (asDouble != null) return asDouble.toLong()
         val parts = text.split(":").map { it.trim().toLongOrNull() ?: 0L }
         return when (parts.size) {
             3 -> parts[0] * 3600L + parts[1] * 60L + parts[2]

@@ -71,6 +71,11 @@ class EncryptedFileDataSource(private val context: Context) : BaseDataSource(fal
                 }
 
                 val position = dataSpec.position
+                val totalPlaintextLength = (file.length() - DownloadCrypto.HEADER_LENGTH_CTR.toLong()).coerceAtLeast(0L)
+                if (position > totalPlaintextLength) {
+                    fis.close()
+                    throw androidx.media3.datasource.DataSourceException(androidx.media3.common.PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE)
+                }
                 val blockIndex = position / 16L
                 val intraBlockOffset = (position % 16L).toInt()
                 val ciphertextOffset = DownloadCrypto.HEADER_LENGTH_CTR.toLong() + (blockIndex * 16L)

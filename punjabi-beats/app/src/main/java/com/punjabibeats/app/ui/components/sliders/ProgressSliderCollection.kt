@@ -171,15 +171,17 @@ fun UniversalSeekbar(
                     // Base inactive line
                     drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round)
                     // Animated sinusoidal wave up to playedX
-                    val wavePath = Path()
-                    val wavePoints = (playedX / 4f).toInt().coerceAtLeast(1)
-                    wavePath.moveTo(0f, centerY)
-                    for (i in 0..wavePoints) {
-                        val px = i * 4f
-                        val waveOffset = sin(px * 0.045f + if (isPlaying) phase * 2f else 0f) * 10.dp.toPx()
-                        wavePath.lineTo(px, centerY + waveOffset)
+                    if (playedX > 0f) {
+                        val wavePath = Path()
+                        val wavePoints = (playedX / 4f).toInt().coerceAtLeast(1)
+                        wavePath.moveTo(0f, centerY)
+                        for (i in 0..wavePoints) {
+                            val px = minOf(i * 4f, playedX)
+                            val waveOffset = sin(px * 0.045f + if (isPlaying) phase * 2f else 0f) * 10.dp.toPx()
+                            wavePath.lineTo(px, centerY + waveOffset)
+                        }
+                        drawPath(wavePath, primary, style = Stroke(width = 4.5.dp.toPx(), cap = StrokeCap.Round))
                     }
-                    drawPath(wavePath, primary, style = Stroke(width = 4.5.dp.toPx(), cap = StrokeCap.Round))
                     drawCircle(primary, radius = 9.dp.toPx(), center = Offset(playedX, centerY))
                     drawCircle(Color.White, radius = 4.dp.toPx(), center = Offset(playedX, centerY))
                 }

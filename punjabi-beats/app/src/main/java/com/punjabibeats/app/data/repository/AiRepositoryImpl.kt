@@ -84,8 +84,9 @@ class AiRepositoryImpl @Inject constructor(
         val title = firstString("title", "name", "song") ?: return null
         val videoId = firstString("videoId", "video_id", "youtubeId", "youtube_id", "id")
             ?.takeIf { VIDEO_ID_REGEX.matches(it) }
+        val hash = kotlin.math.abs((title + firstString("artist").orEmpty()).hashCode())
         return Song(
-            id = "ai_${(title + firstString("artist").orEmpty()).hashCode()}",
+            id = "ai_$hash",
             title = title,
             artist = firstString("artist", "artistName", "singer") ?: "Punjabi Beats AI",
             artworkUrl = firstString("artwork", "artworkUrl", "image", "thumbnail"),

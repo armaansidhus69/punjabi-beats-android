@@ -64,15 +64,24 @@ class AudioEffectsManager @Inject constructor(
         runCatching {
             eq.enabled = enabled
             if (enabled) {
+                val range = runCatching { eq.bandLevelRange }.getOrNull()
+                val minLevel = (range?.getOrNull(0) ?: -1000).toInt()
+                val maxLevel = (range?.getOrNull(1) ?: 1000).toInt()
                 bandLevelsMilliBel.take(eq.numberOfBands.toInt()).forEachIndexed { band, level ->
-                    eq.setBandLevel(band.toShort(), level)
+                    val safeLevel = level.toInt().coerceIn(minLevel, maxLevel).toShort()
+                    runCatching { eq.setBandLevel(band.toShort(), safeLevel) }
                 }
             }
         }
     }
 
     fun setBandLevel(band: Short, levelMilliBel: Short) {
-        runCatching { equalizer?.setBandLevel(band, levelMilliBel) }
+        val eq = equalizer ?: return
+        val range = runCatching { eq.bandLevelRange }.getOrNull()
+        val minLevel = (range?.getOrNull(0) ?: -1000).toInt()
+        val maxLevel = (range?.getOrNull(1) ?: 1000).toInt()
+        val safeLevel = levelMilliBel.toInt().coerceIn(minLevel, maxLevel).toShort()
+        runCatching { eq.setBandLevel(band, safeLevel) }
     }
 
     fun setBassBoostEnabled(enabled: Boolean, strengthPerMil: Short) {
