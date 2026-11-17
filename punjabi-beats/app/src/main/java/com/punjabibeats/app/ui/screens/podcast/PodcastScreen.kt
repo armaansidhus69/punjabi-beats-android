@@ -68,6 +68,7 @@ fun PodcastScreen(
 ) {
     val theme = LocalPBTheme.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val currentPositionMs by viewModel.positionMs.collectAsStateWithLifecycle()
     val snackbar = LocalPbSnackbar.current
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -143,7 +144,12 @@ fun PodcastScreen(
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { PbLoading() }
     }
     uiState.transcript?.let { cues ->
-        TranscriptSheet(cues = cues, onDismiss = { viewModel.closeTranscript() })
+        TranscriptSheet(
+            cues = cues,
+            currentPositionMs = currentPositionMs,
+            onSeek = { viewModel.seekTo(it) },
+            onDismiss = { viewModel.closeTranscript() },
+        )
     }
 }
 
@@ -262,7 +268,7 @@ private fun EpisodeList(
                             }
                             if (episode.transcriptUrl != null) {
                                 IconButton(onClick = { viewModel.openTranscript(episode) }) {
-                                    Icon(Icons.Rounded.Notes, contentDescription = "Transcript", tint = TextSecondary)
+                                    Icon(Icons.AutoMirrored.Rounded.Notes, contentDescription = "Transcript", tint = TextSecondary)
                                 }
                             }
                         }
@@ -288,8 +294,22 @@ private fun EpisodeList(
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 private fun TranscriptSheet(
     cues: List<com.punjabibeats.app.domain.model.TranscriptCue>,
+    currentPositionMs: Long,
+    onSeek: (Long) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val theme = LocalPBTheme.current
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val activeIndex = remember(cues, currentPositionMs) {
+        cues.indexOfLast { cue -> cue.startMs <= currentPositionMs }
+    }
+
+    LaunchedEffect(activeIndex) {
+        if (activeIndex in cues.indices) {
+            listState.animateScrollToItem(activeIndex)
+        }
+    }
+
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             Text("Transcript", style = MaterialTheme.typography.titleLarge)
@@ -300,14 +320,21 @@ private fun TranscriptSheet(
                 modifier = Modifier.padding(bottom = 8.dp),
             )
         }
-        LazyColumn(contentPadding = PaddingValues(bottom = 60.dp)) {
+        LazyColumn(
+            state = listState,
+            contentPadding = PaddingValues(bottom = 60.dp),
+        ) {
             items(cues.size) { index ->
                 val cue = cues[index]
+                val isActive = index == activeIndex
                 Text(
                     cue.text,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = if (isActive) theme.accent else Color.White,
+                    fontWeight = if (isActive) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable { onSeek(cue.startMs) }
                         .padding(horizontal = 20.dp, vertical = 8.dp),
                 )
             }

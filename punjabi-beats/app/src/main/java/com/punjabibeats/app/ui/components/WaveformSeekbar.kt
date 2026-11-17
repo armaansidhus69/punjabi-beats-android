@@ -71,7 +71,10 @@ fun WaveformSeekbar(
         val duration = durationMs
 
         fun commitSeek(x: Float) {
-            if (duration > 0) onSeek((x.coerceIn(0f, widthPx) / widthPx * duration).toLong())
+            if (duration > 0 && widthPx > 0f) {
+                val targetFraction = (x.coerceIn(0f, widthPx) / widthPx).coerceIn(0f, 1f)
+                onSeek((targetFraction * duration).toLong())
+            }
         }
 
         Canvas(
@@ -85,7 +88,9 @@ fun WaveformSeekbar(
                 .pointerInput(duration, enabled) {
                     if (!enabled) return@pointerInput
                     detectHorizontalDragGestures(
-                        onDragStart = { offset -> dragFraction = offset.x / widthPx },
+                        onDragStart = { offset ->
+                            if (widthPx > 0f) dragFraction = (offset.x / widthPx).coerceIn(0f, 1f)
+                        },
                         onDragEnd = {
                             if (!dragFraction.isNaN()) commitSeek(dragFraction * widthPx)
                             dragFraction = Float.NaN
@@ -93,7 +98,9 @@ fun WaveformSeekbar(
                         onDragCancel = { dragFraction = Float.NaN },
                     ) { change, _ ->
                         change.consume()
-                        dragFraction = (change.position.x / widthPx).coerceIn(0f, 1f)
+                        if (widthPx > 0f) {
+                            dragFraction = (change.position.x / widthPx).coerceIn(0f, 1f)
+                        }
                     }
                 },
         ) {

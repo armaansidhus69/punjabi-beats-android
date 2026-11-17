@@ -21,8 +21,16 @@ class OfflineCacheInterceptor @Inject constructor(
         if (request.method != "GET") return chain.proceed(request)
 
         val online = networkMonitor.isOnline.value
+        val existingHeader = request.header("Cache-Control").orEmpty()
+        val callerForcesFresh = existingHeader.contains("no-cache", ignoreCase = true) ||
+            existingHeader.contains("no-store", ignoreCase = true)
+
         val cacheControl = if (online) {
-            okhttp3.CacheControl.Builder().maxAge(2, java.util.concurrent.TimeUnit.MINUTES).build()
+            if (callerForcesFresh) {
+                okhttp3.CacheControl.FORCE_NETWORK
+            } else {
+                okhttp3.CacheControl.Builder().maxAge(2, java.util.concurrent.TimeUnit.MINUTES).build()
+            }
         } else {
             okhttp3.CacheControl.Builder().onlyIfCached().maxStale(7, java.util.concurrent.TimeUnit.DAYS).build()
         }
@@ -33,7 +41,7 @@ class OfflineCacheInterceptor @Inject constructor(
         } catch (offline: IOException) {
             if (!online) {
                 val cacheOnly = request.newBuilder()
-                    .header("Cache-Control", "only-if-cached")
+                    .header("Cache-Control", "public, only-if-cached, max-stale=604800")
                     .build()
                 chain.proceed(cacheOnly)
             } else {

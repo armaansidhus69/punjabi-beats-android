@@ -44,6 +44,12 @@ class PodcastViewModel @Inject constructor(
     private val _events = MutableSharedFlow<String>(extraBufferCapacity = 8)
     val events: SharedFlow<String> = _events.asSharedFlow()
 
+    val positionMs: StateFlow<Long> = player.positionMs
+
+    fun seekTo(positionMs: Long) {
+        player.seekTo(positionMs)
+    }
+
     init {
         viewModelScope.launch {
             podcastRepository.observeChannels().collect { channels ->

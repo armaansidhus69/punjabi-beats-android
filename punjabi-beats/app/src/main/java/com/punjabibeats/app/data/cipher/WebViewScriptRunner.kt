@@ -39,11 +39,15 @@ class WebViewScriptRunner @Inject constructor(
         withTimeoutOrNull(EVAL_TIMEOUT_MS) {
             suspendCancellableCoroutine { continuation ->
                 mainHandler.post {
-                    val view = obtainWebView()
-                    bridge.setCallback { value ->
-                        if (continuation.isActive) continuation.resume(value)
-                    }
                     runCatching {
+                        val view = obtainWebView()
+                        if (view == null) {
+                            if (continuation.isActive) continuation.resume(null)
+                            return@post
+                        }
+                        bridge.setCallback { value ->
+                            if (continuation.isActive) continuation.resume(value)
+                        }
                         view.evaluateJavascript(script, null)
                     }.onFailure {
                         if (continuation.isActive) continuation.resume(null)
@@ -58,16 +62,18 @@ class WebViewScriptRunner @Inject constructor(
         evaluate("(function(){ try { PbBridge.result(String($expression)); } catch (e) { PbBridge.result(\"\"); } })()")
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun obtainWebView(): WebView {
+    private fun obtainWebView(): WebView? {
         webView?.let { return it }
-        val view = WebView(context)
-        view.settings.javaScriptEnabled = true
-        view.settings.domStorageEnabled = false
-        view.settings.blockNetworkImage = true
-        view.settings.loadsImagesAutomatically = false
-        view.addJavascriptInterface(bridge, BRIDGE_NAME)
-        webView = view
-        return view
+        return runCatching {
+            val view = WebView(context)
+            view.settings.javaScriptEnabled = true
+            view.settings.domStorageEnabled = false
+            view.settings.blockNetworkImage = true
+            view.settings.loadsImagesAutomatically = false
+            view.addJavascriptInterface(bridge, BRIDGE_NAME)
+            webView = view
+            view
+        }.getOrNull()
     }
 
     fun release() {

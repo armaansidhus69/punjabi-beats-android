@@ -76,6 +76,7 @@ class JamEngine(
         }
         jobs += scope.launch { heartbeatLoop() }
         jobs += scope.launch { hostBroadcastLoop() }
+        jobs += scope.launch { hostAutoAdvanceLoop() }
         jobs += scope.launch { guestSyncLoop() }
         transport?.send(JamMessage.Join(code, me.userId, me.name, me.emoji))
         update {
@@ -227,6 +228,26 @@ class JamEngine(
         while (scope.isActive) {
             if (isHost) broadcastState()
             delay(HOST_BROADCAST_MS)
+        }
+    }
+
+    private suspend fun hostAutoAdvanceLoop() {
+        var wasPlaying = false
+        while (scope.isActive) {
+            delay(1000)
+            if (!isHost) {
+                wasPlaying = false
+                continue
+            }
+            val isPlaying = playerController.isPlaying.value
+            val pos = playerController.positionMs.value
+            val dur = playerController.durationMs.value
+            if (isPlaying) {
+                wasPlaying = true
+            } else if (wasPlaying && dur > 0 && pos >= (dur - 2000L)) {
+                wasPlaying = false
+                startNextFairEntry()
+            }
         }
     }
 

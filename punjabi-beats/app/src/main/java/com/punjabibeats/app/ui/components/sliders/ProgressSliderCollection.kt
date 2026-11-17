@@ -124,7 +124,7 @@ fun UniversalSeekbar(
     BoxWithConstraints(modifier = modifier.height(54.dp).padding(horizontal = 4.dp)) {
         val widthPx = constraints.maxWidth.toFloat()
         fun commitSeek(x: Float) {
-            if (durationMs > 0) {
+            if (durationMs > 0 && widthPx > 0f) {
                 val targetFraction = (x.coerceIn(0f, widthPx) / widthPx).coerceIn(0f, 1f)
                 onSeek((targetFraction * durationMs).toLong())
             }
@@ -140,7 +140,9 @@ fun UniversalSeekbar(
                 .pointerInput(durationMs, enabled) {
                     if (!enabled) return@pointerInput
                     detectHorizontalDragGestures(
-                        onDragStart = { offset -> dragFraction = (offset.x / widthPx).coerceIn(0f, 1f) },
+                        onDragStart = { offset ->
+                            if (widthPx > 0f) dragFraction = (offset.x / widthPx).coerceIn(0f, 1f)
+                        },
                         onDragEnd = {
                             if (!dragFraction.isNaN()) commitSeek(dragFraction * widthPx)
                             dragFraction = Float.NaN
@@ -148,7 +150,9 @@ fun UniversalSeekbar(
                         onDragCancel = { dragFraction = Float.NaN },
                     ) { change, _ ->
                         change.consume()
-                        dragFraction = (change.position.x / widthPx).coerceIn(0f, 1f)
+                        if (widthPx > 0f) {
+                            dragFraction = (change.position.x / widthPx).coerceIn(0f, 1f)
+                        }
                     }
                 },
         ) {

@@ -368,33 +368,40 @@ class MediaPlaybackService : MediaSessionService() {
             activePreFetchJob?.cancel()
             activeQueueJob = serviceScope.launch {
                 val safeIndex = startIndex.coerceIn(0, mediaItems.lastIndex.coerceAtLeast(0))
-                val targetItem = mediaItems.getOrNull(safeIndex)
-                // Resolve the song the user actually tapped right away (< 500ms)
-                val resolvedTarget = targetItem?.let { resolveItemSafely(it) } ?: targetItem
-                // In ExoPlayer, every MediaItem in a playlist must have a valid non-null URI
-                // (localConfiguration != null). Items not yet resolved get a silence placeholder.
-                val initialList = mediaItems.mapIndexed { idx, item ->
-                    if (idx == safeIndex) (resolvedTarget ?: item.withSilence())
-                    else if (item.localConfiguration?.uri != null) item
-                    else item.withSilence()
-                }.toMutableList()
+                try {
+                    val targetItem = mediaItems.getOrNull(safeIndex)
+                    // Resolve the song the user actually tapped right away (< 500ms)
+                    val resolvedTarget = targetItem?.let { resolveItemSafely(it) } ?: targetItem
+                    // In ExoPlayer, every MediaItem in a playlist must have a valid non-null URI
+                    // (localConfiguration != null). Items not yet resolved get a silence placeholder.
+                    val initialList = mediaItems.mapIndexed { idx, item ->
+                        if (idx == safeIndex) (resolvedTarget ?: item.withSilence())
+                        else if (item.localConfiguration?.uri != null) item
+                        else item.withSilence()
+                    }.toMutableList()
 
-                // Unblock playback immediately!
-                future.set(MediaSession.MediaItemsWithStartPosition(initialList, safeIndex, startPositionMs))
+                    // Unblock playback immediately!
+                    future.set(MediaSession.MediaItemsWithStartPosition(initialList, safeIndex, startPositionMs))
 
-                // Pre-resolve the immediate next track first so its transition is seamless (accounts for shuffle)
-                val timeline = mediaSession.player.currentTimeline
-                val nextIdx = if (!timeline.isEmpty) {
-                    timeline.getNextWindowIndex(safeIndex, mediaSession.player.repeatMode, mediaSession.player.shuffleModeEnabled)
-                } else {
-                    safeIndex + 1
-                }
-                if (nextIdx != androidx.media3.common.C.INDEX_UNSET && nextIdx in initialList.indices) {
-                    val resolvedNext = resolveItemSafely(mediaItems[nextIdx])
-                    withContext(Dispatchers.Main) {
-                        if (nextIdx < mediaSession.player.mediaItemCount) {
-                            mediaSession.player.replaceMediaItem(nextIdx, resolvedNext)
+                    // Pre-resolve the immediate next track first so its transition is seamless (accounts for shuffle)
+                    val timeline = mediaSession.player.currentTimeline
+                    val nextIdx = if (!timeline.isEmpty) {
+                        timeline.getNextWindowIndex(safeIndex, mediaSession.player.repeatMode, mediaSession.player.shuffleModeEnabled)
+                    } else {
+                        safeIndex + 1
+                    }
+                    if (nextIdx != androidx.media3.common.C.INDEX_UNSET && nextIdx in initialList.indices) {
+                        val resolvedNext = resolveItemSafely(mediaItems[nextIdx])
+                        withContext(Dispatchers.Main) {
+                            if (nextIdx < mediaSession.player.mediaItemCount) {
+                                mediaSession.player.replaceMediaItem(nextIdx, resolvedNext)
+                            }
                         }
+                    }
+                } catch (t: Throwable) {
+                    if (!future.isDone) {
+                        val fallbackList = mediaItems.map { if (it.localConfiguration?.uri != null) it else it.withSilence() }
+                        future.set(MediaSession.MediaItemsWithStartPosition(fallbackList, safeIndex, startPositionMs))
                     }
                 }
             }

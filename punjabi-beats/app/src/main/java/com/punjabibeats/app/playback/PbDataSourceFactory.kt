@@ -41,59 +41,46 @@ private class RoutingDataSource(
 ) : DataSource {
 
     private val transferListeners = CopyOnWriteArrayList<TransferListener>()
-    private var httpDelegate: DataSource? = null
-    private var encryptedDelegate: EncryptedFileDataSource? = null
-    private var zenDelegate: DataSource? = null
+    private var activeDelegate: DataSource? = null
 
     override fun addTransferListener(transferListener: TransferListener) {
         transferListeners.add(transferListener)
         upstream.addTransferListener(transferListener)
     }
 
-    override fun open(dataSpec: DataSpec): Long = when {
-        dataSpec.uri.scheme.equals("pbenc", ignoreCase = true) -> {
-            val source = EncryptedFileDataSource(context)
-            transferListeners.forEach { source.addTransferListener(it) }
-            encryptedDelegate = source
-            source.open(dataSpec)
+    override fun open(dataSpec: DataSpec): Long {
+        close()
+        val delegate = when {
+            dataSpec.uri.scheme.equals("pbenc", ignoreCase = true) -> {
+                EncryptedFileDataSource(context).also { source ->
+                    transferListeners.forEach { source.addTransferListener(it) }
+                }
+            }
+            // Zen engine stream/artwork uris are served by the engine's channel
+            // transport — the real media location never leaves the engine.
+            dataSpec.uri.scheme.equals("zen", ignoreCase = true) -> {
+                val engine = com.zenmusic.ZenMusic.get() ?: com.zenmusic.ZenMusic.initialize(context)
+                engine.dataSourceFactory.createDataSource().also { source ->
+                    transferListeners.forEach { source.addTransferListener(it) }
+                }
+            }
+            else -> upstream
         }
-        // Zen engine stream/artwork uris are served by the engine's channel
-        // transport — the real media location never leaves the engine.
-        dataSpec.uri.scheme.equals("zen", ignoreCase = true) -> {
-            val engine = com.zenmusic.ZenMusic.get() ?: com.zenmusic.ZenMusic.initialize(context)
-            val source = engine.dataSourceFactory.createDataSource()
-            transferListeners.forEach { source.addTransferListener(it) }
-            zenDelegate = source
-            source.open(dataSpec)
-        }
-        else -> {
-            httpDelegate = upstream
-            upstream.open(dataSpec)
-        }
+        activeDelegate = delegate
+        return delegate.open(dataSpec)
     }
 
-    override fun read(target: ByteArray, offset: Int, length: Int): Int {
-        encryptedDelegate?.let { return it.read(target, offset, length) }
-        zenDelegate?.let { return it.read(target, offset, length) }
-        httpDelegate?.let { return it.read(target, offset, length) }
-        return C.RESULT_END_OF_INPUT
-    }
+    override fun read(target: ByteArray, offset: Int, length: Int): Int =
+        activeDelegate?.read(target, offset, length) ?: C.RESULT_END_OF_INPUT
 
-    override fun getUri(): android.net.Uri? =
-        encryptedDelegate?.getUri() ?: zenDelegate?.getUri() ?: httpDelegate?.getUri()
+    override fun getUri(): android.net.Uri? = activeDelegate?.uri
 
     override fun getResponseHeaders(): Map<String, List<String>> =
-        encryptedDelegate?.responseHeaders
-            ?: zenDelegate?.responseHeaders
-            ?: httpDelegate?.responseHeaders
-            ?: emptyMap()
+        activeDelegate?.responseHeaders ?: emptyMap()
 
     override fun close() {
-        runCatching { encryptedDelegate?.close() }
-        runCatching { zenDelegate?.close() }
-        runCatching { httpDelegate?.close() }
-        encryptedDelegate = null
-        zenDelegate = null
-        httpDelegate = null
+        val delegate = activeDelegate
+        activeDelegate = null
+        runCatching { delegate?.close() }
     }
 }

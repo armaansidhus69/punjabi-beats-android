@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -79,7 +80,7 @@ class DownloadRepositoryImpl @Inject constructor(
                     null
                 }
             }
-        }
+        }.flowOn(Dispatchers.IO)
 
     override fun observeProgress(): Flow<Map<String, Int>> = progress.asStateFlow()
 
@@ -95,7 +96,7 @@ class DownloadRepositoryImpl @Inject constructor(
                     false
                 }
             }
-        }
+        }.flowOn(Dispatchers.IO)
 
     override suspend fun get(songId: String): Song? {
         val row = downloadDao.get(songId) ?: return null
