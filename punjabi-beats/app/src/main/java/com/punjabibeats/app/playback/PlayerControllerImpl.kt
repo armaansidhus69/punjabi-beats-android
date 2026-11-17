@@ -385,7 +385,7 @@ class PlayerControllerImpl @Inject constructor(
         positionJob = scope.launch {
             while (isActive) {
                 publishPosition()
-                delay(500)
+                delay(100)
             }
         }
     }

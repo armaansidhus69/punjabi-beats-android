@@ -45,11 +45,31 @@ class LyricsViewModel @Inject constructor(
     private val _events = MutableSharedFlow<String>(extraBufferCapacity = 8)
     val events: SharedFlow<String> = _events.asSharedFlow()
 
-    /** Fine-grained 50ms ticker only while the lyrics screen is visible —
-     *  fast enough for word-by-word karaoke highlighting. */
+    /** Fine-grained 50ms ticker with real-time clock interpolation while the lyrics screen is visible —
+     *  delivers continuous word-by-word and line-by-line karaoke highlighting without 500ms stepped freezes. */
     val positionMs: StateFlow<Long> = flow {
+        var lastBasePos = player.positionMs.value
+        var lastBaseTime = android.os.SystemClock.elapsedRealtime()
+
         while (true) {
-            emit(player.positionMs.value)
+            val isPlaying = player.isPlaying.value
+            val currentPos = player.positionMs.value
+
+            if (currentPos != lastBasePos) {
+                lastBasePos = currentPos
+                lastBaseTime = android.os.SystemClock.elapsedRealtime()
+            }
+
+            val interpolated = if (isPlaying) {
+                val elapsed = (android.os.SystemClock.elapsedRealtime() - lastBaseTime) * player.playbackSpeed.value
+                val duration = player.durationMs.value
+                val maxLimit = if (duration > 0) duration else Long.MAX_VALUE
+                (lastBasePos + elapsed.toLong()).coerceIn(0L, maxLimit)
+            } else {
+                lastBasePos
+            }
+
+            emit(interpolated)
             delay(50)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0L)
