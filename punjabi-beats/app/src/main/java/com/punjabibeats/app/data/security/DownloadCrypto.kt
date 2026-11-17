@@ -115,9 +115,15 @@ object DownloadCrypto {
 
     /**
      * Streams [input] encrypted into [target] using AES-256-CTR; returns the file size in bytes.
+     * Supports optional progress callback reporting percentage completion (1..99%).
      * File header: 0x02 (1 byte) + 16 bytes IV.
      */
-    fun encryptTo(input: InputStream, target: File): Long {
+    fun encryptTo(
+        input: InputStream,
+        target: File,
+        totalBytes: Long = -1L,
+        onProgress: ((Int) -> Unit)? = null,
+    ): Long {
         val initialIv = ByteArray(CTR_IV_LENGTH).also { SecureRandom().nextBytes(it) }
         val cipher = Cipher.getInstance(TRANSFORMATION_CTR)
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateCtrKey(), IvParameterSpec(initialIv))
@@ -126,7 +132,17 @@ object DownloadCrypto {
             fileOut.write(VERSION_CTR.toInt())
             fileOut.write(initialIv)
             CipherOutputStream(fileOut, cipher).use { cipherOut ->
-                input.copyTo(cipherOut, BUFFER_BYTES)
+                val buffer = ByteArray(BUFFER_BYTES)
+                var bytesWritten = 0L
+                var read: Int
+                while (input.read(buffer).also { read = it } >= 0) {
+                    cipherOut.write(buffer, 0, read)
+                    bytesWritten += read
+                    if (totalBytes > 0 && onProgress != null) {
+                        val pct = ((bytesWritten * 100) / totalBytes).toInt().coerceIn(1, 99)
+                        onProgress(pct)
+                    }
+                }
             }
         }
         return target.length()
