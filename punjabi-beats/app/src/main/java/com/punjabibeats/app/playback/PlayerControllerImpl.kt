@@ -310,7 +310,10 @@ class PlayerControllerImpl @Inject constructor(
     }
 
     override fun moveQueueItem(fromIndex: Int, toIndex: Int) = withController { controller ->
-        if (fromIndex in 0 until controller.mediaItemCount) controller.moveMediaItem(fromIndex, toIndex)
+        val count = controller.mediaItemCount
+        if (fromIndex in 0 until count && toIndex in 0 until count) {
+            controller.moveMediaItem(fromIndex, toIndex)
+        }
     }
 
     override fun removeFromQueue(index: Int) = withController { controller ->
@@ -345,9 +348,7 @@ class PlayerControllerImpl @Inject constructor(
     }
 
     override fun setSkipSilence(enabled: Boolean) = withController { controller ->
-        if (controller is androidx.media3.exoplayer.ExoPlayer) {
-            controller.setSkipSilenceEnabled(enabled)
-        }
+        _skipSilenceEnabled.value = enabled
         scope.launch { settings.saveSkipSilence(enabled) }
     }
 
@@ -469,12 +470,14 @@ class PlayerControllerImpl @Inject constructor(
             _playbackSpeed.value = settings.playbackSpeed().first()
             _playbackPitch.value = settings.playbackPitch().first()
             _skipSilenceEnabled.value = settings.skipSilence().first()
+            scope.launch {
+                settings.skipSilence().collect { enabled ->
+                    _skipSilenceEnabled.value = enabled
+                }
+            }
             withController { controller ->
                 controller.repeatMode = _repeatMode.value
                 controller.shuffleModeEnabled = _shuffleEnabled.value
-                if (controller is androidx.media3.exoplayer.ExoPlayer) {
-                    controller.setSkipSilenceEnabled(_skipSilenceEnabled.value)
-                }
                 controller.playbackParameters = androidx.media3.common.PlaybackParameters(
                     _playbackSpeed.value,
                     _playbackPitch.value,

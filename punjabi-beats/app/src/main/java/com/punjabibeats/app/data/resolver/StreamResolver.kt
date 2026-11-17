@@ -5,10 +5,11 @@ import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.domain.model.MusicSource
 import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.domain.model.StreamResolutionException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -41,6 +42,7 @@ class StreamResolver @Inject constructor(
     private data class CachedStream(val streamUrl: String, val cachedAt: Long)
     private val streamCache = LruCache<String, CachedStream>(CACHE_MAX_ENTRIES)
     private val activeResolutions = ConcurrentHashMap<String, Deferred<Song>>()
+    private val resolverScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     suspend fun resolve(song: Song): Song {
         // Fast path for local device songs: never scrape the web or timeout offline
@@ -68,17 +70,15 @@ class StreamResolver @Inject constructor(
             return inFlight.await()
         }
 
-        return coroutineScope {
-            val deferred = activeResolutions.compute(song.id) { _, current ->
-                if (current != null && current.isActive) current
-                else async(Dispatchers.IO) { performResolve(song) }
-            }!!
+        val deferred = activeResolutions.compute(song.id) { _, current ->
+            if (current != null && current.isActive) current
+            else resolverScope.async { performResolve(song) }
+        }!!
 
-            try {
-                deferred.await()
-            } finally {
-                activeResolutions.remove(song.id, deferred)
-            }
+        return try {
+            deferred.await()
+        } finally {
+            activeResolutions.remove(song.id, deferred)
         }
     }
 
@@ -88,11 +88,13 @@ class StreamResolver @Inject constructor(
                 val resolved = runSuspendCatching {
                     withTimeoutOrNull(RESOLVE_TIMEOUT_MS) { resolver.resolve(song) }
                 }.getOrNull()
-                if (resolved != null && !resolved.streamUrl.isNullOrBlank()) return@withTimeoutOrNull resolved
+                if (resolved != null && !resolved.streamUrl.isNullOrBlank() && !resolved.streamUrl.startsWith("data:", ignoreCase = true)) {
+                    return@withTimeoutOrNull resolved
+                }
             }
             null
         }
-        if (result != null && !result.streamUrl.isNullOrBlank()) {
+        if (result != null && !result.streamUrl.isNullOrBlank() && !result.streamUrl.startsWith("data:", ignoreCase = true)) {
             streamCache.put(song.id, CachedStream(result.streamUrl, System.currentTimeMillis()))
             return result
         }

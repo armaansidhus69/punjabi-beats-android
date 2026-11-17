@@ -216,9 +216,12 @@ fun FullPlayerScreen(
             .build()
         val bitmap = (context.imageLoader.execute(request).drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
         if (bitmap != null) {
-            val palette = Palette.from(bitmap).maximumColorCount(24).generate()
-            val dominant = palette.getDominantColor(theme.panel2.toArgb())
-            val vibrant = palette.getVibrantColor(dominant)
+            val (vibrant, dominant) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                val palette = Palette.from(bitmap).maximumColorCount(24).generate()
+                val dom = palette.getDominantColor(theme.panel2.toArgb())
+                val vib = palette.getVibrantColor(dom)
+                vib to dom
+            }
             gradientColors = listOf(
                 Color(vibrant).copy(alpha = 0.85f),
                 Color(dominant).copy(alpha = 0.9f),

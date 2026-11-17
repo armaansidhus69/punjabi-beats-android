@@ -114,6 +114,8 @@ class LibraryRepositoryImpl @Inject constructor(
                 artist = song.artist,
             )
         )
+        // Cap play history to 500 rows to prevent unbounded database growth
+        historyDao.pruneOldPlays()
     }
 
     private suspend fun playlistSongIds(playlistId: String): List<String> =

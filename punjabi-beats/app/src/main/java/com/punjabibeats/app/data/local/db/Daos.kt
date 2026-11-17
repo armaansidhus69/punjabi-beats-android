@@ -89,6 +89,9 @@ interface HistoryDao {
     @Query("SELECT artist AS artist, COUNT(*) AS plays FROM play_history GROUP BY artist ORDER BY plays DESC LIMIT :limit")
     fun observeTopArtists(limit: Int): Flow<List<ArtistCount>>
 
+    @Query("DELETE FROM play_history WHERE rowId NOT IN (SELECT rowId FROM play_history ORDER BY playedAt DESC LIMIT :keepLimit)")
+    suspend fun pruneOldPlays(keepLimit: Int = 500)
+
     @Query("DELETE FROM play_history")
     suspend fun clear()
 }

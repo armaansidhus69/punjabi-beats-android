@@ -50,8 +50,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.punjabibeats.app.playback.MusicPlayerController
+import com.punjabibeats.app.ui.screens.player.PlayerViewModel
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 
 @Composable
@@ -111,6 +113,7 @@ fun MiniPlayerBar(
     controller: MusicPlayerController,
     onOpenPlayer: () -> Unit,
     modifier: Modifier = Modifier,
+    playerViewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val theme = LocalPBTheme.current
     val currentSong by controller.currentSong.collectAsStateWithLifecycle()
@@ -118,7 +121,7 @@ fun MiniPlayerBar(
     val isBuffering by controller.isBuffering.collectAsStateWithLifecycle()
     val positionMs by controller.positionMs.collectAsStateWithLifecycle()
     val durationMs by controller.durationMs.collectAsStateWithLifecycle()
-    var isLiked by remember { mutableStateOf(false) }
+    val isLiked by playerViewModel.isLiked.collectAsStateWithLifecycle()
 
     AnimatedVisibility(
         visible = currentSong != null,
@@ -178,7 +181,7 @@ fun MiniPlayerBar(
                     )
                 }
                 IconButton(
-                    onClick = { isLiked = !isLiked },
+                    onClick = { playerViewModel.toggleLike() },
                     modifier = Modifier.size(36.dp),
                 ) {
                     Icon(

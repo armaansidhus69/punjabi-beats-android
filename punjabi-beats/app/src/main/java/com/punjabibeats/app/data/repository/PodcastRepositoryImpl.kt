@@ -57,12 +57,13 @@ class PodcastRepositoryImpl @Inject constructor(
     override suspend fun loadEpisodes(channel: PodcastChannel): Result<List<PodcastEpisode>> = runSuspendCatching {
         val xml = fetchText(channel.feedUrl)
         val feed = RssParser.parse(xml)
-        feed.episodes.mapIndexed { index, episode ->
+        feed.episodes.mapIndexedNotNull { index, episode ->
+            val streamUrl = episode.streamUrl ?: return@mapIndexedNotNull null
             PodcastEpisode(
                 id = "${channel.id}_$index",
                 channelTitle = feed.title.ifBlank { channel.title },
                 title = episode.title,
-                streamUrl = episode.streamUrl ?: error("Episode has no audio enclosure"),
+                streamUrl = streamUrl,
                 durationSec = episode.durationSec,
                 pubDate = episode.pubDate,
                 description = episode.description,

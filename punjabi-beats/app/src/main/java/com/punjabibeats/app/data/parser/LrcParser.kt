@@ -25,16 +25,14 @@ object LrcParser {
             val content = rawLine.substring(tags.last().range.last + 1)
             val wordTags = wordTagRegex.findAll(content).toList()
             if (wordTags.isEmpty()) {
-                val text = content.trim().let(::unescapeHtml)
-                if (text.isBlank()) return@forEach
+                val text = content.trim().let(::unescapeHtml).ifBlank { "♪" }
                 tags.forEach { tag ->
                     parseTimestampToMs(tag.groupValues[1])?.let { timeMs ->
                         lines += LyricLine(timeMs = timeMs, text = text)
                     }
                 }
             } else {
-                val text = content.replace(wordTagRegex, "").let(::unescapeHtml)
-                if (text.isBlank()) return@forEach
+                val text = content.replace(wordTagRegex, "").trim().let(::unescapeHtml).ifBlank { "♪" }
                 val words = parseWords(content, wordTags)
                 tags.forEach { tag ->
                     parseTimestampToMs(tag.groupValues[1])?.let { timeMs ->
