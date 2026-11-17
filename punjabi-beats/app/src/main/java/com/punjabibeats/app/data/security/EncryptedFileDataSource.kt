@@ -6,20 +6,31 @@ import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.BaseDataSource
-import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.io.InputStream
+import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.IvParameterSpec
 
 /**
- * Media3 DataSource for the `pbenc://<songId>` scheme: transparently decrypts
- * AES/GCM offline downloads while ExoPlayer reads them.
+ * Media3 DataSource for the `pbenc://<songId>` scheme:
+ * Transparently decrypts offline downloads with instant O(1) random-access seeking.
+ *
+ * For AES-CTR (v2): Direct kernel lseek to the 16-byte block boundary + IvParameterSpec(counterIv).
+ * Discards at most 15 intra-block bytes, completely eliminating multi-megabyte sequential skip latency.
+ *
+ * For Legacy AES-GCM (v1): Fallback sequential skip ensures existing downloaded files remain playable.
  */
 @OptIn(UnstableApi::class)
 class EncryptedFileDataSource(private val context: Context) : BaseDataSource(false) {
 
     private var stream: InputStream? = null
+    private var fileIn: FileInputStream? = null
     private var uri: Uri? = null
     private var bytesRemaining: Long = C.LENGTH_UNSET.toLong()
     private var opened = false
@@ -33,24 +44,104 @@ class EncryptedFileDataSource(private val context: Context) : BaseDataSource(fal
         if (!file.exists()) throw FileNotFoundException(file.absolutePath)
         uri = dataSpec.uri
 
-        val decrypted = DownloadCrypto.openDecrypted(file)
-        if (dataSpec.position > 0) {
-            var bytesToSkip = dataSpec.position
-            val skipBuf = ByteArray(4096)
-            while (bytesToSkip > 0) {
-                val skipped = decrypted.skip(bytesToSkip)
-                if (skipped > 0) {
-                    bytesToSkip -= skipped
-                } else {
-                    val toRead = minOf(bytesToSkip, skipBuf.size.toLong()).toInt()
-                    val bytesRead = decrypted.read(skipBuf, 0, toRead)
-                    if (bytesRead == -1) break
-                    bytesToSkip -= bytesRead
+        val fis = file.inputStream()
+        fileIn = fis
+
+        val firstByte = fis.read()
+        if (firstByte == -1) {
+            fis.close()
+            throw IOException("Corrupt empty encrypted file: ${file.name}")
+        }
+
+        val decryptedStream: InputStream = if (firstByte == DownloadCrypto.VERSION_CTR.toInt()) {
+            // Modern AES-CTR: Instant O(1) random-access seek
+            val initialIv = ByteArray(DownloadCrypto.CTR_IV_LENGTH)
+            var ivRead = 0
+            while (ivRead < initialIv.size) {
+                val count = fis.read(initialIv, ivRead, initialIv.size - ivRead)
+                if (count == -1) {
+                    fis.close()
+                    throw IOException("Truncated IV in ${file.name}")
+                }
+                ivRead += count
+            }
+
+            val position = dataSpec.position
+            val blockIndex = position / 16L
+            val intraBlockOffset = (position % 16L).toInt()
+            val ciphertextOffset = DownloadCrypto.HEADER_LENGTH_CTR.toLong() + (blockIndex * 16L)
+
+            // Instant kernel seek directly to the block boundary
+            fis.channel.position(ciphertextOffset)
+
+            val counterIv = DownloadCrypto.calculateCounterIv(initialIv, blockIndex)
+            val cipher = Cipher.getInstance("AES/CTR/NoPadding")
+            cipher.init(Cipher.DECRYPT_MODE, DownloadCrypto.getOrCreateCtrKey(), IvParameterSpec(counterIv))
+
+            val cipherIn = CipherInputStream(fis, cipher)
+
+            // Discard intra-block offset (0..15 bytes max)
+            if (intraBlockOffset > 0) {
+                val discardBuf = ByteArray(intraBlockOffset)
+                var discarded = 0
+                while (discarded < intraBlockOffset) {
+                    val count = cipherIn.read(discardBuf, discarded, intraBlockOffset - discarded)
+                    if (count == -1) break
+                    discarded += count
                 }
             }
+            cipherIn
+        } else {
+            // Legacy AES-GCM fallback: Read nonce and sequential skip
+            val nonceLength = firstByte
+            if (nonceLength <= 0 || nonceLength > 64) {
+                fis.close()
+                throw IOException("Corrupt encrypted file: ${file.name}")
+            }
+            val nonce = ByteArray(nonceLength)
+            var read = 0
+            while (read < nonceLength) {
+                val chunk = fis.read(nonce, read, nonceLength - read)
+                if (chunk == -1) {
+                    fis.close()
+                    throw IOException("Truncated nonce in ${file.name}")
+                }
+                read += chunk
+            }
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(Cipher.DECRYPT_MODE, DownloadCrypto.getOrCreateKey(), GCMParameterSpec(128, nonce))
+            val cipherIn = CipherInputStream(fis, cipher)
+
+            if (dataSpec.position > 0) {
+                var bytesToSkip = dataSpec.position
+                val skipBuf = ByteArray(4096)
+                while (bytesToSkip > 0) {
+                    val skipped = cipherIn.skip(bytesToSkip)
+                    if (skipped > 0) {
+                        bytesToSkip -= skipped
+                    } else {
+                        val toRead = minOf(bytesToSkip, skipBuf.size.toLong()).toInt()
+                        val bytesRead = cipherIn.read(skipBuf, 0, toRead)
+                        if (bytesRead == -1) break
+                        bytesToSkip -= bytesRead
+                    }
+                }
+            }
+            cipherIn
         }
-        stream = decrypted
-        bytesRemaining = if (dataSpec.length != C.LENGTH_UNSET.toLong()) dataSpec.length else C.LENGTH_UNSET.toLong()
+
+        stream = decryptedStream
+
+        bytesRemaining = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
+            dataSpec.length
+        } else {
+            if (firstByte == DownloadCrypto.VERSION_CTR.toInt()) {
+                (file.length() - DownloadCrypto.HEADER_LENGTH_CTR.toLong() - dataSpec.position).coerceAtLeast(0L)
+            } else {
+                C.LENGTH_UNSET.toLong()
+            }
+        }
+
         transferStarted(dataSpec)
         opened = true
         return bytesRemaining
@@ -82,6 +173,8 @@ class EncryptedFileDataSource(private val context: Context) : BaseDataSource(fal
             transferEnded()
         }
         runCatching { stream?.close() }
+        runCatching { fileIn?.close() }
         stream = null
+        fileIn = null
     }
 }
