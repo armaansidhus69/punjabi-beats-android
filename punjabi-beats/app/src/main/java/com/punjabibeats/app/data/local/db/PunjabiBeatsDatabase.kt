@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [
@@ -31,9 +33,34 @@ abstract class PunjabiBeatsDatabase : RoomDatabase() {
     companion object {
         const val NAME = "punjabi_beats.db"
 
+        /**
+         * Migration from version 1 to 2:
+         * Adds the `lyrics_cache` table for offline cached synchronized lyrics,
+         * preserving all user-liked songs, custom playlists, downloads, and history.
+         */
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `lyrics_cache` (
+                        `cacheKey` TEXT NOT NULL,
+                        `trackName` TEXT NOT NULL,
+                        `artistName` TEXT NOT NULL,
+                        `lyricsJson` TEXT NOT NULL,
+                        `provider` TEXT NOT NULL,
+                        `isSynced` INTEGER NOT NULL,
+                        `cachedAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`cacheKey`)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
         fun build(context: Context): PunjabiBeatsDatabase =
             Room.databaseBuilder(context, PunjabiBeatsDatabase::class.java, NAME)
-                .fallbackToDestructiveMigration()
+                .addMigrations(MIGRATION_1_2)
+                .fallbackToDestructiveMigrationOnDowngrade() // Only wipe on version downgrades, NEVER on upgrades
                 .build()
     }
 }
