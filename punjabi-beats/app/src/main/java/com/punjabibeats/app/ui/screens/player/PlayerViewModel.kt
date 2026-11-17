@@ -46,6 +46,41 @@ class PlayerViewModel @Inject constructor(
     val isTurntableMode = settingsDataStore.turntableMode()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val equalizerEnabled = settingsDataStore.equalizerEnabled()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val equalizerBands = settingsDataStore.equalizerBands()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), listOf<Short>(0, 0, 0, 0, 0))
+
+    val bassBoostStrength = settingsDataStore.bassBoostStrength()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
+    fun setEqualizerEnabled(enabled: Boolean) {
+        viewModelScope.launch { settingsDataStore.saveEqualizerEnabled(enabled) }
+    }
+
+    fun setBandLevel(bandIndex: Int, levelMilliBel: Short) {
+        viewModelScope.launch {
+            val current = equalizerBands.value
+            val next = current.toMutableList()
+            if (bandIndex in next.indices) {
+                next[bandIndex] = levelMilliBel
+                settingsDataStore.saveEqualizerBands(next)
+            }
+        }
+    }
+
+    fun resetEqualizer() {
+        viewModelScope.launch {
+            settingsDataStore.saveEqualizerBands(listOf<Short>(0, 0, 0, 0, 0))
+            settingsDataStore.saveBassBoostStrength(0)
+        }
+    }
+
+    fun setBassBoost(strength: Int) {
+        viewModelScope.launch { settingsDataStore.saveBassBoostStrength(strength) }
+    }
+
     private val _isLiked = MutableStateFlow(false)
     val isLiked: StateFlow<Boolean> = _isLiked.asStateFlow()
 

@@ -1,28 +1,28 @@
 package com.punjabibeats.app.data.cipher
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Headless WebView that executes small JavaScript snippets extracted from the
  * live YouTube player script — the zemer-cipher "runtime execution" model.
  *
- * The player JS rotates constantly, so instead of hard-coding decipher logic we
- * inject the extracted function source and let the real implementation run.
- * One shared WebView is created lazily on the main thread and reused for every
- * call; results travel back through [JsBridge] (a plain string via
- * `addJavascriptInterface`, which survives page-less WebView usage better than
- * parsing `evaluateJavascript` JSON quoting).
+ * Thread-Safe & Concurrent:
+ * Protected by a coroutine [evalMutex] to ensure that concurrent decipher requests
+ * (e.g. pre-resolving multiple tracks in parallel) do not race or overwrite the single
+ * JavaScript bridge callback, completely eliminating 4-second timeout freezes.
  */
 @Singleton
 class WebViewScriptRunner @Inject constructor(
@@ -31,20 +31,23 @@ class WebViewScriptRunner @Inject constructor(
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var webView: WebView? = null
-    private var bridge = JsBridge()
+    private val bridge = JsBridge()
+    private val evalMutex = Mutex()
 
     /** Runs [script], which must end by calling `PbBridge.result(value)`. */
-    suspend fun evaluate(script: String): String? = withTimeoutOrNull(EVAL_TIMEOUT_MS) {
-        suspendCancellableCoroutine { continuation ->
-            mainHandler.post {
-                val view = obtainWebView()
-                bridge.setCallback { value ->
-                    if (continuation.isActive) continuation.resume(value)
-                }
-                runCatching {
-                    view.evaluateJavascript(script, null)
-                }.onFailure {
-                    if (continuation.isActive) continuation.resume(null)
+    suspend fun evaluate(script: String): String? = evalMutex.withLock {
+        withTimeoutOrNull(EVAL_TIMEOUT_MS) {
+            suspendCancellableCoroutine { continuation ->
+                mainHandler.post {
+                    val view = obtainWebView()
+                    bridge.setCallback { value ->
+                        if (continuation.isActive) continuation.resume(value)
+                    }
+                    runCatching {
+                        view.evaluateJavascript(script, null)
+                    }.onFailure {
+                        if (continuation.isActive) continuation.resume(null)
+                    }
                 }
             }
         }
@@ -57,7 +60,6 @@ class WebViewScriptRunner @Inject constructor(
     @SuppressLint("SetJavaScriptEnabled")
     private fun obtainWebView(): WebView {
         webView?.let { return it }
-        bridge = JsBridge()
         val view = WebView(context)
         view.settings.javaScriptEnabled = true
         view.settings.domStorageEnabled = false
@@ -85,7 +87,9 @@ class WebViewScriptRunner @Inject constructor(
 
         @JavascriptInterface
         fun result(value: String?) {
-            callback?.invoke(value)
+            val cb = callback
+            callback = null
+            cb?.invoke(value)
         }
     }
 

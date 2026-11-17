@@ -355,3 +355,156 @@ private fun DnaAttributeBadge(label: String, value: String, modifier: Modifier =
         Text(value, color = theme.text, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     }
 }
+
+/**
+ * 🎚️ 5-Band Equalizer & Bass Boost Bottom Sheet
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EqualizerSheet(
+    enabled: Boolean,
+    bands: List<Short>,
+    bassBoost: Int,
+    onEnabledChange: (Boolean) -> Unit,
+    onBandChange: (Int, Short) -> Unit,
+    onBassBoostChange: (Int) -> Unit,
+    onReset: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val theme = LocalPBTheme.current
+    val bandLabels = listOf("60 Hz", "230 Hz", "910 Hz", "3.6 kHz", "14 kHz")
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = theme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 36.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "ııll Equalizer & DSP",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = theme.accent,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Rounded.Close, contentDescription = "Close", tint = theme.muted)
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // Enable switch row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(theme.card)
+                    .border(1.dp, theme.panel2, RoundedCornerShape(12.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text("Audio Effects Engine", fontWeight = FontWeight.SemiBold, color = theme.text, fontSize = 14.sp)
+                    Text("5-Band hardware equalizer + Bass Boost", color = theme.muted, fontSize = 11.sp)
+                }
+                androidx.compose.material3.Switch(
+                    checked = enabled,
+                    onCheckedChange = onEnabledChange,
+                    colors = androidx.compose.material3.SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = theme.accent,
+                    ),
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Bass Boost Slider
+            Text(
+                "BASS BOOST: ${if (bassBoost == 0) "OFF" else "${(bassBoost * 100) / 1000}%"}",
+                color = theme.secondary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+            )
+            androidx.compose.material3.Slider(
+                value = bassBoost.toFloat(),
+                onValueChange = { onBassBoostChange(it.toInt()) },
+                valueRange = 0f..1000f,
+                enabled = enabled,
+                colors = androidx.compose.material3.SliderDefaults.colors(
+                    thumbColor = theme.secondary,
+                    activeTrackColor = theme.secondary,
+                    inactiveTrackColor = theme.panel2,
+                ),
+            )
+
+            Spacer(Modifier.height(14.dp))
+
+            // 5-Band Equalizer Sliders
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "5-BAND FREQUENCY LEVELS",
+                    color = theme.muted,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                )
+                androidx.compose.material3.TextButton(onClick = onReset, enabled = enabled) {
+                    Text("Reset Flat", color = if (enabled) theme.accent else theme.muted, fontSize = 12.sp)
+                }
+            }
+
+            bandLabels.forEachIndexed { index, label ->
+                val rawLevel = bands.getOrNull(index) ?: 0
+                val db = rawLevel / 100
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        label,
+                        modifier = Modifier.width(60.dp),
+                        color = theme.text,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                    androidx.compose.material3.Slider(
+                        value = rawLevel.toFloat(),
+                        onValueChange = { onBandChange(index, it.toInt().toShort()) },
+                        valueRange = -1000f..1000f,
+                        enabled = enabled,
+                        modifier = Modifier.weight(1f),
+                        colors = androidx.compose.material3.SliderDefaults.colors(
+                            thumbColor = theme.accent,
+                            activeTrackColor = theme.accent,
+                            inactiveTrackColor = theme.panel2,
+                        ),
+                    )
+                    Text(
+                        "${if (db > 0) "+$db" else "$db"} dB",
+                        modifier = Modifier.width(55.dp),
+                        color = theme.muted,
+                        fontSize = 11.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                    )
+                }
+            }
+        }
+    }
+}

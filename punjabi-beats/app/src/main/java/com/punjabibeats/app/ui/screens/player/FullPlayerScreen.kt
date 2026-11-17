@@ -233,6 +233,7 @@ fun FullPlayerScreen(
     var showQueue by remember { mutableStateOf(false) }
     var showDnaSheet by remember { mutableStateOf(false) }
     var showSeekbarPicker by remember { mutableStateOf(false) }
+    var showEqualizerSheet by remember { mutableStateOf(false) }
 
     val audioFormat by player.audioFormatInfo.collectAsStateWithLifecycle()
     val rawSeekbarStyle by viewModel.seekbarStyle.collectAsStateWithLifecycle()
@@ -626,7 +627,7 @@ fun FullPlayerScreen(
                         .clip(cardShape)
                         .background(cardBg)
                         .border(1.dp, cardBorder, cardShape)
-                        .clickable { showSeekbarPicker = true }
+                        .clickable { showEqualizerSheet = true }
                         .padding(6.dp),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -709,6 +710,21 @@ fun FullPlayerScreen(
                 song = song,
                 audioFormat = audioFormat,
                 onDismiss = { showDnaSheet = false },
+            )
+        }
+        if (showEqualizerSheet) {
+            val eqEnabled by viewModel.equalizerEnabled.collectAsStateWithLifecycle()
+            val eqBands by viewModel.equalizerBands.collectAsStateWithLifecycle()
+            val bassBoost by viewModel.bassBoostStrength.collectAsStateWithLifecycle()
+            com.punjabibeats.app.ui.screens.player.components.EqualizerSheet(
+                enabled = eqEnabled,
+                bands = eqBands,
+                bassBoost = bassBoost,
+                onEnabledChange = { viewModel.setEqualizerEnabled(it) },
+                onBandChange = { index, level -> viewModel.setBandLevel(index, level) },
+                onBassBoostChange = { viewModel.setBassBoost(it) },
+                onReset = { viewModel.resetEqualizer() },
+                onDismiss = { showEqualizerSheet = false },
             )
         }
         if (showSeekbarPicker) {
