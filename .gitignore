@@ -24,3 +24,5 @@ captures/
 
 # Log files
 *.log
+
+.superpowers/

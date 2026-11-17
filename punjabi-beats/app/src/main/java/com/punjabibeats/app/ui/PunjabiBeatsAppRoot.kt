@@ -5,9 +5,22 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
@@ -25,6 +38,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -97,43 +111,55 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
 @Composable
 private fun PbBottomBar(currentRoute: String?, navController: androidx.navigation.NavHostController) {
     val theme = LocalPBTheme.current
-    NavigationBar(containerColor = theme.panel, tonalElevation = 0.dp) {
-        BottomDestination.entries.forEach { destination ->
-            val selected = currentRoute == destination.route
-            NavigationBarItem(
-                selected = selected,
-                onClick = {
-                    navController.navigate(destination.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+    Surface(
+        color = Color(0xFF0F0A17),
+        tonalElevation = 0.dp,
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            BottomDestination.entries.forEach { destination ->
+                val selected = currentRoute == destination.route
+                val pillShape = RoundedCornerShape(18.dp)
+                Box(
+                    modifier = Modifier
+                        .clip(pillShape)
+                        .background(if (selected) theme.accent else Color.Transparent)
+                        .clickable {
+                            navController.navigate(destination.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                        .padding(horizontal = if (selected) 16.dp else 10.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Icon(
+                            destination.icon,
+                            contentDescription = destination.label,
+                            tint = if (selected) Color.White else theme.muted,
+                            modifier = Modifier.size(22.dp),
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            destination.label,
+                            color = if (selected) Color.White else theme.muted,
+                            fontSize = 11.sp,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        )
                     }
-                },
-                icon = {
-                    Icon(
-                        destination.icon,
-                        contentDescription = destination.label,
-                        tint = if (selected) theme.accent else theme.muted,
-                        modifier = Modifier.size(24.dp),
-                    )
-                },
-                label = {
-                    Text(
-                        destination.label,
-                        color = if (selected) theme.accent else theme.muted,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                    )
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = theme.accent,
-                    selectedTextColor = theme.accent,
-                    indicatorColor = theme.accent.copy(alpha = 0.15f),
-                    unselectedIconColor = theme.muted,
-                    unselectedTextColor = theme.muted,
-                ),
-            )
+                }
+            }
         }
     }
 }

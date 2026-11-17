@@ -5,9 +5,16 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,10 +54,57 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 
+@Composable
+private fun MiniWaveformEqualizer(isPlaying: Boolean, tint: Color, modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition(label = "miniWave")
+    val h1 by infiniteTransition.animateFloat(
+        initialValue = 0.2f, targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(tween(450, easing = LinearEasing), RepeatMode.Reverse),
+        label = "h1",
+    )
+    val h2 by infiniteTransition.animateFloat(
+        initialValue = 0.8f, targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(tween(550, easing = LinearEasing), RepeatMode.Reverse),
+        label = "h2",
+    )
+    val h3 by infiniteTransition.animateFloat(
+        initialValue = 0.3f, targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(tween(400, easing = LinearEasing), RepeatMode.Reverse),
+        label = "h3",
+    )
+    val h4 by infiniteTransition.animateFloat(
+        initialValue = 0.9f, targetValue = 0.4f,
+        animationSpec = infiniteRepeatable(tween(600, easing = LinearEasing), RepeatMode.Reverse),
+        label = "h4",
+    )
+    val h5 by infiniteTransition.animateFloat(
+        initialValue = 0.4f, targetValue = 0.8f,
+        animationSpec = infiniteRepeatable(tween(500, easing = LinearEasing), RepeatMode.Reverse),
+        label = "h5",
+    )
+    val heights = listOf(h1, h2, h3, h4, h5, h2, h1, h3, h5, h4, h2, h3, h1, h4)
+    Row(
+        modifier = modifier.height(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        heights.forEach { factor ->
+            val actualH = if (isPlaying) (10.dp * factor).coerceAtLeast(2.dp) else 2.dp
+            Box(
+                modifier = Modifier
+                    .width(2.dp)
+                    .height(actualH)
+                    .clip(RoundedCornerShape(1.dp))
+                    .background(tint),
+            )
+        }
+    }
+}
+
 /**
  * Floating mini player matching the showcase screenshot:
  * Rounded pill (22.dp) with neon theme border, artwork thumbnail,
- * song title, artist, heart toggle, play/pause and next controls.
+ * song title, artist, live audio waveform, heart toggle, play/pause and next controls.
  */
 @Composable
 fun MiniPlayerBar(
@@ -75,19 +129,19 @@ fun MiniPlayerBar(
         val song = currentSong ?: return@AnimatedVisibility
         val progress = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
 
-        val pillShape = RoundedCornerShape(19.dp)
-        val borderGlow = theme.accent.copy(alpha = 0.35f)
+        val pillShape = RoundedCornerShape(22.dp)
+        val borderGlow = theme.accent
 
         Column(
             modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 7.dp)
+                .padding(horizontal = 14.dp, vertical = 6.dp)
                 .clip(pillShape)
                 .background(
                     Brush.horizontalGradient(
-                        listOf(theme.card, theme.surface)
+                        listOf(Color(0xFF1B1224), Color(0xFF130E1B))
                     )
                 )
-                .border(1.dp, borderGlow, pillShape)
+                .border(1.5.dp, borderGlow, pillShape)
                 .clickable(onClick = onOpenPlayer),
         ) {
             Row(
@@ -96,7 +150,7 @@ fun MiniPlayerBar(
                     .fillMaxWidth()
                     .padding(start = 12.dp, end = 6.dp, top = 8.dp, bottom = 8.dp),
             ) {
-                ArtworkThumb(url = song.artworkUrl, size = 46.dp, cornerRadius = 12.dp)
+                ArtworkThumb(url = song.artworkUrl, size = 48.dp, cornerRadius = 14.dp)
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -117,6 +171,11 @@ fun MiniPlayerBar(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    Spacer(Modifier.height(3.dp))
+                    MiniWaveformEqualizer(
+                        isPlaying = isPlaying,
+                        tint = theme.accent.copy(alpha = 0.85f),
+                    )
                 }
                 IconButton(
                     onClick = { isLiked = !isLiked },
@@ -125,7 +184,7 @@ fun MiniPlayerBar(
                     Icon(
                         if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                         contentDescription = if (isLiked) "Unlike" else "Like",
-                        tint = if (isLiked) Color(0xFFFF5577) else theme.muted,
+                        tint = if (isLiked) Color(0xFFFF2E93) else theme.muted,
                         modifier = Modifier.size(20.dp),
                     )
                 }

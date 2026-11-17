@@ -3,11 +3,13 @@ package com.punjabibeats.app.ui.screens.player
 import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -95,6 +97,69 @@ import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.PBTheme
 import com.punjabibeats.app.ui.theme.PlayerStyle
 
+/**
+ * Dancing vertical neon pink spectrum bars waveform equalizer matching screenshot.
+ */
+@Composable
+private fun FullPlayerDancingSpectrum(
+    isPlaying: Boolean,
+    tint: Color,
+    modifier: Modifier = Modifier,
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "spectrum")
+    val anim1 by infiniteTransition.animateFloat(
+        initialValue = 0.2f, targetValue = 0.95f,
+        animationSpec = infiniteRepeatable(tween(480, easing = LinearEasing), RepeatMode.Reverse),
+        label = "a1",
+    )
+    val anim2 by infiniteTransition.animateFloat(
+        initialValue = 0.85f, targetValue = 0.25f,
+        animationSpec = infiniteRepeatable(tween(360, easing = LinearEasing), RepeatMode.Reverse),
+        label = "a2",
+    )
+    val anim3 by infiniteTransition.animateFloat(
+        initialValue = 0.4f, targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(tween(540, easing = LinearEasing), RepeatMode.Reverse),
+        label = "a3",
+    )
+    val anim4 by infiniteTransition.animateFloat(
+        initialValue = 0.95f, targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(tween(420, easing = LinearEasing), RepeatMode.Reverse),
+        label = "a4",
+    )
+    val anim5 by infiniteTransition.animateFloat(
+        initialValue = 0.35f, targetValue = 0.85f,
+        animationSpec = infiniteRepeatable(tween(600, easing = LinearEasing), RepeatMode.Reverse),
+        label = "a5",
+    )
+    val barFactors = listOf(
+        anim1, anim2, anim3, anim4, anim5, anim2, anim1, anim3,
+        anim5, anim4, anim3, anim2, anim1, anim4, anim5, anim3,
+        anim2, anim1, anim4, anim3, anim5, anim2, anim4, anim1,
+        anim3, anim5, anim4, anim2, anim1, anim3, anim5, anim2
+    )
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(34.dp)
+            .padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        barFactors.forEach { factor ->
+            val barH = if (isPlaying) (30.dp * factor).coerceAtLeast(3.dp) else 3.dp
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(barH)
+                    .clip(RoundedCornerShape(1.5.dp))
+                    .background(tint),
+            )
+        }
+    }
+}
+
 @Composable
 fun FullPlayerScreen(
     onBack: () -> Unit,
@@ -180,6 +245,7 @@ fun FullPlayerScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // 1. Header matching screenshot: ∨, // NOW PLAYING //, ⋮
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -188,27 +254,30 @@ fun FullPlayerScreen(
                     Icon(
                         Icons.Rounded.KeyboardArrowDown,
                         contentDescription = "Close player",
-                        tint = theme.text,
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp),
                     )
                 }
                 Text(
-                    "NOW PLAYING",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = theme.muted,
+                    "//  NOW PLAYING  //",
+                    fontSize = 12.sp,
+                    color = theme.accent,
                     fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp,
                     modifier = Modifier.weight(1f),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
-                IconButton(onClick = { viewModel.downloadCurrent() }) {
+                IconButton(onClick = { showDnaSheet = true }) {
                     Icon(
-                        Icons.Rounded.DownloadForOffline,
-                        contentDescription = "Download for offline",
-                        tint = theme.muted,
+                        Icons.Rounded.MoreVert,
+                        contentDescription = "More options",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
 
             // Player View Mode Switcher: Cover Art vs Turntable
             Row(
@@ -231,7 +300,7 @@ fun FullPlayerScreen(
                         "🖼️ Cover Art",
                         fontSize = 12.sp,
                         fontWeight = if (!isTurntableMode) FontWeight.Bold else FontWeight.Medium,
-                        color = if (!isTurntableMode) theme.background else theme.muted,
+                        color = if (!isTurntableMode) Color.White else theme.muted,
                     )
                 }
                 Box(
@@ -245,66 +314,101 @@ fun FullPlayerScreen(
                         "📻 Turntable",
                         fontSize = 12.sp,
                         fontWeight = if (isTurntableMode) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isTurntableMode) theme.background else theme.muted,
+                        color = if (isTurntableMode) Color.White else theme.muted,
                     )
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // 2. Vinyl Centerpiece with vibrant circular neon pink halo glow
+            Box(
+                modifier = Modifier
+                    .size(280.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                // Vibrant circular neon pink halo glow
+                Box(
+                    modifier = Modifier
+                        .size(270.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.radialGradient(
+                                listOf(
+                                    theme.accent.copy(alpha = 0.5f),
+                                    theme.accent.copy(alpha = 0.2f),
+                                    Color.Transparent,
+                                )
+                            )
+                        )
+                        .border(2.dp, theme.accent.copy(alpha = 0.85f), CircleShape),
+                )
+                if (isTurntableMode) {
+                    TurntableDeck(
+                        artworkUrl = song?.artworkUrl,
+                        isPlaying = isPlaying,
+                        positionMs = positionMs,
+                        durationMs = durationMs,
+                        onSpeedChange = { viewModel.setPlaybackSpeed(it) },
+                        size = 250.dp,
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(250.dp)
+                            .clip(RoundedCornerShape(26.dp))
+                            .border(2.dp, theme.accent, RoundedCornerShape(26.dp)),
+                    ) {
+                        VinylArtwork(
+                            artworkUrl = song?.artworkUrl,
+                            isPlaying = isPlaying,
+                            size = 250.dp,
+                        )
+                    }
                 }
             }
 
             Spacer(Modifier.height(14.dp))
 
-            // Artwork or Audiophile Turntable Deck
-            if (isTurntableMode) {
-                TurntableDeck(
-                    artworkUrl = song?.artworkUrl,
-                    isPlaying = isPlaying,
-                    positionMs = positionMs,
-                    durationMs = durationMs,
-                    onSpeedChange = { viewModel.setPlaybackSpeed(it) },
-                    size = 250.dp,
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(260.dp)
-                        .scale(if (isPlaying && (theme.id == "anime" || theme.id == "cyber")) pulse else 1f)
-                        .clip(
-                            RoundedCornerShape(
-                                when (theme.id) {
-                                    "classic" -> 18.dp
-                                    "anime" -> 36.dp
-                                    "cyber" -> 12.dp
-                                    else -> 28.dp
-                                }
-                            )
-                        )
+            // 3. Song Info with bold title, pink artist, and solid pink heart icon
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        song?.title ?: "Nothing playing",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        song?.artist ?: "Pick a track to start the party",
+                        fontSize = 15.sp,
+                        color = theme.accent,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                IconButton(
+                    onClick = { viewModel.toggleLike() },
+                    modifier = Modifier.size(44.dp),
                 ) {
-                    VinylArtwork(
-                        artworkUrl = song?.artworkUrl,
-                        isPlaying = isPlaying,
-                        size = 260.dp,
+                    Icon(
+                        if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                        contentDescription = "Like",
+                        tint = if (isLiked) theme.accent else theme.muted,
+                        modifier = Modifier.size(28.dp),
                     )
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
-
-            Text(
-                song?.title ?: "Nothing playing",
-                style = MaterialTheme.typography.headlineMedium,
-                color = theme.text,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                song?.artist ?: "Pick a track to start the party",
-                style = MaterialTheme.typography.bodyLarge,
-                color = theme.muted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
 
             // 🎧 Real Bitrate, Codec & Audio Quality Indicator Pill
             Row(
@@ -315,7 +419,7 @@ fun FullPlayerScreen(
                     .background(theme.surface.copy(alpha = 0.85f))
                     .border(1.dp, if (audioFormat.isLossless) theme.secondary else theme.accent.copy(alpha = 0.45f), RoundedCornerShape(12.dp))
                     .clickable { showDnaSheet = true }
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                    .padding(horizontal = 12.dp, vertical = 5.dp),
             ) {
                 Text(
                     if (audioFormat.isLossless) "💎 LOSSLESS" else "✨ HQ AUDIO",
@@ -332,24 +436,20 @@ fun FullPlayerScreen(
                 )
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(10.dp))
 
-            if (theme.id == "anime" || theme.id == "cyber") {
-                Text(
-                    if (isPlaying) "♪ 〰 ♫ 〰 ♪ 〰 ♫"
-                    else "PAUSED",
-                    color = theme.accent,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 6.dp),
-                )
-            }
+            // 4. Dancing Spectrum Bars Waveform Equalizer
+            FullPlayerDancingSpectrum(
+                isPlaying = isPlaying,
+                tint = theme.accent,
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
 
             // 22 Progress Slider Collection Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 6.dp),
+                    .padding(bottom = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -380,7 +480,9 @@ fun FullPlayerScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(formatDuration(positionMs), style = MaterialTheme.typography.labelMedium, color = theme.muted)
@@ -391,71 +493,180 @@ fun FullPlayerScreen(
                 )
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
 
-            // 8-Theme Dynamic Player Controls
-            ThemePlayerControls(
-                theme = theme,
-                isPlaying = isPlaying,
-                isBuffering = isBuffering,
-                repeatMode = repeatMode,
-                shuffleEnabled = shuffleEnabled,
-                onPlayPause = { player.playPause() },
-                onPrevious = { player.previous() },
-                onNext = { player.next() },
-                onToggleShuffle = { player.toggleShuffle() },
-                onCycleRepeat = { player.cycleRepeatMode() },
-            )
-
-            Spacer(Modifier.height(20.dp))
-
-            // Bottom Secondary Actions
+            // 5. Controls Row with 76dp double-ring glowing Play/Pause button
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                IconButton(onClick = { viewModel.toggleLike() }) {
+                IconButton(onClick = { player.toggleShuffle() }) {
                     Icon(
-                        if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                        contentDescription = "Like",
-                        tint = if (isLiked) Color(0xFFFF5577) else theme.muted,
+                        Icons.Rounded.Shuffle,
+                        contentDescription = "Shuffle",
+                        tint = if (shuffleEnabled) theme.accent else theme.muted.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp),
                     )
                 }
-                IconButton(onClick = { showSleepSheet = true }) {
+                IconButton(onClick = { player.previous() }, modifier = Modifier.size(46.dp)) {
                     Icon(
-                        Icons.Rounded.Bedtime,
-                        contentDescription = "Sleep timer",
-                        tint = if (sleepMode != null) theme.accent else theme.muted,
+                        Icons.Rounded.SkipPrevious,
+                        contentDescription = "Previous",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp),
                     )
                 }
-                IconButton(onClick = { showQueue = true }) {
+
+                // 76dp circular Play/Pause button with double-ring glowing halo
+                Box(
+                    modifier = Modifier
+                        .size(76.dp)
+                        .clip(CircleShape)
+                        .border(2.5.dp, theme.accent, CircleShape)
+                        .padding(3.5.dp)
+                        .clip(CircleShape)
+                        .border(1.5.dp, theme.accent.copy(alpha = 0.75f), CircleShape)
+                        .background(theme.accent)
+                        .clickable { player.playPause() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isBuffering) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(34.dp),
+                            color = Color.White,
+                            strokeWidth = 3.dp,
+                        )
+                    } else {
+                        Icon(
+                            if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                            contentDescription = if (isPlaying) "Pause" else "Play",
+                            tint = Color.White,
+                            modifier = Modifier.size(36.dp),
+                        )
+                    }
+                }
+
+                IconButton(onClick = { player.next() }, modifier = Modifier.size(46.dp)) {
                     Icon(
-                        Icons.Rounded.QueueMusic,
-                        contentDescription = "Queue",
-                        tint = theme.muted,
+                        Icons.Rounded.SkipNext,
+                        contentDescription = "Next",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp),
                     )
                 }
-                IconButton(onClick = { viewModel.setPlaybackSpeed(nextSpeed(playbackSpeed)) }) {
+                IconButton(onClick = { player.cycleRepeatMode() }) {
                     Icon(
-                        Icons.Rounded.Speed,
-                        contentDescription = "Playback speed",
-                        tint = if (playbackSpeed != 1.0f) theme.accent else theme.muted,
+                        when (repeatMode) {
+                            Player.REPEAT_MODE_ONE -> Icons.Rounded.RepeatOne
+                            else -> Icons.Rounded.Repeat
+                        },
+                        contentDescription = "Repeat",
+                        tint = if (repeatMode != Player.REPEAT_MODE_OFF) theme.accent else theme.muted.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp),
                     )
                 }
-                IconButton(onClick = { showDnaSheet = true }) {
-                    Icon(
-                        Icons.Rounded.Info,
-                        contentDescription = "Song DNA & Info",
-                        tint = theme.accent,
-                    )
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // 6. Bottom 4 Action Cards: 66 Lyrics, ııll Equalizer, ⏱ Timer, ≡🎵 Queue
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                val cardShape = RoundedCornerShape(16.dp)
+                val cardBorder = theme.accent.copy(alpha = 0.35f)
+                val cardBg = Color(0xFF1B1224)
+
+                // 1. Lyrics
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(72.dp)
+                        .clip(cardShape)
+                        .background(cardBg)
+                        .border(1.dp, cardBorder, cardShape)
+                        .clickable(onClick = onOpenLyrics)
+                        .padding(6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("66", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = theme.text)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Lyrics", fontSize = 11.sp, color = theme.muted)
+                    }
                 }
-                IconButton(onClick = onOpenLyrics) {
-                    Icon(
-                        Icons.Rounded.Lyrics,
-                        contentDescription = "Lyrics",
-                        tint = theme.muted,
-                    )
+
+                // 2. Equalizer
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(72.dp)
+                        .clip(cardShape)
+                        .background(cardBg)
+                        .border(1.dp, cardBorder, cardShape)
+                        .clickable { showSeekbarPicker = true }
+                        .padding(6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("ııll", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = theme.text)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Equalizer", fontSize = 11.sp, color = theme.muted)
+                    }
+                }
+
+                // 3. Timer
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(72.dp)
+                        .clip(cardShape)
+                        .background(cardBg)
+                        .border(1.dp, cardBorder, cardShape)
+                        .clickable { showSleepSheet = true }
+                        .padding(6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Rounded.Bedtime,
+                            contentDescription = null,
+                            tint = if (sleepMode != null) theme.accent else theme.text,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text("Timer", fontSize = 11.sp, color = theme.muted)
+                    }
+                }
+
+                // 4. Queue
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(72.dp)
+                        .clip(cardShape)
+                        .background(cardBg)
+                        .border(1.dp, cardBorder, cardShape)
+                        .clickable { showQueue = true }
+                        .padding(6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Rounded.QueueMusic,
+                            contentDescription = null,
+                            tint = theme.text,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text("Queue", fontSize = 11.sp, color = theme.muted)
+                    }
                 }
             }
             Spacer(Modifier.height(20.dp))
