@@ -143,7 +143,13 @@ class ZenResolver(
     }
 
     /** Drops expired broker entries and stale prefetches. */
-    fun purgeExpired(): Int = broker.purge()
+    fun purgeExpired(): Int {
+        val now = System.currentTimeMillis()
+        synchronized(prefetched) {
+            prefetched.entries.removeIf { it.value.expiresAtMs - now < 60_000L }
+        }
+        return broker.purge()
+    }
 
     /** Nukes all broker state (e.g. on logout / account switch). */
     fun destroy() {

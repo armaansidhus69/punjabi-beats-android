@@ -93,7 +93,12 @@ internal class ZemerStreamEnhancer(
         if (!url.contains(ZenVault.open("gv.host"))) return null
         val pot = potoken.contentTokenOrNull(mediaId, sessionId)?.value ?: return null
         val transformed = CipherDeobfuscator.transformNParamInUrl(url)
-        val sep = if (transformed.contains('?')) '&' else '?'
-        return "$transformed${sep}pot=$pot"
+        val urlWithoutPot = if (transformed.contains("pot=")) {
+            transformed.replace(Regex("[?&]pot=[^&]*"), "")
+        } else {
+            transformed
+        }
+        val sep = if (urlWithoutPot.contains('?')) '&' else '?'
+        return "$urlWithoutPot${sep}pot=$pot"
     }
 }

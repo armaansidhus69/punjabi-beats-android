@@ -64,7 +64,7 @@ class ZenDataSource(private val resolver: ZenResolver) : BaseDataSource(/* isNet
         openedUri = uriString
         bytesRemaining = when {
             dataSpec.length != C.LENGTH_UNSET.toLong() -> dataSpec.length
-            ch.contentLength > 0 -> ch.contentLength - position
+            ch.contentLength > 0 -> (ch.contentLength - position).coerceAtLeast(0L)
             else -> C.LENGTH_UNSET.toLong()
         }
         transferStarted(dataSpec)

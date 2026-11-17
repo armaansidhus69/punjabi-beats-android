@@ -74,7 +74,13 @@ internal class StreamBroker {
     fun purge(): Int {
         val now = System.currentTimeMillis()
         var removed = 0
-        entries.entries.removeIf { it.value.expiresAtMs <= now }.also { if (it) removed++ }
+        val iter = entries.entries.iterator()
+        while (iter.hasNext()) {
+            if (iter.next().value.expiresAtMs <= now) {
+                iter.remove()
+                removed++
+            }
+        }
         return removed
     }
 
