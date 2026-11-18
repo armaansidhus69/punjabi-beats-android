@@ -100,8 +100,7 @@ fun AiStudioScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(theme.background)
-            .statusBarsPadding()
-            .imePadding(),
+            .statusBarsPadding(),
     ) {
         // Sunset Skyline Hero Header
         Box(
@@ -180,9 +179,21 @@ private fun AiTabs(
         }
 
         if (selected == 0) {
-            PlaylistTab(viewModel, uiState, controller, onOpenPlayer, bottomPadding)
+            PlaylistTab(
+                viewModel = viewModel,
+                uiState = uiState,
+                controller = controller,
+                onOpenPlayer = onOpenPlayer,
+                bottomPadding = bottomPadding,
+                modifier = Modifier.weight(1f),
+            )
         } else {
-            ChatTab(viewModel, uiState, bottomPadding)
+            ChatTab(
+                viewModel = viewModel,
+                uiState = uiState,
+                bottomPadding = bottomPadding,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -194,10 +205,11 @@ private fun PlaylistTab(
     controller: MusicPlayerController,
     onOpenPlayer: () -> Unit,
     bottomPadding: PaddingValues,
+    modifier: Modifier = Modifier,
 ) {
     val theme = LocalPBTheme.current
     Column(
-        modifier = Modifier
+        modifier = modifier
             .verticalScroll(rememberScrollState())
             .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
     ) {
@@ -370,6 +382,7 @@ private fun ChatTab(
     viewModel: AiStudioViewModel,
     uiState: AiStudioUiState,
     bottomPadding: PaddingValues,
+    modifier: Modifier = Modifier,
 ) {
     val theme = LocalPBTheme.current
     val listState = rememberLazyListState()
@@ -378,7 +391,7 @@ private fun ChatTab(
             listState.animateScrollToItem(uiState.messages.lastIndex)
         }
     }
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxWidth()) {
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -406,12 +419,15 @@ private fun ChatTab(
             }
         }
 
-        // Fixed bottom chat input dock
+        // Fixed bottom chat input dock with direct IME padding
         Surface(
             color = theme.surface.copy(alpha = 0.98f),
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             border = BorderStroke(1.dp, theme.accent.copy(alpha = 0.25f)),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .imePadding()
+                .padding(bottom = bottomPadding.calculateBottomPadding()),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
