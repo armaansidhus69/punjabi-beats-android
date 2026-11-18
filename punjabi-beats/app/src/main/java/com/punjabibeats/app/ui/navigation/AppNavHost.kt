@@ -3,7 +3,9 @@ package com.punjabibeats.app.ui.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -47,10 +49,10 @@ fun AppNavHost(
         navController = navController,
         startDestination = Routes.HOME,
         modifier = modifier.fillMaxSize(),
-        enterTransition = { fadeIn(tween(220)) },
-        exitTransition = { fadeOut(tween(220)) },
-        popEnterTransition = { fadeIn(tween(220)) },
-        popExitTransition = { fadeOut(tween(220)) },
+        enterTransition = { fadeIn(tween(220)) + slideInHorizontally(tween(220)) { 30 } },
+        exitTransition = { fadeOut(tween(200)) },
+        popEnterTransition = { fadeIn(tween(220)) + slideInHorizontally(tween(220)) { -30 } },
+        popExitTransition = { fadeOut(tween(200)) },
     ) {
         composable(Routes.HOME) {
             HomeScreen(

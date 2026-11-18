@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -132,8 +133,20 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
 
     Surface(
         color = barColor,
-        tonalElevation = 0.dp,
-        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+        tonalElevation = 4.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                brush = Brush.verticalGradient(
+                    listOf(
+                        theme.accent.copy(alpha = 0.25f),
+                        Color.Transparent,
+                    )
+                ),
+                shape = androidx.compose.ui.graphics.RectangleShape,
+            )
+            .navigationBarsPadding(),
     ) {
         Row(
             modifier = Modifier
@@ -148,6 +161,7 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
 
                 Box(
                     modifier = Modifier
+                        .height(48.dp)
                         .clip(pillShape)
                         .then(
                             if (selected) {
@@ -165,7 +179,7 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
                                 restoreState = true
                             }
                         }
-                        .padding(horizontal = if (selected) 16.dp else 12.dp, vertical = 8.dp),
+                        .padding(horizontal = if (selected) 16.dp else 12.dp, vertical = 4.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
