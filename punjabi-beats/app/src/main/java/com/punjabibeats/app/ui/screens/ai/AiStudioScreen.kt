@@ -65,10 +65,14 @@ import com.punjabibeats.app.ui.components.PbLoading
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 
 private val PROMPT_SUGGESTIONS = listOf(
+    Pair("⚡", "UK Punjabi Drill"),
+    Pair("🪕", "Folk Tumbi Pop"),
+    Pair("🥁", "Old School Bhangra"),
+    Pair("🌙", "Lo-Fi Boliyan"),
+    Pair("🚗", "Gaddi 808 Bass"),
     Pair("⚠️", "Late night highway drive"),
     Pair("🏋️", "Gym rage"),
     Pair("❤️", "Romantic Punjabi"),
-    Pair("🚗", "Car bass"),
     Pair("🔥", "Party"),
 )
 

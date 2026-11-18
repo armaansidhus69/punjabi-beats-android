@@ -317,6 +317,42 @@ private fun SuggestionsSection(
                 }
             }
         }
+
+        Spacer(Modifier.height(20.dp))
+
+        // Curated Vibes & Genres from Stitch Screen 01
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        ) {
+            Text("Curated Vibes & Genres", color = theme.text, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(10.dp))
+        val genres = listOf(
+            "Bhangra Hits",
+            "Desi Hip-Hop",
+            "Mandi Beats",
+            "Sufi & Qawwali",
+            "Gym & Dhol",
+            "Old School PB",
+        )
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(genres, key = { it }) { genre ->
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color(0xFF1F1F23))
+                        .border(1.dp, theme.accent.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                        .clickable { onPick(genre) }
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                ) {
+                    Text(genre, color = Color(0xFFE3E2E6), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
     }
 }
 
