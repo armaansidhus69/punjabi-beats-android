@@ -36,6 +36,9 @@ import com.punjabibeats.app.ui.components.rememberDragDropState
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
@@ -165,7 +168,7 @@ fun QueueDrawer(
                 state = listState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(420.dp)
+                    .heightIn(min = 280.dp, max = 500.dp)
                     .dragContainer(dragState),
             ) {
                 items(queue.size) { index ->
@@ -175,27 +178,30 @@ fun QueueDrawer(
                         modifier = Modifier
                             .fillMaxWidth()
                             .draggableItem(dragState, index)
-                            .padding(horizontal = 12.dp, vertical = 2.dp),
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { controller.seekToIndex(index) }
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
                     ) {
-                        IconButton(onClick = { controller.seekToIndex(index) }) {
-                            Icon(
-                                Icons.Rounded.MusicNote,
-                                contentDescription = null,
-                                tint = if (index == currentIndex) theme.accent else theme.muted,
-                            )
-                        }
+                        ArtworkThumb(
+                            url = song.artworkUrl,
+                            size = 42.dp,
+                            cornerRadius = 10.dp,
+                        )
+                        Spacer(Modifier.width(12.dp))
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = 4.dp),
                         ) {
                             Text(
                                 song.title,
                                 style = MaterialTheme.typography.titleSmall,
                                 color = if (index == currentIndex) theme.accent else theme.text,
+                                fontWeight = if (index == currentIndex) FontWeight.Bold else FontWeight.Medium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
+                            Spacer(Modifier.height(2.dp))
                             Text(
                                 song.artist,
                                 style = MaterialTheme.typography.bodySmall,
@@ -208,14 +214,19 @@ fun QueueDrawer(
                             formatDuration(song.durationMs),
                             style = MaterialTheme.typography.labelMedium,
                             color = theme.muted,
+                            modifier = Modifier.padding(horizontal = 8.dp),
                         )
                         Icon(
                             Icons.Rounded.DragHandle,
                             contentDescription = "Reorder (hold & drag)",
-                            tint = theme.muted,
+                            tint = theme.muted.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(horizontal = 4.dp),
                         )
-                        IconButton(onClick = { onRemove(index) }) {
-                            Icon(Icons.Rounded.Close, contentDescription = "Remove", tint = theme.muted)
+                        IconButton(
+                            onClick = { onRemove(index) },
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(Icons.Rounded.Close, contentDescription = "Remove", tint = theme.muted, modifier = Modifier.size(18.dp))
                         }
                     }
                 }

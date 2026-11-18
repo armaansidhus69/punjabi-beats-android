@@ -143,36 +143,39 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            // Quick Theme Switcher Pills (5 Themes)
-            Row(
+            // Quick Theme Switcher: Horizontally scrollable row so all 7 themes display with generous touch targets without clipping
+            androidx.compose.foundation.lazy.LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 2.dp),
             ) {
-                com.punjabibeats.app.ui.theme.PBThemes.forEach { th ->
+                items(com.punjabibeats.app.ui.theme.PBThemes.size) { index ->
+                    val th = com.punjabibeats.app.ui.theme.PBThemes[index]
                     val isSelected = activeThemeId.equals(th.id, ignoreCase = true)
                     Box(
                         modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
+                            .width(88.dp)
+                            .clip(RoundedCornerShape(14.dp))
                             .background(if (isSelected) th.accent.copy(alpha = 0.22f) else theme.card)
                             .border(
                                 width = if (isSelected) 1.5.dp else 1.dp,
                                 color = if (isSelected) th.accent else theme.muted.copy(alpha = 0.25f),
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(14.dp),
                             )
                             .clickable { viewModel.selectTheme(th.id) }
-                            .padding(vertical = 7.dp),
+                            .padding(vertical = 10.dp, horizontal = 6.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(th.emoji, fontSize = 15.sp)
-                            Spacer(Modifier.height(2.dp))
+                            Text(th.emoji, fontSize = 20.sp)
+                            Spacer(Modifier.height(4.dp))
                             Text(
-                                th.name.split(" ").firstOrNull() ?: th.name,
-                                fontSize = 10.5.sp,
+                                th.name,
+                                fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) th.accent else theme.muted,
                                 maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                     }

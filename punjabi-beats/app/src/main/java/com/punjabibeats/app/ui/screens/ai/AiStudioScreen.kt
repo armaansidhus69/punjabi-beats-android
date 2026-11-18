@@ -397,10 +397,10 @@ private fun ChatTab(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .padding(horizontal = 16.dp, vertical = 6.dp)
+                .clip(RoundedCornerShape(22.dp))
                 .background(theme.surface)
-                .border(1.dp, theme.panel2, RoundedCornerShape(20.dp))
+                .border(1.dp, theme.panel2, RoundedCornerShape(22.dp))
                 .padding(horizontal = 8.dp),
         ) {
             Box(Modifier.weight(1f)) {
@@ -409,7 +409,7 @@ private fun ChatTab(
                     onValueChange = viewModel::onChatInputChange,
                     textStyle = TextStyle(color = theme.text, fontSize = 15.sp),
                     decorationBox = { inner ->
-                        Box(Modifier.padding(14.dp)) {
+                        Box(Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
                             if (uiState.chatInput.isEmpty()) Text("Ask the music assistant…", color = theme.muted, fontSize = 15.sp)
                             inner()
                         }
@@ -417,11 +417,14 @@ private fun ChatTab(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            IconButton(onClick = { viewModel.sendChatMessage() }) {
+            IconButton(
+                onClick = { viewModel.sendChatMessage() },
+                modifier = Modifier.size(44.dp),
+            ) {
                 Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send", tint = theme.accent)
             }
         }
-        Spacer(Modifier.height(bottomPadding.calculateBottomPadding() + 130.dp))
+        Spacer(Modifier.height(bottomPadding.calculateBottomPadding() + 8.dp))
     }
 }
 
