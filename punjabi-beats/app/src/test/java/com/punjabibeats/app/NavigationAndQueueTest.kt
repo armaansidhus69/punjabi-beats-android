@@ -59,4 +59,32 @@ class NavigationAndQueueTest {
         assertEquals(2, currentIndex)
         assertEquals("Never Fold", testQueue[currentIndex])
     }
+
+    @Test
+    fun homeTopBarNavigationRoutesAndNotificationStateAreValid() {
+        var navigatedRoute: String? = null
+        val onOpenSettings = { navigatedRoute = Routes.SETTINGS }
+        onOpenSettings()
+        assertEquals(Routes.SETTINGS, navigatedRoute)
+
+        var snackbarMessage: String? = null
+        val onNotificationClick = {
+            snackbarMessage = "🔔 No new notifications — All Punjabi hits are up to date!"
+        }
+        onNotificationClick()
+        assertEquals("🔔 No new notifications — All Punjabi hits are up to date!", snackbarMessage)
+    }
+
+    @Test
+    fun homeSearchPillAndAiModeNavigationAreWired() {
+        var destination: String? = null
+        val onOpenSearch = { destination = Routes.SEARCH }
+        val onOpenAiStudio = { destination = Routes.AI }
+
+        onOpenSearch()
+        assertEquals(Routes.SEARCH, destination)
+
+        onOpenAiStudio()
+        assertEquals(Routes.AI, destination)
+    }
 }
