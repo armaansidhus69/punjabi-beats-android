@@ -58,7 +58,7 @@ class SettingsViewModel @Inject constructor(
     val playbackPitch: StateFlow<Float> = player.playbackPitch
 
     val currentThemeId: StateFlow<String> = settings.themeId()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic")
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "sunset_glow")
 
     fun selectTheme(themeId: String) {
         viewModelScope.launch { runCatching { settings.saveThemeId(themeId) } }

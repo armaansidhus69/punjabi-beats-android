@@ -24,7 +24,7 @@ class ThemeViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = pbThemeById("classic"),
+            initialValue = pbThemeById("sunset_glow"),
         )
 
     val seekbarStyle: StateFlow<String> = settings.seekbarStyle()

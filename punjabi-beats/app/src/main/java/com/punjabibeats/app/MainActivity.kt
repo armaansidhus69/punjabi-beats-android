@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermissionIfNeeded()
         captureJamDeepLink(intent)
         setContent {
-            val themeId by settings.themeId().collectAsStateWithLifecycle(initialValue = "classic")
+            val themeId by settings.themeId().collectAsStateWithLifecycle(initialValue = "sunset_glow")
             val currentTheme = remember(themeId) { pbThemeById(themeId) }
             PunjabiBeatsTheme(theme = currentTheme) {
                 PunjabiBeatsAppRoot(playerController = playerController)

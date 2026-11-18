@@ -134,15 +134,12 @@ fun MiniPlayerBar(
         val song = currentSong ?: return@AnimatedVisibility
         val progress = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
 
-        val isApple = theme.style == com.punjabibeats.app.ui.theme.PlayerStyle.APPLE
         val pillShape = RoundedCornerShape(22.dp)
-        val miniBackground = if (isApple) {
-            Brush.horizontalGradient(listOf(Color(0xF0252529), Color(0xF01C1C20)))
-        } else {
-            Brush.horizontalGradient(listOf(theme.card, theme.surface))
-        }
-        val miniBorderColor = if (isApple) Color.White.copy(alpha = 0.14f) else theme.accent
-        val miniBorderWidth = if (isApple) 1.dp else 1.5.dp
+        val miniBackground = Brush.horizontalGradient(
+            listOf(theme.card.copy(alpha = 0.95f), theme.surface.copy(alpha = 0.95f))
+        )
+        val miniBorderColor = Color.White.copy(alpha = 0.12f)
+        val miniBorderWidth = 1.dp
 
         Column(
             modifier = Modifier
@@ -182,7 +179,7 @@ fun MiniPlayerBar(
                     Spacer(Modifier.height(3.dp))
                     MiniWaveformEqualizer(
                         isPlaying = isPlaying,
-                        tint = if (isApple) Color.White.copy(alpha = 0.85f) else theme.accent.copy(alpha = 0.85f),
+                        tint = theme.accent.copy(alpha = 0.9f),
                     )
                 }
                 IconButton(
@@ -190,8 +187,7 @@ fun MiniPlayerBar(
                     modifier = Modifier.size(36.dp),
                 ) {
                     Icon(
-                        if (isLiked) (if (isApple) Icons.Rounded.Star else Icons.Rounded.Favorite)
-                        else (if (isApple) Icons.Rounded.StarBorder else Icons.Rounded.FavoriteBorder),
+                        if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                         contentDescription = if (isLiked) "Unlike" else "Like",
                         tint = if (isLiked) theme.accent else theme.muted,
                         modifier = Modifier.size(20.dp),
@@ -204,14 +200,14 @@ fun MiniPlayerBar(
                     if (isBuffering) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
-                            color = if (isApple) Color.White else theme.accent,
+                            color = theme.accent,
                             strokeWidth = 2.dp,
                         )
                     } else {
                         Icon(
                             if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                             contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = if (isApple) Color.White else theme.accent,
+                            tint = Color.White,
                             modifier = Modifier.size(28.dp),
                         )
                     }

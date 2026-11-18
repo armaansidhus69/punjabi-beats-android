@@ -223,18 +223,16 @@ private fun HomeSearchPill(
     modifier: Modifier = Modifier,
 ) {
     val theme = LocalPBTheme.current
-    val isApple = theme.style == com.punjabibeats.app.ui.theme.PlayerStyle.APPLE
-    val pillShape = if (isApple) RoundedCornerShape(12.dp) else RoundedCornerShape(26.dp)
-    val pillBorder = if (isApple) Color.White.copy(alpha = 0.12f) else theme.accent.copy(alpha = 0.7f)
-    val pillBorderWidth = if (isApple) 1.dp else 1.5.dp
+    val pillShape = RoundedCornerShape(24.dp)
+    val pillBorder = Color.White.copy(alpha = 0.12f)
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 4.dp)
+            .padding(horizontal = 20.dp, vertical = 6.dp)
             .clip(pillShape)
-            .background(if (isApple) Color(0xFF1C1C1E) else theme.surface.copy(alpha = 0.85f))
-            .border(pillBorderWidth, pillBorder, pillShape)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .background(theme.surface.copy(alpha = 0.9f))
+            .border(1.dp, pillBorder, pillShape)
+            .padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
@@ -245,23 +243,35 @@ private fun HomeSearchPill(
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            text = "Search songs, artists, albums, podcasts...",
+            text = "Search music, artists, podc...",
             color = theme.muted,
             fontSize = 13.5.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        IconButton(
-            onClick = onMicClick,
-            modifier = Modifier.size(24.dp),
+        // AI Mode Glowing Gradient Pill from Mockup
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(theme.accent, theme.secondary)
+                    )
+                )
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                Icons.Rounded.Mic,
-                contentDescription = "Voice Search",
-                tint = theme.accent,
-                modifier = Modifier.size(20.dp),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("🪄", fontSize = 11.sp)
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    "AI Mode",
+                    fontSize = 11.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                )
+            }
         }
     }
 }

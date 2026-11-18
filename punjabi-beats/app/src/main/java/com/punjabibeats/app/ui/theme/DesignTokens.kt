@@ -4,38 +4,90 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 /**
- * Design tokens for the Punjabi Beats signature palette & design system.
- * Blends rich Punjabi cultural tones (Saffron, Royal Indigo, Teal, Hot Pink, Pure Gold)
- * with modern deep glass surfaces for high readability and contrast.
+ * Design tokens matching the 7 modern aesthetic styles from user mockups:
+ * 1. Sunset Glow & Cyber Glass (Screenshots 1 & 2)
+ * 2. AI Mood Studio (Screenshot 2)
+ * 3. Aquamarine Frosted Glass (Screenshot 3)
+ * 4. Cloud Blue Neumorphic (Screenshot 4)
+ * 5. Urban Lime Minimal (Screenshot 5)
+ * 6. MoodBeat Dark Turntable (Screenshot 6)
+ * 7. Electric Aurora & Waves (Screenshot 7)
  */
 object DesignTokens {
-    // Core Brand Colors
-    val SaffronGold = Color(0xFFFFB300)      // Royal Kesari / Saffron
-    val DeepIndigo = Color(0xFF1E2640)       // Midnight Indigo base
-    val RoyalTeal = Color(0xFF00B4D8)        // Vibrant Cyan / Teal
-    val BrightPink = Color(0xFFFF2E93)       // Punjabi Beats Signature Pink
-    val GoldenCrown = Color(0xFFFFAA00)      // Warm Gold Accent
+    // 1. Sunset Glow & Cyber Glass
+    val SunsetBg = Color(0xFF09080E)
+    val SunsetSurface = Color(0xFF15131C)
+    val SunsetCard = Color(0xFF1F1C29)
+    val SunsetAccent = Color(0xFFFF5E3A)       // Coral Orange
+    val SunsetSecondary = Color(0xFFFFA048)    // Peach Gold
+    val SunsetText = Color(0xFFFFFFFF)
+    val SunsetMuted = Color(0xFFA5A0B5)
 
-    // Punjab Royal Theme Palette
-    val PunjabBackground = Color(0xFF0F0B14) // Deep royal dark background
-    val PunjabSurface = Color(0xFF1B1626)    // Elevated glass surface
-    val PunjabCard = Color(0xFF261F36)       // Interactive card container
-    val PunjabAccent = Color(0xFFFFB300)     // Bright Saffron Gold
-    val PunjabSecondary = Color(0xFF00B4D8)  // Vibrant Teal Accent
-    val PunjabText = Color(0xFFFFFDF8)       // Warm bright text
-    val PunjabMuted = Color(0xFFA59EB3)      // Soft muted lavender-grey
+    // 2. AI Mood Studio
+    val MoodBg = Color(0xFF0D0B12)
+    val MoodSurface = Color(0xFF171421)
+    val MoodCard = Color(0xFF241F33)
+    val MoodAccent = Color(0xFFFF4081)         // Neon Coral Pink
+    val MoodSecondary = Color(0xFF7C4DFF)      // Electric Purple
+    val MoodText = Color(0xFFFFFFFF)
+    val MoodMuted = Color(0xFFA69EB8)
 
-    // Brand Gradients
-    val SaffronTealGradient = Brush.linearGradient(
-        listOf(SaffronGold, RoyalTeal)
-    )
+    // 3. Aquamarine Frosted Glass
+    val AquaBg = Color(0xFF08181A)
+    val AquaSurface = Color(0xFF0E2529)
+    val AquaCard = Color(0xFF15373C)
+    val AquaAccent = Color(0xFF00E5C9)          // Turquoise Neon
+    val AquaSecondary = Color(0xFF80DEEA)       // Soft Aqua Frost
+    val AquaText = Color(0xFFF0FDFD)
+    val AquaMuted = Color(0xFF80CBC4)
 
-    val PunjabRoyalHeroGradient = Brush.verticalGradient(
-        listOf(
-            Color(0xFF3B1E42),
-            Color(0xFF261430),
-            Color(0xFF160B1C),
-            PunjabBackground,
-        )
-    )
+    // 4. Cloud Blue Neumorphic
+    val CloudBg = Color(0xFF0A131F)
+    val CloudSurface = Color(0xFF132238)
+    val CloudCard = Color(0xFF1D324F)
+    val CloudAccent = Color(0xFF29B6F6)         // Sky Blue
+    val CloudSecondary = Color(0xFFE1F5FE)      // Cloud White
+    val CloudText = Color(0xFFFFFFFF)
+    val CloudMuted = Color(0xFF90CAF9)
+
+    // 5. Urban Lime & Yellow Minimal
+    val UrbanBg = Color(0xFF0A0A0A)
+    val UrbanSurface = Color(0xFF161616)
+    val UrbanCard = Color(0xFF242424)
+    val UrbanAccent = Color(0xFFD4E157)         // Electric Lime
+    val UrbanSecondary = Color(0xFFFFEE58)      // Sunny Lemon
+    val UrbanText = Color(0xFFFFFFFF)
+    val UrbanMuted = Color(0xFFAAAAAA)
+
+    // 6. MoodBeat Dark Turntable
+    val TurntableBg = Color(0xFF0A0710)
+    val TurntableSurface = Color(0xFF140F1F)
+    val TurntableCard = Color(0xFF201830)
+    val TurntableAccent = Color(0xFFB388FF)      // Radiant Orchid
+    val TurntableSecondary = Color(0xFFEA80FC)   // Neon Pink/Purple
+    val TurntableText = Color(0xFFFFFFFF)
+    val TurntableMuted = Color(0xFFA69AB8)
+
+    // 7. Electric Aurora & Waves
+    val AuroraBg = Color(0xFF070514)
+    val AuroraSurface = Color(0xFF110C24)
+    val AuroraCard = Color(0xFF1B1438)
+    val AuroraAccent = Color(0xFFE040FB)         // Luminous Magenta
+    val AuroraSecondary = Color(0xFF536DFE)      // Electric Indigo
+    val AuroraText = Color(0xFFFFFFFF)
+    val AuroraMuted = Color(0xFFAFA7CE)
+
+    // Backward compatibility aliases
+    val SaffronGold = SunsetSecondary
+    val DeepIndigo = SunsetSurface
+    val RoyalTeal = AquaAccent
+    val BrightPink = MoodAccent
+    val GoldenCrown = SunsetSecondary
+    val PunjabBackground = SunsetBg
+    val PunjabSurface = SunsetSurface
+    val PunjabCard = SunsetCard
+    val PunjabAccent = SunsetAccent
+    val PunjabSecondary = SunsetSecondary
+    val PunjabText = SunsetText
+    val PunjabMuted = SunsetMuted
 }

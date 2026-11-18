@@ -7,9 +7,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 enum class PlayerStyle {
-    CLASSIC, ANIME, CYBER, PUNJAB,
+    SUNSET_GLASS, MOOD_STUDIO, AQUA_GLASS, CLOUD_BLUE, URBAN_NEON, MOODBEAT, ELECTRIC_AURORA,
     // Backward-compatibility aliases
-    APPLE, LASTWAVE, BITCHORD, ECHO, ARCHIVE
+    CLASSIC, ANIME, CYBER, PUNJAB, APPLE, LASTWAVE, BITCHORD, ECHO, ARCHIVE
 }
 
 data class PBTheme(
@@ -25,12 +25,19 @@ data class PBTheme(
     val muted: Color,
     val tagline: String = "",
     val style: PlayerStyle = when (id) {
-        "classic", "vice" -> PlayerStyle.CLASSIC
+        "sunset_glow" -> PlayerStyle.SUNSET_GLASS
+        "ai_mood" -> PlayerStyle.MOOD_STUDIO
+        "aqua_glass" -> PlayerStyle.AQUA_GLASS
+        "cloud_blue" -> PlayerStyle.CLOUD_BLUE
+        "urban_neon" -> PlayerStyle.URBAN_NEON
+        "moodbeat" -> PlayerStyle.MOODBEAT
+        "electric_aurora" -> PlayerStyle.ELECTRIC_AURORA
+        // Fallbacks for legacy IDs
         "apple" -> PlayerStyle.APPLE
-        "anime" -> PlayerStyle.ANIME
-        "cyber" -> PlayerStyle.CYBER
         "punjab" -> PlayerStyle.PUNJAB
-        else -> PlayerStyle.CLASSIC
+        "cyber" -> PlayerStyle.ELECTRIC_AURORA
+        "anime" -> PlayerStyle.MOOD_STUDIO
+        else -> PlayerStyle.SUNSET_GLASS
     },
 ) {
     // Backwards-compatible aliases for app components
@@ -38,47 +45,66 @@ data class PBTheme(
     val panel2: Color get() = card
     val accent2: Color get() = secondary
     val heroGradient: Brush get() = when (id) {
-        "classic", "vice" -> Brush.verticalGradient(
+        "sunset_glow" -> Brush.verticalGradient(
             listOf(
-                Color(0xFF5E124D),
-                Color(0xFF3E0B38),
-                Color(0xFF230728),
-                Color(0xFF13061A).copy(alpha = 0.5f),
+                Color(0xFF38151D),
+                Color(0xFF26101B),
+                Color(0xFF140A18),
+                Color(0xFF09080E).copy(alpha = 0.5f),
                 background,
             )
         )
-        "apple" -> Brush.verticalGradient(
+        "ai_mood" -> Brush.verticalGradient(
             listOf(
-                Color(0xFFFA233B).copy(alpha = 0.32f),
-                Color(0xFF6E0D1B).copy(alpha = 0.18f),
-                Color(0xFF1C1C1E).copy(alpha = 0.45f),
+                Color(0xFF36102B),
+                Color(0xFF240C26),
+                Color(0xFF150A1C),
+                Color(0xFF0D0B12).copy(alpha = 0.5f),
                 background,
             )
         )
-        "anime" -> Brush.verticalGradient(
+        "aqua_glass" -> Brush.verticalGradient(
             listOf(
-                Color(0xFF3D1047),
-                Color(0xFF6D1B68),
-                Color(0xFFB52E84),
-                Color(0xFF50133C).copy(alpha = 0.5f),
+                Color(0xFF07383D),
+                Color(0xFF07272D),
+                Color(0xFF07191E),
+                Color(0xFF08181A).copy(alpha = 0.5f),
                 background,
             )
         )
-        "cyber" -> Brush.verticalGradient(
+        "cloud_blue" -> Brush.verticalGradient(
             listOf(
-                Color(0xFF062338),
-                Color(0xFF0C3854),
-                Color(0xFF165B7E),
-                Color(0xFF09293D).copy(alpha = 0.5f),
+                Color(0xFF0E2E52),
+                Color(0xFF0B2039),
+                Color(0xFF081628),
+                Color(0xFF0A131F).copy(alpha = 0.5f),
                 background,
             )
         )
-        "punjab" -> Brush.verticalGradient(
+        "urban_neon" -> Brush.verticalGradient(
             listOf(
-                Color(0xFF3B1E42),
-                Color(0xFF261430),
-                Color(0xFF160B1C),
-                Color(0xFF0F0B14).copy(alpha = 0.5f),
+                Color(0xFF2B2E10),
+                Color(0xFF1D200E),
+                Color(0xFF12140A),
+                Color(0xFF0A0A0A).copy(alpha = 0.5f),
+                background,
+            )
+        )
+        "moodbeat" -> Brush.verticalGradient(
+            listOf(
+                Color(0xFF2B1038),
+                Color(0xFF1D0C26),
+                Color(0xFF12081C),
+                Color(0xFF0A0710).copy(alpha = 0.5f),
+                background,
+            )
+        )
+        "electric_aurora" -> Brush.verticalGradient(
+            listOf(
+                Color(0xFF2B0A42),
+                Color(0xFF1A0938),
+                Color(0xFF110729),
+                Color(0xFF070514).copy(alpha = 0.5f),
                 background,
             )
         )
@@ -92,77 +118,105 @@ data class PBTheme(
     }
 }
 
-/** Exactly 4 premium themes as specified in the Punjabi Beats 4 Theme Engine. */
+/** Exactly 7 Next-Gen Glass & Glow Themes matching user design mockups. */
 val PBThemes = listOf(
     PBTheme(
-        id = "classic",
-        name = "Neon Dusk",
-        emoji = "👑",
-        background = Color(0xFF08060D),
-        surface = Color(0xFF130E1B),
-        card = Color(0xFF1B1224),
-        accent = Color(0xFFFF2E93),
-        secondary = Color(0xFFFFAA00),
-        text = Color.White,
-        muted = Color(0xFFA592B3),
-        tagline = "Vice City Neon • Hot Pink + Golden Crown",
-        style = PlayerStyle.CLASSIC,
+        id = "sunset_glow",
+        name = "Sunset Glow",
+        emoji = "🌅",
+        background = DesignTokens.SunsetBg,
+        surface = DesignTokens.SunsetSurface,
+        card = DesignTokens.SunsetCard,
+        accent = DesignTokens.SunsetAccent,
+        secondary = DesignTokens.SunsetSecondary,
+        text = DesignTokens.SunsetText,
+        muted = DesignTokens.SunsetMuted,
+        tagline = "Obsidian Glass • Neon Sunset Coral & AI Glow",
+        style = PlayerStyle.SUNSET_GLASS,
     ),
     PBTheme(
-        id = "apple",
-        name = "Apple Music",
-        emoji = "🍎",
-        background = Color(0xFF000000),
-        surface = Color(0xFF1C1C1E),
-        card = Color(0xFF2C2C2E),
-        accent = Color(0xFFFA233B),
-        secondary = Color(0xFF0A84FF),
-        text = Color.White,
-        muted = Color(0xFF8E8E93),
-        tagline = "Cupertino Glass • Blurred mesh & authentic iOS controls",
-        style = PlayerStyle.APPLE,
+        id = "ai_mood",
+        name = "AI Mood Studio",
+        emoji = "✨",
+        background = DesignTokens.MoodBg,
+        surface = DesignTokens.MoodSurface,
+        card = DesignTokens.MoodCard,
+        accent = DesignTokens.MoodAccent,
+        secondary = DesignTokens.MoodSecondary,
+        text = DesignTokens.MoodText,
+        muted = DesignTokens.MoodMuted,
+        tagline = "Mood Beat • Interactive emotional soundscape",
+        style = PlayerStyle.MOOD_STUDIO,
     ),
     PBTheme(
-        id = "anime",
-        name = "Anime Beats",
-        emoji = "🌸",
-        background = Color(0xFF0D0718),
-        surface = Color(0xFF191025),
-        card = Color(0xFF29163A),
-        accent = Color(0xFFFF58C8),
-        secondary = Color(0xFFFFD34F),
-        text = Color.White,
-        muted = Color(0xFFC1AFCF),
-        tagline = "Purple + Pink + Gold • Anime artwork & glowing controls",
-        style = PlayerStyle.ANIME,
+        id = "aqua_glass",
+        name = "Aqua Frost",
+        emoji = "🌊",
+        background = DesignTokens.AquaBg,
+        surface = DesignTokens.AquaSurface,
+        card = DesignTokens.AquaCard,
+        accent = DesignTokens.AquaAccent,
+        secondary = DesignTokens.AquaSecondary,
+        text = DesignTokens.AquaText,
+        muted = DesignTokens.AquaMuted,
+        tagline = "Frosted Turquoise Acrylic • Liquid sound flow",
+        style = PlayerStyle.AQUA_GLASS,
     ),
     PBTheme(
-        id = "cyber",
-        name = "Cyberpunk",
+        id = "cloud_blue",
+        name = "Cloud Blue",
+        emoji = "☁️",
+        background = DesignTokens.CloudBg,
+        surface = DesignTokens.CloudSurface,
+        card = DesignTokens.CloudCard,
+        accent = DesignTokens.CloudAccent,
+        secondary = DesignTokens.CloudSecondary,
+        text = DesignTokens.CloudText,
+        muted = DesignTokens.CloudMuted,
+        tagline = "Sky Blue Glass • Neumorphic pill controls",
+        style = PlayerStyle.CLOUD_BLUE,
+    ),
+    PBTheme(
+        id = "urban_neon",
+        name = "Urban Lime",
         emoji = "⚡",
-        background = Color(0xFF07131D),
-        surface = Color(0xFF102431),
-        card = Color(0xFF173747),
-        accent = Color(0xFF43E5F2),
-        secondary = Color(0xFF657CFF),
-        text = Color.White,
-        muted = Color(0xFF9ABBC8),
-        tagline = "Blue + Neon Cyan • Futuristic neon player",
-        style = PlayerStyle.CYBER,
+        background = DesignTokens.UrbanBg,
+        surface = DesignTokens.UrbanSurface,
+        card = DesignTokens.UrbanCard,
+        accent = DesignTokens.UrbanAccent,
+        secondary = DesignTokens.UrbanSecondary,
+        text = DesignTokens.UrbanText,
+        muted = DesignTokens.UrbanMuted,
+        tagline = "High Contrast Lime & Black • Street beat energy",
+        style = PlayerStyle.URBAN_NEON,
     ),
     PBTheme(
-        id = "punjab",
-        name = "Punjab Royal",
-        emoji = "🪕",
-        background = DesignTokens.PunjabBackground,
-        surface = DesignTokens.PunjabSurface,
-        card = DesignTokens.PunjabCard,
-        accent = DesignTokens.PunjabAccent,
-        secondary = DesignTokens.PunjabSecondary,
-        text = DesignTokens.PunjabText,
-        muted = DesignTokens.PunjabMuted,
-        tagline = "Royal Saffron + Vibrant Teal • Rich Punjabi cultural vibe",
-        style = PlayerStyle.PUNJAB,
+        id = "moodbeat",
+        name = "MoodBeat Vinyl",
+        emoji = "🟣",
+        background = DesignTokens.TurntableBg,
+        surface = DesignTokens.TurntableSurface,
+        card = DesignTokens.TurntableCard,
+        accent = DesignTokens.TurntableAccent,
+        secondary = DesignTokens.TurntableSecondary,
+        text = DesignTokens.TurntableText,
+        muted = DesignTokens.TurntableMuted,
+        tagline = "Deep Vinyl Ring • Neon Purple & Orchid turntable",
+        style = PlayerStyle.MOODBEAT,
+    ),
+    PBTheme(
+        id = "electric_aurora",
+        name = "Electric Aurora",
+        emoji = "🌌",
+        background = DesignTokens.AuroraBg,
+        surface = DesignTokens.AuroraSurface,
+        card = DesignTokens.AuroraCard,
+        accent = DesignTokens.AuroraAccent,
+        secondary = DesignTokens.AuroraSecondary,
+        text = DesignTokens.AuroraText,
+        muted = DesignTokens.AuroraMuted,
+        tagline = "Midnight Aurora • Luminous wave bars & violet depth",
+        style = PlayerStyle.ELECTRIC_AURORA,
     ),
 )
 

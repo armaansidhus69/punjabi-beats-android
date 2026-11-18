@@ -1,7 +1,9 @@
 package com.punjabibeats.app
 
 import androidx.compose.ui.graphics.Color
+import com.punjabibeats.app.ui.theme.DesignTokens
 import com.punjabibeats.app.ui.theme.PBThemes
+import com.punjabibeats.app.ui.theme.PlayerStyle
 import com.punjabibeats.app.ui.theme.pbThemeById
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -10,58 +12,70 @@ import org.junit.Test
 class ThemeEngineTest {
 
     @Test
-    fun defaultThemeMatchesViceCityNeonDuskPalette() {
+    fun defaultThemeMatchesSunsetGlowPalette() {
         val defaultTheme = pbThemeById(null)
         assertNotNull(defaultTheme)
-        
-        // Exact Vice City Neon Dusk Palette from screenshots
-        assertEquals("Default theme accent must be Neon Pink (#FF2E93)", Color(0xFFFF2E93), defaultTheme.accent)
-        assertEquals("Default theme background must be Obsidian (#08060D)", Color(0xFF08060D), defaultTheme.background)
-        assertEquals("Default theme surface must be Dark Glass (#130E1B)", Color(0xFF130E1B), defaultTheme.surface)
-        assertEquals("Default theme card must be #1B1224", Color(0xFF1B1224), defaultTheme.card)
-        assertEquals("Default theme secondary must be Golden Crown (#FFAA00)", Color(0xFFFFAA00), defaultTheme.secondary)
+        assertEquals("Sunset Glow", defaultTheme.name)
+        assertEquals("🌅", defaultTheme.emoji)
+        assertEquals(DesignTokens.SunsetAccent, defaultTheme.accent)
+        assertEquals(DesignTokens.SunsetBg, defaultTheme.background)
+        assertEquals(DesignTokens.SunsetSurface, defaultTheme.surface)
+        assertEquals(DesignTokens.SunsetCard, defaultTheme.card)
+        assertEquals(DesignTokens.SunsetSecondary, defaultTheme.secondary)
+        assertEquals(PlayerStyle.SUNSET_GLASS, defaultTheme.style)
     }
 
     @Test
-    fun viceCityThemeResolvableById() {
-        val viceTheme = pbThemeById("classic")
-        assertEquals(Color(0xFFFF2E93), viceTheme.accent)
+    fun sunsetGlowThemeResolvableById() {
+        val theme = pbThemeById("sunset_glow")
+        assertEquals("Sunset Glow", theme.name)
+        assertEquals(DesignTokens.SunsetAccent, theme.accent)
     }
 
     @Test
-    fun appleMusicThemeResolvableById() {
-        val appleTheme = pbThemeById("apple")
-        assertNotNull(appleTheme)
-        assertEquals("Apple Music", appleTheme.name)
-        assertEquals("🍎", appleTheme.emoji)
-        assertEquals(Color(0xFFFA233B), appleTheme.accent)
-        assertEquals(Color(0xFF000000), appleTheme.background)
-        assertEquals(Color(0xFF1C1C1E), appleTheme.surface)
-        assertEquals(Color(0xFF2C2C2E), appleTheme.card)
-        assertEquals(Color(0xFF0A84FF), appleTheme.secondary)
-        assertEquals(Color(0xFF8E8E93), appleTheme.muted)
-        assertEquals(com.punjabibeats.app.ui.theme.PlayerStyle.APPLE, appleTheme.style)
+    fun aiMoodThemeResolvableById() {
+        val theme = pbThemeById("ai_mood")
+        assertNotNull(theme)
+        assertEquals("AI Mood Studio", theme.name)
+        assertEquals("✨", theme.emoji)
+        assertEquals(DesignTokens.MoodAccent, theme.accent)
+        assertEquals(PlayerStyle.MOOD_STUDIO, theme.style)
     }
 
     @Test
-    fun punjabRoyalThemeResolvableById() {
-        val punjabTheme = pbThemeById("punjab")
-        assertNotNull(punjabTheme)
-        assertEquals("Punjab Royal", punjabTheme.name)
-        assertEquals("🪕", punjabTheme.emoji)
-        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabAccent, punjabTheme.accent)
-        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabBackground, punjabTheme.background)
-        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabSurface, punjabTheme.surface)
-        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabCard, punjabTheme.card)
-        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabSecondary, punjabTheme.secondary)
-        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabMuted, punjabTheme.muted)
-        assertEquals(com.punjabibeats.app.ui.theme.PlayerStyle.PUNJAB, punjabTheme.style)
+    fun aquaGlassThemeResolvableById() {
+        val theme = pbThemeById("aqua_glass")
+        assertNotNull(theme)
+        assertEquals("Aqua Frost", theme.name)
+        assertEquals("🌊", theme.emoji)
+        assertEquals(DesignTokens.AquaAccent, theme.accent)
+        assertEquals(PlayerStyle.AQUA_GLASS, theme.style)
     }
 
     @Test
-    fun pbThemesContainsFiveCoreThemes() {
-        assertEquals(5, PBThemes.size)
+    fun moodbeatThemeResolvableById() {
+        val theme = pbThemeById("moodbeat")
+        assertNotNull(theme)
+        assertEquals("MoodBeat Vinyl", theme.name)
+        assertEquals("🟣", theme.emoji)
+        assertEquals(DesignTokens.TurntableAccent, theme.accent)
+        assertEquals(PlayerStyle.MOODBEAT, theme.style)
+    }
+
+    @Test
+    fun pbThemesContainsSevenModernThemes() {
+        assertEquals(7, PBThemes.size)
         val ids = PBThemes.map { it.id }
-        assertEquals(listOf("classic", "apple", "anime", "cyber", "punjab"), ids)
+        assertEquals(
+            listOf("sunset_glow", "ai_mood", "aqua_glass", "cloud_blue", "urban_neon", "moodbeat", "electric_aurora"),
+            ids
+        )
+    }
+
+    @Test
+    fun legacyFallbackResolvesSafely() {
+        val fallback = pbThemeById("classic")
+        assertNotNull(fallback)
+        assertEquals("sunset_glow", fallback.id)
     }
 }

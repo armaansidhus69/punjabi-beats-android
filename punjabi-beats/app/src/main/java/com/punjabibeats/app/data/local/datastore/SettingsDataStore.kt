@@ -67,17 +67,17 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
     fun themeId(): Flow<String> = safeData.map { prefs ->
         val version = prefs[Keys.THEME_VERSION] ?: 1
         val saved = prefs[Keys.THEME_ID]
-        // Automatic upgrade: legacy v1.0 default was "punjab"; upgrade to Vice City Neon ("classic")
-        if (version < 2) {
-            "classic"
+        // Automatic upgrade: upgrade legacy theme IDs to Sunset Glow ("sunset_glow")
+        if (version < 3) {
+            "sunset_glow"
         } else {
-            saved ?: "classic"
+            saved ?: "sunset_glow"
         }
     }
     suspend fun saveThemeId(themeId: String) = runCatching {
         context.pbDataStore.edit {
             it[Keys.THEME_ID] = themeId
-            it[Keys.THEME_VERSION] = 2
+            it[Keys.THEME_VERSION] = 3
         }
     }.isSuccess
 

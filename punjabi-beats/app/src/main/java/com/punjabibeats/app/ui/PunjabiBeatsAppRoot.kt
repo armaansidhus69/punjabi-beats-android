@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LibraryMusic
@@ -111,8 +113,7 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
 @Composable
 private fun PbBottomBar(currentRoute: String?, navController: androidx.navigation.NavHostController) {
     val theme = LocalPBTheme.current
-    val isApple = theme.style == com.punjabibeats.app.ui.theme.PlayerStyle.APPLE
-    val barColor = if (isApple) Color(0xF5161618) else theme.surface
+    val barColor = theme.surface.copy(alpha = 0.95f)
 
     Surface(
         color = barColor,
@@ -122,30 +123,26 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp),
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BottomDestination.entries.forEach { destination ->
                 val selected = currentRoute == destination.route
-                val pillShape = RoundedCornerShape(18.dp)
-                val pillBackground = when {
-                    isApple -> Color.Transparent
-                    selected -> theme.accent
-                    else -> Color.Transparent
-                }
-                val iconTint = when {
-                    isApple && selected -> theme.accent
-                    isApple -> theme.muted
-                    selected -> Color.White
-                    else -> theme.muted
-                }
-                val textTint = iconTint
+                val pillShape = CircleShape
 
                 Box(
                     modifier = Modifier
                         .clip(pillShape)
-                        .background(pillBackground)
+                        .then(
+                            if (selected) {
+                                Modifier.background(
+                                    Brush.linearGradient(listOf(theme.accent, theme.secondary))
+                                )
+                            } else {
+                                Modifier.background(Color.Transparent)
+                            }
+                        )
                         .clickable {
                             navController.navigate(destination.route) {
                                 popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -153,7 +150,7 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
                                 restoreState = true
                             }
                         }
-                        .padding(horizontal = if (selected && !isApple) 16.dp else 10.dp, vertical = 6.dp),
+                        .padding(horizontal = if (selected) 16.dp else 12.dp, vertical = 8.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
@@ -163,16 +160,18 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
                         Icon(
                             destination.icon,
                             contentDescription = destination.label,
-                            tint = iconTint,
+                            tint = if (selected) Color.White else theme.muted,
                             modifier = Modifier.size(22.dp),
                         )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            destination.label,
-                            color = textTint,
-                            fontSize = 11.sp,
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                        )
+                        if (selected) {
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                destination.label,
+                                color = Color.White,
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 }
             }
