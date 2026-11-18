@@ -259,28 +259,36 @@ fun UniversalSeekbar(
                     }
                 }
 
-                SeekbarStyle.NEON_CYAN -> {
-                    val neonCyan = Color(0xFF00F5FF)
-                    val neonIndigo = Color(0xFF6B00FF)
+                SeekbarStyle.LIGHTNING -> {
+                    val lightningCyan = Color(0xFF00F5FF)
+                    val lightningVolt = Color(0xFFE0FFFF)
                     drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 3.dp.toPx())
-                    // Outer neon aura
-                    drawLine(neonCyan.copy(alpha = 0.45f * pulse), Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 12.dp.toPx())
-                    // Inner bright core
-                    drawLine(neonCyan, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 4.dp.toPx())
-                    drawCircle(neonCyan, radius = 10.dp.toPx(), center = Offset(playedX, centerY))
-                    drawCircle(Color.White, radius = 5.dp.toPx(), center = Offset(playedX, centerY))
+                    val steps = 24
+                    val stepW = playedX / steps.coerceAtLeast(1)
+                    for (s in 0 until steps) {
+                        val x1 = s * stepW
+                        val x2 = (s + 1) * stepW
+                        val jitter = if (s % 2 == 0) sin(s * 1.7f + phase) * 4.dp.toPx() else -sin(s * 1.3f + phase) * 4.dp.toPx()
+                        drawLine(lightningCyan, Offset(x1, centerY), Offset(x2, centerY + jitter), strokeWidth = 2.5.dp.toPx())
+                    }
+                    drawLine(lightningCyan.copy(alpha = 0.45f * pulse), Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 10.dp.toPx())
+                    drawCircle(lightningVolt, radius = 7.dp.toPx(), center = Offset(playedX, centerY))
                 }
 
-                SeekbarStyle.ORBIT -> {
-                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 3.dp.toPx())
-                    drawLine(primary, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 4.dp.toPx())
-                    // Planet center
-                    drawCircle(primary, radius = 8.dp.toPx(), center = Offset(playedX, centerY))
-                    // Orbiting satellite
-                    val orbitAngle = if (isPlaying) phase * 3f else 0f
-                    val satX = playedX + cos(orbitAngle) * 16.dp.toPx()
-                    val satY = centerY + sin(orbitAngle) * 8.dp.toPx()
-                    drawCircle(secondary, radius = 4.5.dp.toPx(), center = Offset(satX, satY))
+                SeekbarStyle.CONSTELLATION -> {
+                    val starColor = Color(0xFFCEBDFF)
+                    val glowColor = Color(0xFF9D7BFF)
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 2.dp.toPx())
+                    drawLine(glowColor, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 3.dp.toPx())
+                    val nodeCount = 6
+                    for (n in 1..nodeCount) {
+                        val nx = (playedX * n) / (nodeCount + 1)
+                        val ny = centerY + sin(n * 2.2f + phase) * 5.dp.toPx()
+                        drawCircle(glowColor.copy(alpha = 0.4f), radius = 6.dp.toPx(), center = Offset(nx, ny))
+                        drawCircle(starColor, radius = 3.dp.toPx(), center = Offset(nx, ny))
+                    }
+                    drawCircle(Color.White, radius = 7.dp.toPx(), center = Offset(playedX, centerY))
+                    drawCircle(glowColor.copy(alpha = 0.5f * pulse), radius = 13.dp.toPx(), center = Offset(playedX, centerY))
                 }
 
                 SeekbarStyle.HEARTBEAT -> {
@@ -365,13 +373,18 @@ fun UniversalSeekbar(
                     drawCircle(Color.White, radius = 4.dp.toPx(), center = Offset(playedX, centerY))
                 }
 
-                SeekbarStyle.WATER_RIPPLE -> {
-                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 4.dp.toPx())
-                    val waterColor = Color(0xFF00B0FF)
-                    drawLine(waterColor, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 5.dp.toPx(), cap = StrokeCap.Round)
-                    // Expanding ripple rings
-                    drawCircle(waterColor.copy(alpha = (0.6f / pulse).coerceIn(0.1f, 0.6f)), radius = 16.dp.toPx() * pulse, center = Offset(playedX, centerY), style = Stroke(1.5.dp.toPx()))
-                    drawCircle(waterColor, radius = 8.dp.toPx(), center = Offset(playedX, centerY))
+                SeekbarStyle.BUBBLES -> {
+                    val bubbleColor = Color(0xFF38BDF8)
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round)
+                    drawLine(bubbleColor, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 4.dp.toPx(), cap = StrokeCap.Round)
+                    for (b in 0..6) {
+                        val bx = (playedX * (b + 1)) / 8f
+                        val by = centerY - (abs(sin(phase + b * 0.9f)) * 14.dp.toPx())
+                        val bradius = (3f + (b % 4) * 1.5f).dp.toPx()
+                        drawCircle(bubbleColor.copy(alpha = 0.6f), radius = bradius, center = Offset(bx, by), style = Stroke(1.5.dp.toPx()))
+                        drawCircle(Color.White.copy(alpha = 0.7f), radius = bradius * 0.35f, center = Offset(bx - bradius * 0.3f, by - bradius * 0.3f))
+                    }
+                    drawCircle(bubbleColor, radius = 7.dp.toPx(), center = Offset(playedX, centerY))
                 }
 
                 SeekbarStyle.DOT_MATRIX -> {
@@ -406,10 +419,24 @@ fun UniversalSeekbar(
                     drawCircle(Color.White, radius = 7.dp.toPx(), center = Offset(playedX, centerY))
                 }
 
-                SeekbarStyle.MINIMALIST_HAIRLINE -> {
-                    drawLine(trackMuted.copy(alpha = 0.35f), Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5.dp.toPx())
-                    drawLine(primary, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 2.dp.toPx())
-                    drawCircle(primary, radius = 4.5.dp.toPx(), center = Offset(playedX, centerY))
+                SeekbarStyle.LIQUID_TUBE -> {
+                    val tubeColor = Color(0xFF10B981)
+                    val tubeHeight = 12.dp.toPx()
+                    drawRoundRect(
+                        color = trackMuted.copy(alpha = 0.4f),
+                        topLeft = Offset(0f, centerY - tubeHeight / 2),
+                        size = Size(w, tubeHeight),
+                        cornerRadius = CornerRadius(tubeHeight / 2, tubeHeight / 2),
+                    )
+                    if (playedX > 0f) {
+                        drawRoundRect(
+                            brush = Brush.horizontalGradient(listOf(tubeColor.copy(alpha = 0.7f), Color(0xFF34D399))),
+                            topLeft = Offset(0f, centerY - tubeHeight / 2 + 1.dp.toPx()),
+                            size = Size(playedX, tubeHeight - 2.dp.toPx()),
+                            cornerRadius = CornerRadius(tubeHeight / 2, tubeHeight / 2),
+                        )
+                        drawCircle(Color.White, radius = (tubeHeight / 2) - 2.dp.toPx(), center = Offset(playedX - tubeHeight / 4, centerY))
+                    }
                 }
 
                 SeekbarStyle.PUNJABI_RHYTHM -> {
@@ -568,6 +595,144 @@ fun SeekbarStylePickerSheet(
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+
+/**
+ * Lightweight, interactive live mini preview of any of the 22 seekbar styles.
+ * Renders a miniature dynamic canvas with fluid playback animation.
+ */
+@Composable
+fun SeekbarMiniLivePreview(
+    style: SeekbarStyle,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val theme = LocalPBTheme.current
+    val infiniteTransition = rememberInfiniteTransition(label = "miniSeekbarPhase")
+    val phase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2f * PI).toFloat(),
+        animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing), RepeatMode.Restart),
+        label = "miniPhase",
+    )
+    val pulse by infiniteTransition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Reverse),
+        label = "miniPulse",
+    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .width(88.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (isSelected) theme.accent.copy(alpha = 0.18f) else theme.surface)
+            .border(
+                width = if (isSelected) 1.5.dp else 1.dp,
+                color = if (isSelected) theme.accent else theme.panel2,
+                shape = RoundedCornerShape(14.dp),
+            )
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp, horizontal = 6.dp),
+    ) {
+        Text(style.iconEmoji, fontSize = 18.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = style.displayName,
+            fontSize = 10.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            color = if (isSelected) theme.accent else theme.text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(6.dp))
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(16.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.Black.copy(alpha = 0.3f)),
+        ) {
+            val w = size.width
+            val h = size.height
+            val centerY = h / 2f
+            val playedX = w * 0.65f
+            val primary = theme.accent
+            val trackMuted = Color.White.copy(alpha = 0.2f)
+
+            when (style) {
+                SeekbarStyle.LIGHTNING -> {
+                    val cyan = Color(0xFF00F5FF)
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 2f)
+                    val steps = 6
+                    val stepW = playedX / steps
+                    for (s in 0 until steps) {
+                        val jitter = if (s % 2 == 0) sin(s * 1.5f + phase) * 3f else -sin(s * 1.5f + phase) * 3f
+                        drawLine(cyan, Offset(s * stepW, centerY), Offset((s + 1) * stepW, centerY + jitter), strokeWidth = 2f)
+                    }
+                    drawCircle(Color.White, radius = 3f, center = Offset(playedX, centerY))
+                }
+                SeekbarStyle.CONSTELLATION -> {
+                    val star = Color(0xFFCEBDFF)
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5f)
+                    drawLine(primary, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 2f)
+                    for (n in 1..3) {
+                        val nx = (playedX * n) / 4f
+                        val ny = centerY + sin(n * 2f + phase) * 3f
+                        drawCircle(star, radius = 2f, center = Offset(nx, ny))
+                    }
+                    drawCircle(Color.White, radius = 3.5f, center = Offset(playedX, centerY))
+                }
+                SeekbarStyle.BUBBLES -> {
+                    val bubbleColor = Color(0xFF38BDF8)
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 2f)
+                    drawLine(bubbleColor, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 2f)
+                    for (b in 1..3) {
+                        val bx = (playedX * b) / 4f
+                        val by = centerY - (abs(sin(phase + b)) * 4f)
+                        drawCircle(bubbleColor, radius = 2f, center = Offset(bx, by), style = Stroke(1f))
+                    }
+                    drawCircle(bubbleColor, radius = 3.5f, center = Offset(playedX, centerY))
+                }
+                SeekbarStyle.LIQUID_TUBE -> {
+                    val tubeColor = Color(0xFF10B981)
+                    drawRoundRect(trackMuted, topLeft = Offset(0f, centerY - 4f), size = Size(w, 8f), cornerRadius = CornerRadius(4f, 4f))
+                    drawRoundRect(tubeColor, topLeft = Offset(0f, centerY - 4f), size = Size(playedX, 8f), cornerRadius = CornerRadius(4f, 4f))
+                }
+                SeekbarStyle.RGB_GLOW -> {
+                    val rainbow = Brush.horizontalGradient(listOf(Color.Red, Color.Yellow, Color.Green, Color.Cyan, Color.Magenta))
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 2f)
+                    drawLine(rainbow, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 3f)
+                    drawCircle(Color.White, radius = 3.5f, center = Offset(playedX, centerY))
+                }
+                SeekbarStyle.DNA_HELIX -> {
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1f)
+                    val steps = 14
+                    for (i in 0 until steps) {
+                        val x = (playedX * i) / steps
+                        val y1 = centerY + sin(i * 0.8f + phase) * 4f
+                        val y2 = centerY - sin(i * 0.8f + phase) * 4f
+                        drawCircle(primary, radius = 1.5f, center = Offset(x, y1))
+                        drawCircle(theme.secondary, radius = 1.5f, center = Offset(x, y2))
+                    }
+                }
+                SeekbarStyle.COMET -> {
+                    val cometBrush = Brush.horizontalGradient(listOf(Color.Transparent, primary.copy(alpha = 0.5f), Color.White))
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5f)
+                    drawLine(cometBrush, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 3f)
+                    drawCircle(Color.White, radius = 4f * pulse, center = Offset(playedX, centerY))
+                }
+                else -> {
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 2f)
+                    drawLine(primary, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 2.5f)
+                    drawCircle(primary, radius = 3.5f, center = Offset(playedX, centerY))
                 }
             }
         }

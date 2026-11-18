@@ -89,6 +89,11 @@ import com.punjabibeats.app.ui.components.WaveformSeekbar
 import com.punjabibeats.app.ui.components.sliders.SeekbarStyle
 import com.punjabibeats.app.ui.components.sliders.SeekbarStylePickerSheet
 import com.punjabibeats.app.ui.components.sliders.UniversalSeekbar
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import com.punjabibeats.app.ui.components.sliders.SeekbarMiniLivePreview
 import com.punjabibeats.app.ui.components.turntable.TurntableDeck
 import com.punjabibeats.app.ui.screens.player.components.QueueDrawer
 import com.punjabibeats.app.ui.screens.player.components.SleepTimerSheet
@@ -514,14 +519,20 @@ fun FullPlayerScreen(
                 }
             }
 
-            UniversalSeekbar(
-                style = currentSeekbarStyle,
-                positionMs = positionMs,
-                durationMs = durationMs,
-                isPlaying = isPlaying,
-                onSeek = { player.seekTo(it) },
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Crossfade(
+                targetState = currentSeekbarStyle,
+                animationSpec = tween(260),
+                label = "activeSeekbarCrossfade",
+            ) { style ->
+                UniversalSeekbar(
+                    style = style,
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    isPlaying = isPlaying,
+                    onSeek = { player.seekTo(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -534,6 +545,22 @@ fun FullPlayerScreen(
                     style = MaterialTheme.typography.labelMedium,
                     color = theme.muted,
                 )
+            }
+
+            // Embedded Live Previews Carousel for all 22 Interactive Seekbars
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(SeekbarStyle.entries, key = { it.id }) { style ->
+                    SeekbarMiniLivePreview(
+                        style = style,
+                        isSelected = style == currentSeekbarStyle,
+                        onClick = { viewModel.setSeekbarStyle(style.id) },
+                    )
+                }
             }
 
             Spacer(Modifier.height(8.dp))

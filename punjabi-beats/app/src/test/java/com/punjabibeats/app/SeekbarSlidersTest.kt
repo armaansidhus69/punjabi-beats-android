@@ -15,6 +15,17 @@ class SeekbarSlidersTest {
     }
 
     @Test
+    fun requiredNamedStylesExist() {
+        assertEquals("comet", SeekbarStyle.COMET.id)
+        assertEquals("lightning", SeekbarStyle.LIGHTNING.id)
+        assertEquals("constellation", SeekbarStyle.CONSTELLATION.id)
+        assertEquals("bubbles", SeekbarStyle.BUBBLES.id)
+        assertEquals("rgb_glow", SeekbarStyle.RGB_GLOW.id)
+        assertEquals("dna_helix", SeekbarStyle.DNA_HELIX.id)
+        assertEquals("liquid_tube", SeekbarStyle.LIQUID_TUBE.id)
+    }
+
+    @Test
     fun allSeekbarStylesHaveUniqueIdsAndMetadata() {
         val ids = mutableSetOf<String>()
         for (style in SeekbarStyle.entries) {
@@ -32,6 +43,12 @@ class SeekbarSlidersTest {
             val resolved = SeekbarStyle.fromId(style.id)
             assertEquals("Failed to resolve style from id ${style.id}", style, resolved)
         }
+        // Aliases check
+        assertEquals(SeekbarStyle.LIGHTNING, SeekbarStyle.fromId("neon_cyan"))
+        assertEquals(SeekbarStyle.CONSTELLATION, SeekbarStyle.fromId("orbit"))
+        assertEquals(SeekbarStyle.BUBBLES, SeekbarStyle.fromId("water_ripple"))
+        assertEquals(SeekbarStyle.LIQUID_TUBE, SeekbarStyle.fromId("minimalist_hairline"))
+
         // Fallback check
         val fallback = SeekbarStyle.fromId("unknown_slider_id_123")
         assertEquals(SeekbarStyle.CLASSIC_WAVEFORM, fallback)

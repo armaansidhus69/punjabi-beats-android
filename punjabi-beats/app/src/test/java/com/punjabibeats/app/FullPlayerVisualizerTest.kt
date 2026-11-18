@@ -1,5 +1,6 @@
 package com.punjabibeats.app
 
+import com.punjabibeats.app.ui.components.sliders.SeekbarStyle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -41,5 +42,23 @@ class FullPlayerVisualizerTest {
         assertTrue(karaokeEnabled)
         karaokeEnabled = !karaokeEnabled
         assertTrue(!karaokeEnabled)
+    }
+
+    @Test
+    fun seekbarStyleSwitchingUpdatesCorrectly() {
+        var activeStyle = SeekbarStyle.CLASSIC_WAVEFORM
+        assertEquals("classic_waveform", activeStyle.id)
+
+        activeStyle = SeekbarStyle.LIGHTNING
+        assertEquals("lightning", activeStyle.id)
+
+        activeStyle = SeekbarStyle.CONSTELLATION
+        assertEquals("constellation", activeStyle.id)
+
+        activeStyle = SeekbarStyle.BUBBLES
+        assertEquals("bubbles", activeStyle.id)
+
+        activeStyle = SeekbarStyle.LIQUID_TUBE
+        assertEquals("liquid_tube", activeStyle.id)
     }
 }
