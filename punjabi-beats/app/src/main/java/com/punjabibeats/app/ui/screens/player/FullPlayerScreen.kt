@@ -89,7 +89,11 @@ import com.punjabibeats.app.ui.components.WaveformSeekbar
 import com.punjabibeats.app.ui.components.sliders.SeekbarStyle
 import com.punjabibeats.app.ui.components.sliders.SeekbarStylePickerSheet
 import com.punjabibeats.app.ui.components.sliders.UniversalSeekbar
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -519,10 +523,12 @@ fun FullPlayerScreen(
                 }
             }
 
-            Crossfade(
+            AnimatedContent(
                 targetState = currentSeekbarStyle,
-                animationSpec = tween(260),
-                label = "activeSeekbarCrossfade",
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(260)) togetherWith fadeOut(animationSpec = tween(260))
+                },
+                label = "activeSeekbarAnimatedContent",
             ) { style ->
                 UniversalSeekbar(
                     style = style,

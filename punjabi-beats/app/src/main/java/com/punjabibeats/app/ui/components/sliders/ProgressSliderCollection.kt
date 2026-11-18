@@ -729,6 +729,61 @@ fun SeekbarMiniLivePreview(
                     drawLine(cometBrush, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 3f)
                     drawCircle(Color.White, radius = 4f * pulse, center = Offset(playedX, centerY))
                 }
+                SeekbarStyle.HEARTBEAT -> {
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5f)
+                    val ecgColor = Color(0xFFFF2D55)
+                    val peakX = playedX * 0.7f
+                    drawLine(ecgColor, Offset(0f, centerY), Offset(peakX - 6f, centerY), strokeWidth = 2f)
+                    drawLine(ecgColor, Offset(peakX - 6f, centerY), Offset(peakX - 2f, centerY - 6f * pulse), strokeWidth = 2f)
+                    drawLine(ecgColor, Offset(peakX - 2f, centerY - 6f * pulse), Offset(peakX + 2f, centerY + 5f), strokeWidth = 2f)
+                    drawLine(ecgColor, Offset(peakX + 2f, centerY + 5f), Offset(peakX + 5f, centerY), strokeWidth = 2f)
+                    drawLine(ecgColor, Offset(peakX + 5f, centerY), Offset(playedX, centerY), strokeWidth = 2f)
+                    drawCircle(Color.White, radius = 3.5f, center = Offset(playedX, centerY))
+                }
+                SeekbarStyle.EQUALIZER, SeekbarStyle.AUDIO_SPECTRUM -> {
+                    val barCount = 10
+                    val barW = (w / barCount) - 2f
+                    for (b in 0 until barCount) {
+                        val bx = b * (barW + 2f)
+                        val isPlayed = bx <= playedX
+                        val barH = (3f + abs(sin(phase + b * 0.9f)) * 10f)
+                        val barColor = if (isPlayed) primary else trackMuted
+                        drawRoundRect(
+                            color = barColor,
+                            topLeft = Offset(bx, centerY - (barH / 2f)),
+                            size = Size(barW, barH),
+                            cornerRadius = CornerRadius(1.5f, 1.5f),
+                        )
+                    }
+                }
+                SeekbarStyle.WAVY -> {
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5f)
+                    val steps = 18
+                    for (i in 0 until steps) {
+                        val x = (playedX * i) / steps
+                        val y = centerY + sin(i * 0.5f + phase) * 3f
+                        drawCircle(primary, radius = 1.5f, center = Offset(x, y))
+                    }
+                    drawCircle(Color.White, radius = 3.5f, center = Offset(playedX, centerY))
+                }
+                SeekbarStyle.FIRE_EMBER -> {
+                    val ember = Brush.horizontalGradient(listOf(Color(0xFFFF3B30), Color(0xFFFF9500), Color(0xFFFFCC00)))
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5f)
+                    drawLine(ember, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 3f)
+                    drawCircle(Color(0xFFFFCC00), radius = 4f * pulse, center = Offset(playedX, centerY))
+                }
+                SeekbarStyle.PUNJABI_RHYTHM -> {
+                    val saffron = Color(0xFFFF9933)
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5f)
+                    drawLine(saffron, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 2.5f)
+                    drawCircle(saffron, radius = 4f * pulse, center = Offset(playedX, centerY))
+                }
+                SeekbarStyle.GOLDEN_SPARKLE -> {
+                    val gold = Color(0xFFFFD700)
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5f)
+                    drawLine(gold, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 2.5f)
+                    drawCircle(gold, radius = 3.5f * pulse, center = Offset(playedX, centerY))
+                }
                 else -> {
                     drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 2f)
                     drawLine(primary, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 2.5f)
