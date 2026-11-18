@@ -44,6 +44,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -73,6 +74,7 @@ import com.punjabibeats.app.ui.components.SectionHeader
 import com.punjabibeats.app.ui.components.SongCard
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val CURATED_ARTISTS_FALLBACK = listOf(
     Triple("Sidhu Moose Wala", "👳", "https://c.saavncdn.com/artists/Sidhu_Moose_Wala_004_20230610084042_500x500.jpg"),
@@ -88,11 +90,15 @@ fun HomeScreen(
     onOpenPlayer: () -> Unit,
     bottomPadding: PaddingValues,
     onOpenThemes: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null,
+    onOpenSearch: (() -> Unit)? = null,
+    onOpenAiStudio: (() -> Unit)? = null,
     onArtistClick: ((String) -> Unit)? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val theme = LocalPBTheme.current
     val snackbar = LocalPbSnackbar.current
+    val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
     val currentSong by controller.currentSong.collectAsStateWithLifecycle()
@@ -133,8 +139,16 @@ fun HomeScreen(
                 currentSongId = currentSong?.id,
                 onOpenPlayer = onOpenPlayer,
                 onOpenThemes = onOpenThemes,
+                onOpenSettings = onOpenSettings,
+                onOpenSearch = onOpenSearch,
+                onOpenAiStudio = onOpenAiStudio,
                 onArtistClick = onArtistClick,
                 onMoodClick = { viewModel.playMood(it) },
+                onNotificationClick = {
+                    scope.launch {
+                        snackbar.showSnackbar("🔔 No new notifications — All Punjabi hits are up to date!")
+                    }
+                },
                 bottomPadding = bottomPadding,
             )
         }
@@ -222,6 +236,8 @@ private fun HomeSearchPill(
     onQueryChange: (String) -> Unit,
     onMicClick: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onOpenSearch: (() -> Unit)? = null,
+    onOpenAiStudio: (() -> Unit)? = null,
 ) {
     val theme = LocalPBTheme.current
     val pillShape = RoundedCornerShape(24.dp)
@@ -233,6 +249,7 @@ private fun HomeSearchPill(
             .clip(pillShape)
             .background(theme.surface.copy(alpha = 0.9f))
             .border(1.dp, pillBorder, pillShape)
+            .clickable { onOpenSearch?.invoke() }
             .padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -260,6 +277,7 @@ private fun HomeSearchPill(
                         listOf(theme.accent, theme.secondary)
                     )
                 )
+                .clickable { onOpenAiStudio?.invoke() }
                 .padding(horizontal = 12.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center,
         ) {
@@ -284,8 +302,12 @@ private fun HomeContent(
     currentSongId: String?,
     onOpenPlayer: () -> Unit,
     onOpenThemes: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null,
+    onOpenSearch: (() -> Unit)? = null,
+    onOpenAiStudio: (() -> Unit)? = null,
     onArtistClick: ((String) -> Unit)? = null,
     onMoodClick: (com.punjabibeats.app.domain.model.MoodCategory) -> Unit,
+    onNotificationClick: () -> Unit = {},
     bottomPadding: PaddingValues,
 ) {
     val theme = LocalPBTheme.current
@@ -300,7 +322,8 @@ private fun HomeContent(
         item {
             HomeTopBar(
                 onOpenThemes = onOpenThemes,
-                onMenuClick = { onOpenThemes?.invoke() },
+                onMenuClick = { onOpenSettings?.invoke() ?: onOpenThemes?.invoke() },
+                onNotificationClick = onNotificationClick,
             )
         }
 
@@ -309,6 +332,8 @@ private fun HomeContent(
             HomeSearchPill(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
+                onOpenSearch = onOpenSearch,
+                onOpenAiStudio = onOpenAiStudio,
                 modifier = Modifier.padding(bottom = 10.dp),
             )
         }

@@ -59,6 +59,9 @@ fun AppNavHost(
                 controller = controller,
                 onOpenPlayer = { navController.navigate(Routes.PLAYER) },
                 onOpenThemes = { navController.navigate(Routes.THEMES) },
+                onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                onOpenSearch = { navController.navigate(Routes.SEARCH) },
+                onOpenAiStudio = { navController.navigate(Routes.AI) },
                 onArtistClick = { artistName -> navController.navigate(Routes.artist(artistName)) },
                 bottomPadding = NoPadding,
             )
