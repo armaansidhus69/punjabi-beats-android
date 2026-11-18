@@ -2,7 +2,7 @@ package com.punjabibeats.app.ui.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
@@ -146,7 +146,7 @@ val PBThemes = listOf(
 fun pbThemeById(id: String?): PBTheme =
     PBThemes.firstOrNull { it.id.equals(id, ignoreCase = true) } ?: PBThemes.first()
 
-val LocalPBTheme = staticCompositionLocalOf { PBThemes.first() }
+val LocalPBTheme = compositionLocalOf { PBThemes.first() }
 
 object CurrentPBTheme {
     val theme: PBTheme

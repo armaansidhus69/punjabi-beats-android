@@ -61,7 +61,7 @@ class SettingsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic")
 
     fun selectTheme(themeId: String) {
-        viewModelScope.launch { settings.saveThemeId(themeId) }
+        viewModelScope.launch { runCatching { settings.saveThemeId(themeId) } }
     }
 
     /** EQ band descriptors; falls back to standard 5-band configuration before first playback. */

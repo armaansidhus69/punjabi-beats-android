@@ -14,8 +14,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 
 private val Context.pbDataStore: DataStore<Preferences> by preferencesDataStore(name = "pb_settings")
 
@@ -53,89 +55,117 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val TURNTABLE_MODE = booleanPreferencesKey("turntable_mode")
     }
 
-    fun themeId(): Flow<String> = context.pbDataStore.data.map { prefs ->
+    private val safeData: Flow<Preferences> = context.pbDataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(androidx.datastore.preferences.core.emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+
+    fun themeId(): Flow<String> = safeData.map { prefs ->
         val version = prefs[Keys.THEME_VERSION] ?: 1
         val saved = prefs[Keys.THEME_ID]
         // Automatic upgrade: legacy v1.0 default was "punjab"; upgrade to Vice City Neon ("classic")
-        if (version < 2 || saved == null || saved == "punjab") {
+        if (version < 2) {
             "classic"
         } else {
-            saved
+            saved ?: "classic"
         }
     }
-    suspend fun saveThemeId(themeId: String) = context.pbDataStore.edit {
-        it[Keys.THEME_ID] = themeId
-        it[Keys.THEME_VERSION] = 2
-    }
+    suspend fun saveThemeId(themeId: String) = runCatching {
+        context.pbDataStore.edit {
+            it[Keys.THEME_ID] = themeId
+            it[Keys.THEME_VERSION] = 2
+        }
+    }.isSuccess
 
-    fun seekbarStyle(): Flow<String> = context.pbDataStore.data.map { it[Keys.SEEKBAR_STYLE] ?: "classic_waveform" }
-    suspend fun saveSeekbarStyle(style: String) = context.pbDataStore.edit { it[Keys.SEEKBAR_STYLE] = style }
+    fun seekbarStyle(): Flow<String> = safeData.map { it[Keys.SEEKBAR_STYLE] ?: "classic_waveform" }
+    suspend fun saveSeekbarStyle(style: String) = runCatching {
+        context.pbDataStore.edit { it[Keys.SEEKBAR_STYLE] = style }
+    }.isSuccess
 
-    fun turntableMode(): Flow<Boolean> = context.pbDataStore.data.map { it[Keys.TURNTABLE_MODE] ?: true }
-    suspend fun saveTurntableMode(enabled: Boolean) = context.pbDataStore.edit { it[Keys.TURNTABLE_MODE] = enabled }
+    fun turntableMode(): Flow<Boolean> = safeData.map { it[Keys.TURNTABLE_MODE] ?: true }
+    suspend fun saveTurntableMode(enabled: Boolean) = runCatching {
+        context.pbDataStore.edit { it[Keys.TURNTABLE_MODE] = enabled }
+    }.isSuccess
 
     /** Jam room code arriving via a punjabibeats://jam/… deep link, consumed once. */
-    suspend fun savePendingJamCode(code: String) =
+    suspend fun savePendingJamCode(code: String) = runCatching {
         context.pbDataStore.edit { it[Keys.PENDING_JAM_CODE] = code }
+    }.isSuccess
 
     suspend fun popPendingJamCode(): String? {
-        val code = context.pbDataStore.data.map { it[Keys.PENDING_JAM_CODE] }.first()
+        val code = runCatching { safeData.map { it[Keys.PENDING_JAM_CODE] }.first() }.getOrNull()
         if (!code.isNullOrBlank()) {
-            context.pbDataStore.edit { it[Keys.PENDING_JAM_CODE] = "" }
+            runCatching { context.pbDataStore.edit { it[Keys.PENDING_JAM_CODE] = "" } }
         }
         return code?.takeIf { it.isNotBlank() }
     }
 
     /** Stable per-install identity used for Jam Room presence. */
     suspend fun ensureUserId(): String {
-        val existing = context.pbDataStore.data.map { it[Keys.USER_ID] }.first()
+        val existing = runCatching { safeData.map { it[Keys.USER_ID] }.first() }.getOrNull()
         if (!existing.isNullOrBlank()) return existing
         val fresh = java.util.UUID.randomUUID().toString().replace("-", "").take(16)
-        context.pbDataStore.edit { it[Keys.USER_ID] = fresh }
+        runCatching { context.pbDataStore.edit { it[Keys.USER_ID] = fresh } }
         return fresh
     }
 
-    fun lastQueue(): Flow<PersistedQueue> = context.pbDataStore.data.map { prefs ->
+    fun lastQueue(): Flow<PersistedQueue> = safeData.map { prefs ->
         PersistedQueue(
             songsJson = prefs[Keys.LAST_QUEUE_JSON].orEmpty(),
             startIndex = prefs[Keys.LAST_INDEX] ?: 0,
         )
     }
 
-    suspend fun saveQueue(songsJson: String, startIndex: Int) {
+    suspend fun saveQueue(songsJson: String, startIndex: Int) = runCatching {
         context.pbDataStore.edit { prefs ->
             prefs[Keys.LAST_QUEUE_JSON] = songsJson
             prefs[Keys.LAST_INDEX] = startIndex
         }
-    }
+    }.isSuccess
 
-    fun repeatMode(): Flow<Int> = context.pbDataStore.data.map { it[Keys.REPEAT_MODE] ?: 0 }
-    suspend fun saveRepeatMode(mode: Int) = context.pbDataStore.edit { it[Keys.REPEAT_MODE] = mode }
+    fun repeatMode(): Flow<Int> = safeData.map { it[Keys.REPEAT_MODE] ?: 0 }
+    suspend fun saveRepeatMode(mode: Int) = runCatching {
+        context.pbDataStore.edit { it[Keys.REPEAT_MODE] = mode }
+    }.isSuccess
 
-    fun shuffleEnabled(): Flow<Boolean> = context.pbDataStore.data.map { it[Keys.SHUFFLE] ?: false }
-    suspend fun saveShuffle(enabled: Boolean) = context.pbDataStore.edit { it[Keys.SHUFFLE] = enabled }
+    fun shuffleEnabled(): Flow<Boolean> = safeData.map { it[Keys.SHUFFLE] ?: false }
+    suspend fun saveShuffle(enabled: Boolean) = runCatching {
+        context.pbDataStore.edit { it[Keys.SHUFFLE] = enabled }
+    }.isSuccess
 
-    fun playbackSpeed(): Flow<Float> = context.pbDataStore.data.map { it[Keys.SPEED] ?: 1.0f }
-    suspend fun savePlaybackSpeed(speed: Float) = context.pbDataStore.edit { it[Keys.SPEED] = speed }
+    fun playbackSpeed(): Flow<Float> = safeData.map { it[Keys.SPEED] ?: 1.0f }
+    suspend fun savePlaybackSpeed(speed: Float) = runCatching {
+        context.pbDataStore.edit { it[Keys.SPEED] = speed }
+    }.isSuccess
 
-    fun playbackPitch(): Flow<Float> = context.pbDataStore.data.map { it[Keys.PITCH] ?: 1.0f }
-    suspend fun savePlaybackPitch(pitch: Float) = context.pbDataStore.edit { it[Keys.PITCH] = pitch }
+    fun playbackPitch(): Flow<Float> = safeData.map { it[Keys.PITCH] ?: 1.0f }
+    suspend fun savePlaybackPitch(pitch: Float) = runCatching {
+        context.pbDataStore.edit { it[Keys.PITCH] = pitch }
+    }.isSuccess
 
-    fun skipSilence(): Flow<Boolean> = context.pbDataStore.data.map { it[Keys.SKIP_SILENCE] ?: false }
-    suspend fun saveSkipSilence(enabled: Boolean) = context.pbDataStore.edit { it[Keys.SKIP_SILENCE] = enabled }
+    fun skipSilence(): Flow<Boolean> = safeData.map { it[Keys.SKIP_SILENCE] ?: false }
+    suspend fun saveSkipSilence(enabled: Boolean) = runCatching {
+        context.pbDataStore.edit { it[Keys.SKIP_SILENCE] = enabled }
+    }.isSuccess
 
-    fun crossfadeSeconds(): Flow<Int> = context.pbDataStore.data.map { it[Keys.CROSSFADE_SECONDS] ?: 0 }
-    suspend fun saveCrossfadeSeconds(seconds: Int) =
+    fun crossfadeSeconds(): Flow<Int> = safeData.map { it[Keys.CROSSFADE_SECONDS] ?: 0 }
+    suspend fun saveCrossfadeSeconds(seconds: Int) = runCatching {
         context.pbDataStore.edit { it[Keys.CROSSFADE_SECONDS] = seconds.coerceIn(0, 12) }
+    }.isSuccess
 
     fun equalizerEnabled(): Flow<Boolean> =
-        context.pbDataStore.data.map { it[Keys.EQUALIZER_ENABLED] ?: false }
+        safeData.map { it[Keys.EQUALIZER_ENABLED] ?: false }
 
-    suspend fun saveEqualizerEnabled(enabled: Boolean) =
+    suspend fun saveEqualizerEnabled(enabled: Boolean) = runCatching {
         context.pbDataStore.edit { it[Keys.EQUALIZER_ENABLED] = enabled }
+    }.isSuccess
 
     /** Band levels stored as a JSON array of milli-bel integers, e.g. "[0,0,100,200,100]". */
-    fun equalizerBands(): Flow<List<Short>> = context.pbDataStore.data.map { prefs ->
+    fun equalizerBands(): Flow<List<Short>> = safeData.map { prefs ->
         val parsed = runCatching {
             PbJson.json.parseToJsonElement(prefs[Keys.EQUALIZER_BANDS] ?: "[]")
                 .let { el ->
@@ -150,33 +180,43 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         if (parsed.size >= 5) parsed.take(5) else (parsed + List(5 - parsed.size) { 0.toShort() })
     }
 
-    suspend fun saveEqualizerBands(levels: List<Short>) {
+    suspend fun saveEqualizerBands(levels: List<Short>) = runCatching {
         val json = levels.joinToString(",", "[", "]") { it.toString() }
         context.pbDataStore.edit { it[Keys.EQUALIZER_BANDS] = json }
-    }
+    }.isSuccess
 
-    fun bassBoostStrength(): Flow<Int> = context.pbDataStore.data.map { it[Keys.BASS_BOOST] ?: 0 }
-    suspend fun saveBassBoostStrength(strength: Int) =
+    fun bassBoostStrength(): Flow<Int> = safeData.map { it[Keys.BASS_BOOST] ?: 0 }
+    suspend fun saveBassBoostStrength(strength: Int) = runCatching {
         context.pbDataStore.edit { it[Keys.BASS_BOOST] = strength.coerceIn(0, 1000) }
+    }.isSuccess
 
-    fun virtualizerStrength(): Flow<Int> = context.pbDataStore.data.map { it[Keys.VIRTUALIZER] ?: 0 }
-    suspend fun saveVirtualizerStrength(strength: Int) =
+    fun virtualizerStrength(): Flow<Int> = safeData.map { it[Keys.VIRTUALIZER] ?: 0 }
+    suspend fun saveVirtualizerStrength(strength: Int) = runCatching {
         context.pbDataStore.edit { it[Keys.VIRTUALIZER] = strength.coerceIn(0, 1000) }
+    }.isSuccess
 
-    fun userName(): Flow<String> = context.pbDataStore.data.map { it[Keys.USER_NAME] ?: "Listener" }
-    suspend fun saveUserName(name: String) = context.pbDataStore.edit { it[Keys.USER_NAME] = name }
+    fun userName(): Flow<String> = safeData.map { it[Keys.USER_NAME] ?: "Listener" }
+    suspend fun saveUserName(name: String) = runCatching {
+        context.pbDataStore.edit { it[Keys.USER_NAME] = name }
+    }.isSuccess
 
-    fun userEmoji(): Flow<String> = context.pbDataStore.data.map { it[Keys.USER_EMOJI] ?: "🎧" }
-    suspend fun saveUserEmoji(emoji: String) = context.pbDataStore.edit { it[Keys.USER_EMOJI] = emoji }
+    fun userEmoji(): Flow<String> = safeData.map { it[Keys.USER_EMOJI] ?: "🎧" }
+    suspend fun saveUserEmoji(emoji: String) = runCatching {
+        context.pbDataStore.edit { it[Keys.USER_EMOJI] = emoji }
+    }.isSuccess
 
-    suspend fun lastJamCode(): String? =
-        context.pbDataStore.data.map { it[Keys.LAST_JAM_CODE] }.first()
+    suspend fun lastJamCode(): String? = runCatching {
+        safeData.map { it[Keys.LAST_JAM_CODE] }.first()
+    }.getOrNull()
 
-    suspend fun saveLastJamCode(code: String) = context.pbDataStore.edit { it[Keys.LAST_JAM_CODE] = code }
+    suspend fun saveLastJamCode(code: String) = runCatching {
+        context.pbDataStore.edit { it[Keys.LAST_JAM_CODE] = code }
+    }.isSuccess
 
     fun podcastFeedsJson(): Flow<String> =
-        context.pbDataStore.data.map { it[Keys.PODCAST_FEEDS_JSON] ?: "[]" }
+        safeData.map { it[Keys.PODCAST_FEEDS_JSON] ?: "[]" }
 
-    suspend fun savePodcastFeedsJson(json: String) =
+    suspend fun savePodcastFeedsJson(json: String) = runCatching {
         context.pbDataStore.edit { it[Keys.PODCAST_FEEDS_JSON] = json }
+    }.isSuccess
 }

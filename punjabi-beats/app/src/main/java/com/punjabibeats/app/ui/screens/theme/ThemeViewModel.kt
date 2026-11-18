@@ -40,21 +40,21 @@ class ThemeViewModel @Inject constructor(
     fun selectTheme(theme: PBTheme) {
         themeJob?.cancel()
         themeJob = viewModelScope.launch {
-            settings.saveThemeId(theme.id)
+            runCatching { settings.saveThemeId(theme.id) }
         }
     }
 
     fun selectSeekbarStyle(style: String) {
         seekbarJob?.cancel()
         seekbarJob = viewModelScope.launch {
-            settings.saveSeekbarStyle(style)
+            runCatching { settings.saveSeekbarStyle(style) }
         }
     }
 
     fun toggleTurntableMode(enabled: Boolean) {
         turntableJob?.cancel()
         turntableJob = viewModelScope.launch {
-            settings.saveTurntableMode(enabled)
+            runCatching { settings.saveTurntableMode(enabled) }
         }
     }
 }

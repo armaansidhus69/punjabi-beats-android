@@ -72,7 +72,7 @@ abstract class PunjabiBeatsDatabase : RoomDatabase() {
         fun build(context: Context): PunjabiBeatsDatabase =
             Room.databaseBuilder(context, PunjabiBeatsDatabase::class.java, NAME)
                 .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                .fallbackToDestructiveMigrationOnDowngrade() // Only wipe on version downgrades, NEVER on upgrades
+                .fallbackToDestructiveMigration()
                 .build()
     }
 }
