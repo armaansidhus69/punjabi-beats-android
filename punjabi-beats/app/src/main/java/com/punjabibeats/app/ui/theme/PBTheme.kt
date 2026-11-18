@@ -49,10 +49,9 @@ data class PBTheme(
         )
         "apple" -> Brush.verticalGradient(
             listOf(
-                Color(0xFF4A101D),
-                Color(0xFF2A0B14),
-                Color(0xFF19070D),
-                Color(0xFF100508).copy(alpha = 0.5f),
+                Color(0xFFFA233B).copy(alpha = 0.32f),
+                Color(0xFF6E0D1B).copy(alpha = 0.18f),
+                Color(0xFF1C1C1E).copy(alpha = 0.45f),
                 background,
             )
         )
@@ -113,14 +112,14 @@ val PBThemes = listOf(
         id = "apple",
         name = "Apple Music",
         emoji = "🍎",
-        background = Color(0xFF0A0A0C),
-        surface = Color(0xFF16161C),
-        card = Color(0xFF22222A),
-        accent = Color(0xFFFA2D48),
-        secondary = Color(0xFF007AFF),
+        background = Color(0xFF000000),
+        surface = Color(0xFF1C1C1E),
+        card = Color(0xFF2C2C2E),
+        accent = Color(0xFFFA233B),
+        secondary = Color(0xFF0A84FF),
         text = Color.White,
-        muted = Color(0xFF9898A0),
-        tagline = "Cupertino Glass • Blurred mesh & iOS player controls",
+        muted = Color(0xFF8E8E93),
+        tagline = "Cupertino Glass • Blurred mesh & authentic iOS controls",
         style = PlayerStyle.APPLE,
     ),
     PBTheme(

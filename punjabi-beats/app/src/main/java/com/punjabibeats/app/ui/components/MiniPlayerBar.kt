@@ -31,6 +31,8 @@ import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -132,19 +134,22 @@ fun MiniPlayerBar(
         val song = currentSong ?: return@AnimatedVisibility
         val progress = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
 
+        val isApple = theme.style == com.punjabibeats.app.ui.theme.PlayerStyle.APPLE
         val pillShape = RoundedCornerShape(22.dp)
-        val borderGlow = theme.accent
+        val miniBackground = if (isApple) {
+            Brush.horizontalGradient(listOf(Color(0xF0252529), Color(0xF01C1C20)))
+        } else {
+            Brush.horizontalGradient(listOf(theme.card, theme.surface))
+        }
+        val miniBorderColor = if (isApple) Color.White.copy(alpha = 0.14f) else theme.accent
+        val miniBorderWidth = if (isApple) 1.dp else 1.5.dp
 
         Column(
             modifier = Modifier
                 .padding(horizontal = 14.dp, vertical = 6.dp)
                 .clip(pillShape)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(Color(0xFF1B1224), Color(0xFF130E1B))
-                    )
-                )
-                .border(1.5.dp, borderGlow, pillShape)
+                .background(miniBackground)
+                .border(miniBorderWidth, miniBorderColor, pillShape)
                 .clickable(onClick = onOpenPlayer),
         ) {
             Row(
@@ -177,7 +182,7 @@ fun MiniPlayerBar(
                     Spacer(Modifier.height(3.dp))
                     MiniWaveformEqualizer(
                         isPlaying = isPlaying,
-                        tint = theme.accent.copy(alpha = 0.85f),
+                        tint = if (isApple) Color.White.copy(alpha = 0.85f) else theme.accent.copy(alpha = 0.85f),
                     )
                 }
                 IconButton(
@@ -185,9 +190,10 @@ fun MiniPlayerBar(
                     modifier = Modifier.size(36.dp),
                 ) {
                     Icon(
-                        if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                        if (isLiked) (if (isApple) Icons.Rounded.Star else Icons.Rounded.Favorite)
+                        else (if (isApple) Icons.Rounded.StarBorder else Icons.Rounded.FavoriteBorder),
                         contentDescription = if (isLiked) "Unlike" else "Like",
-                        tint = if (isLiked) Color(0xFFFF2E93) else theme.muted,
+                        tint = if (isLiked) theme.accent else theme.muted,
                         modifier = Modifier.size(20.dp),
                     )
                 }
@@ -198,14 +204,14 @@ fun MiniPlayerBar(
                     if (isBuffering) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(22.dp),
-                            color = theme.accent,
+                            color = if (isApple) Color.White else theme.accent,
                             strokeWidth = 2.dp,
                         )
                     } else {
                         Icon(
                             if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                             contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = theme.accent,
+                            tint = if (isApple) Color.White else theme.accent,
                             modifier = Modifier.size(28.dp),
                         )
                     }

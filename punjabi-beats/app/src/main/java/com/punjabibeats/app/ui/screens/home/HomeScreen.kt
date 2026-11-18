@@ -223,14 +223,17 @@ private fun HomeSearchPill(
     modifier: Modifier = Modifier,
 ) {
     val theme = LocalPBTheme.current
-    val pillShape = RoundedCornerShape(26.dp)
+    val isApple = theme.style == com.punjabibeats.app.ui.theme.PlayerStyle.APPLE
+    val pillShape = if (isApple) RoundedCornerShape(12.dp) else RoundedCornerShape(26.dp)
+    val pillBorder = if (isApple) Color.White.copy(alpha = 0.12f) else theme.accent.copy(alpha = 0.7f)
+    val pillBorderWidth = if (isApple) 1.dp else 1.5.dp
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp)
             .clip(pillShape)
-            .background(theme.surface.copy(alpha = 0.85f))
-            .border(1.5.dp, theme.accent.copy(alpha = 0.7f), pillShape)
+            .background(if (isApple) Color(0xFF1C1C1E) else theme.surface.copy(alpha = 0.85f))
+            .border(pillBorderWidth, pillBorder, pillShape)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

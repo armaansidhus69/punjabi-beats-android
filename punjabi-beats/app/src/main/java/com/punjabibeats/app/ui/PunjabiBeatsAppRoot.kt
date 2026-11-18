@@ -111,8 +111,11 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
 @Composable
 private fun PbBottomBar(currentRoute: String?, navController: androidx.navigation.NavHostController) {
     val theme = LocalPBTheme.current
+    val isApple = theme.style == com.punjabibeats.app.ui.theme.PlayerStyle.APPLE
+    val barColor = if (isApple) Color(0xF5161618) else theme.surface
+
     Surface(
-        color = Color(0xFF0F0A17),
+        color = barColor,
         tonalElevation = 0.dp,
         modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
     ) {
@@ -126,10 +129,23 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
             BottomDestination.entries.forEach { destination ->
                 val selected = currentRoute == destination.route
                 val pillShape = RoundedCornerShape(18.dp)
+                val pillBackground = when {
+                    isApple -> Color.Transparent
+                    selected -> theme.accent
+                    else -> Color.Transparent
+                }
+                val iconTint = when {
+                    isApple && selected -> theme.accent
+                    isApple -> theme.muted
+                    selected -> Color.White
+                    else -> theme.muted
+                }
+                val textTint = iconTint
+
                 Box(
                     modifier = Modifier
                         .clip(pillShape)
-                        .background(if (selected) theme.accent else Color.Transparent)
+                        .background(pillBackground)
                         .clickable {
                             navController.navigate(destination.route) {
                                 popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -137,7 +153,7 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
                                 restoreState = true
                             }
                         }
-                        .padding(horizontal = if (selected) 16.dp else 10.dp, vertical = 6.dp),
+                        .padding(horizontal = if (selected && !isApple) 16.dp else 10.dp, vertical = 6.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
@@ -147,13 +163,13 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
                         Icon(
                             destination.icon,
                             contentDescription = destination.label,
-                            tint = if (selected) Color.White else theme.muted,
+                            tint = iconTint,
                             modifier = Modifier.size(22.dp),
                         )
                         Spacer(Modifier.height(2.dp))
                         Text(
                             destination.label,
-                            color = if (selected) Color.White else theme.muted,
+                            color = textTint,
                             fontSize = 11.sp,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                         )

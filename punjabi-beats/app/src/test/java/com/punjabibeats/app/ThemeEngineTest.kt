@@ -34,7 +34,12 @@ class ThemeEngineTest {
         assertNotNull(appleTheme)
         assertEquals("Apple Music", appleTheme.name)
         assertEquals("🍎", appleTheme.emoji)
-        assertEquals(Color(0xFFFA2D48), appleTheme.accent)
+        assertEquals(Color(0xFFFA233B), appleTheme.accent)
+        assertEquals(Color(0xFF000000), appleTheme.background)
+        assertEquals(Color(0xFF1C1C1E), appleTheme.surface)
+        assertEquals(Color(0xFF2C2C2E), appleTheme.card)
+        assertEquals(Color(0xFF0A84FF), appleTheme.secondary)
+        assertEquals(Color(0xFF8E8E93), appleTheme.muted)
         assertEquals(com.punjabibeats.app.ui.theme.PlayerStyle.APPLE, appleTheme.style)
     }
 
