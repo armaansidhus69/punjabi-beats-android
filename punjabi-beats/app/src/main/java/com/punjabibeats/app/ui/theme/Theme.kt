@@ -45,7 +45,7 @@ private val PbShapes = androidx.compose.material3.Shapes(
 
 @Composable
 fun PunjabiBeatsTheme(
-    theme: PBTheme = pbThemeById("punjab"),
+    theme: PBTheme = pbThemeById("classic"),
     content: @Composable () -> Unit,
 ) {
     val dynamicScheme = darkColorScheme(

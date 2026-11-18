@@ -52,7 +52,7 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val TURNTABLE_MODE = booleanPreferencesKey("turntable_mode")
     }
 
-    fun themeId(): Flow<String> = context.pbDataStore.data.map { it[Keys.THEME_ID] ?: "punjab" }
+    fun themeId(): Flow<String> = context.pbDataStore.data.map { it[Keys.THEME_ID] ?: "classic" }
     suspend fun saveThemeId(themeId: String) = context.pbDataStore.edit { it[Keys.THEME_ID] = themeId }
 
     fun seekbarStyle(): Flow<String> = context.pbDataStore.data.map { it[Keys.SEEKBAR_STYLE] ?: "classic_waveform" }

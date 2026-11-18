@@ -57,6 +57,13 @@ class SettingsViewModel @Inject constructor(
     val playbackSpeed: StateFlow<Float> = player.playbackSpeed
     val playbackPitch: StateFlow<Float> = player.playbackPitch
 
+    val currentThemeId: StateFlow<String> = settings.themeId()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic")
+
+    fun selectTheme(themeId: String) {
+        viewModelScope.launch { settings.saveThemeId(themeId) }
+    }
+
     /** EQ band descriptors; falls back to standard 5-band configuration before first playback. */
     val bands: StateFlow<List<EqBandUi>> = settings.equalizerBands().map { saved ->
         val range = effects.bandRange

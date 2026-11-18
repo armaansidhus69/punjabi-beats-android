@@ -34,9 +34,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.punjabibeats.app.BuildConfig
 import com.punjabibeats.app.ui.theme.LocalPBTheme
-import com.punjabibeats.app.ui.theme.SurfaceBase
-import com.punjabibeats.app.ui.theme.TextSecondary
-
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -48,7 +45,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
-import com.punjabibeats.app.ui.theme.LocalPBTheme
 
 /**
  * Playback & audio settings (the Metrolist audio-customization pattern):
@@ -65,6 +61,7 @@ fun SettingsScreen(
     val speed by viewModel.playbackSpeed.collectAsStateWithLifecycle()
     val pitch by viewModel.playbackPitch.collectAsStateWithLifecycle()
     val bands by viewModel.bands.collectAsStateWithLifecycle()
+    val activeThemeId by viewModel.currentThemeId.collectAsStateWithLifecycle()
     val theme = LocalPBTheme.current
 
     Column(
@@ -78,13 +75,26 @@ fun SettingsScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = theme.text)
             }
-            Text("Settings", style = MaterialTheme.typography.titleLarge, color = theme.text)
+            Spacer(Modifier.width(4.dp))
+            Column {
+                Text(
+                    "Settings",
+                    color = theme.text,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    "Audio, playback & appearance preferences",
+                    color = theme.muted,
+                    fontSize = 12.sp,
+                )
+            }
         }
 
         SectionCard(title = "Appearance") {
@@ -92,7 +102,8 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(theme.panel2.copy(alpha = 0.6f))
+                    .background(theme.card)
+                    .border(1.dp, theme.accent.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
                     .clickable { onOpenThemes?.invoke() }
                     .padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -101,7 +112,7 @@ fun SettingsScreen(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(theme.panel)
+                        .background(theme.surface)
                         .border(1.5.dp, theme.accent, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -128,6 +139,44 @@ fun SettingsScreen(
                     contentDescription = "Theme Studio",
                     tint = theme.accent,
                 )
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // Quick Theme Switcher Pills
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                com.punjabibeats.app.ui.theme.PBThemes.forEach { th ->
+                    val isSelected = activeThemeId.equals(th.id, ignoreCase = true)
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) th.accent.copy(alpha = 0.22f) else theme.card)
+                            .border(
+                                width = if (isSelected) 1.5.dp else 1.dp,
+                                color = if (isSelected) th.accent else theme.muted.copy(alpha = 0.25f),
+                                shape = RoundedCornerShape(12.dp),
+                            )
+                            .clickable { viewModel.selectTheme(th.id) }
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(th.emoji, fontSize = 16.sp)
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                th.name.split(" ").first(),
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) th.accent else theme.muted,
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -216,6 +265,8 @@ fun SettingsScreen(
             Text(
                 "Punjabi Beats ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                 style = MaterialTheme.typography.bodyMedium,
+                color = theme.text,
+                fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(6.dp))
             Text(
@@ -225,7 +276,7 @@ fun SettingsScreen(
                     "self-healing player configs. Both are re-implemented from scratch for " +
                     "this project; no source code is copied.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = theme.muted,
             )
         }
         Spacer(Modifier.height(32.dp))
@@ -242,18 +293,20 @@ private fun SectionCard(
         title,
         style = MaterialTheme.typography.titleMedium,
         color = theme.accent,
+        fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
     )
     Surface(
-        color = SurfaceBase,
+        color = theme.card,
         shape = RoundedCornerShape(18.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            .border(1.dp, theme.accent.copy(alpha = 0.25f), RoundedCornerShape(18.dp)),
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) { content() }
     }
     Spacer(Modifier.height(10.dp))
@@ -274,13 +327,18 @@ private fun ToggleRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyLarge)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            Text(label, style = MaterialTheme.typography.bodyLarge, color = theme.text, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = theme.muted)
         }
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(checkedTrackColor = theme.accent),
+            colors = SwitchDefaults.colors(
+                checkedTrackColor = theme.accent,
+                checkedThumbColor = theme.background,
+                uncheckedTrackColor = theme.surface,
+                uncheckedThumbColor = theme.muted,
+            ),
         )
     }
 }
@@ -298,8 +356,8 @@ private fun LabeledSlider(
     val theme = LocalPBTheme.current
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(modifier = Modifier.fillMaxWidth()) {
-            Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-            Text(valueLabel, style = MaterialTheme.typography.bodyMedium, color = theme.accent)
+            Text(label, style = MaterialTheme.typography.bodyLarge, color = theme.text, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+            Text(valueLabel, style = MaterialTheme.typography.bodyMedium, color = theme.accent, fontWeight = FontWeight.Bold)
         }
         Slider(
             value = value,
@@ -307,7 +365,11 @@ private fun LabeledSlider(
             onValueChangeFinished = onValueChangeFinished,
             valueRange = valueRange,
             steps = steps,
-            colors = androidx.compose.material3.SliderDefaults.colors(thumbColor = theme.accent, activeTrackColor = theme.accent),
+            colors = androidx.compose.material3.SliderDefaults.colors(
+                thumbColor = theme.accent,
+                activeTrackColor = theme.accent,
+                inactiveTrackColor = theme.muted.copy(alpha = 0.25f),
+            ),
         )
     }
 }
