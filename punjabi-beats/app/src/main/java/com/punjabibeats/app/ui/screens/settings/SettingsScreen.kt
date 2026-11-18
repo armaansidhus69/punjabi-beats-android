@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 fun SettingsScreen(
     onBack: () -> Unit,
     onOpenThemes: (() -> Unit)? = null,
+    onOpenEqualizer: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -220,6 +221,39 @@ fun SettingsScreen(
         }
 
         SectionCard(title = "Audio effects") {
+            if (onOpenEqualizer != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(theme.panel2)
+                        .clickable { onOpenEqualizer.invoke() }
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = "10-Band Sonic Equalizer Studio",
+                            color = theme.text,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "DSP Matrix • Gaddi 808 & Dhol Presets",
+                            color = theme.accent,
+                            fontSize = 12.sp,
+                        )
+                    }
+                    Text(
+                        text = "OPEN ›",
+                        color = theme.accent,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+            }
             ToggleRow(
                 label = "Equalizer",
                 subtitle = if (bands.isEmpty()) {

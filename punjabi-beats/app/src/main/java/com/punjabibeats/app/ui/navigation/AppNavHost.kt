@@ -20,6 +20,7 @@ import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.screens.ai.AiStudioScreen
 import com.punjabibeats.app.ui.screens.album.AlbumDetailScreen
 import com.punjabibeats.app.ui.screens.artist.ArtistDetailScreen
+import com.punjabibeats.app.ui.screens.equalizer.EqualizerScreen
 import com.punjabibeats.app.ui.screens.home.HomeScreen
 import com.punjabibeats.app.ui.screens.jam.JamScreen
 import com.punjabibeats.app.ui.screens.library.LibraryScreen
@@ -98,7 +99,11 @@ fun AppNavHost(
             SettingsScreen(
                 onBack = { navController.popBackStack() },
                 onOpenThemes = { navController.navigate(Routes.THEMES) },
+                onOpenEqualizer = { navController.navigate(Routes.EQUALIZER) },
             )
+        }
+        composable(Routes.EQUALIZER) {
+            EqualizerScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable(Routes.THEMES) {
             ThemeStudioScreen(onBack = { navController.popBackStack() })
@@ -131,6 +136,7 @@ fun AppNavHost(
             FullPlayerScreen(
                 onBack = { navController.popBackStack() },
                 onOpenLyrics = { navController.navigate(Routes.LYRICS) },
+                onOpenEqualizer = { navController.navigate(Routes.EQUALIZER) },
             )
         }
         composable(

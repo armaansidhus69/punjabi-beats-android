@@ -8,6 +8,7 @@ object Routes {
     const val LIBRARY = "library"
     const val SETTINGS = "settings"
     const val THEMES = "themes"
+    const val EQUALIZER = "equalizer"
     const val PLAYER = "player"
     const val LYRICS = "lyrics"
     const val PODCASTS = "podcasts"

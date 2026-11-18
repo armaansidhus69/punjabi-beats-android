@@ -181,6 +181,7 @@ private fun FullPlayerDancingSpectrum(
 fun FullPlayerScreen(
     onBack: () -> Unit,
     onOpenLyrics: () -> Unit,
+    onOpenEqualizer: () -> Unit = {},
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val theme = LocalPBTheme.current
@@ -652,7 +653,7 @@ fun FullPlayerScreen(
                         .clip(cardShape)
                         .background(cardBg)
                         .border(1.dp, cardBorder, cardShape)
-                        .clickable { showEqualizerSheet = true }
+                        .clickable { onOpenEqualizer() }
                         .padding(6.dp),
                     contentAlignment = Alignment.Center,
                 ) {
