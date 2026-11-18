@@ -75,10 +75,10 @@ data class PBTheme(
         )
         "punjab" -> Brush.verticalGradient(
             listOf(
-                Color(0xFF3E1F0E),
-                Color(0xFF642F13),
-                Color(0xFF91471A),
-                Color(0xFF45200E).copy(alpha = 0.5f),
+                Color(0xFF3B1E42),
+                Color(0xFF261430),
+                Color(0xFF160B1C),
+                Color(0xFF0F0B14).copy(alpha = 0.5f),
                 background,
             )
         )
@@ -152,16 +152,16 @@ val PBThemes = listOf(
     ),
     PBTheme(
         id = "punjab",
-        name = "Punjab Legend",
-        emoji = "👑",
-        background = Color(0xFF180D07),
-        surface = Color(0xFF29180F),
-        card = Color(0xFF3B2718),
-        accent = Color(0xFFFFC247),
-        secondary = Color(0xFFEA7546),
-        text = Color(0xFFFFF6E8),
-        muted = Color(0xFFCBB99E),
-        tagline = "Brown + Golden • Punjabi royal music experience",
+        name = "Punjab Royal",
+        emoji = "🪕",
+        background = DesignTokens.PunjabBackground,
+        surface = DesignTokens.PunjabSurface,
+        card = DesignTokens.PunjabCard,
+        accent = DesignTokens.PunjabAccent,
+        secondary = DesignTokens.PunjabSecondary,
+        text = DesignTokens.PunjabText,
+        muted = DesignTokens.PunjabMuted,
+        tagline = "Royal Saffron + Vibrant Teal • Rich Punjabi cultural vibe",
         style = PlayerStyle.PUNJAB,
     ),
 )

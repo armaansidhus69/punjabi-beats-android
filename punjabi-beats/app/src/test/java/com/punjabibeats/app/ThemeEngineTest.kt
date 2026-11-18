@@ -44,6 +44,21 @@ class ThemeEngineTest {
     }
 
     @Test
+    fun punjabRoyalThemeResolvableById() {
+        val punjabTheme = pbThemeById("punjab")
+        assertNotNull(punjabTheme)
+        assertEquals("Punjab Royal", punjabTheme.name)
+        assertEquals("🪕", punjabTheme.emoji)
+        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabAccent, punjabTheme.accent)
+        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabBackground, punjabTheme.background)
+        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabSurface, punjabTheme.surface)
+        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabCard, punjabTheme.card)
+        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabSecondary, punjabTheme.secondary)
+        assertEquals(com.punjabibeats.app.ui.theme.DesignTokens.PunjabMuted, punjabTheme.muted)
+        assertEquals(com.punjabibeats.app.ui.theme.PlayerStyle.PUNJAB, punjabTheme.style)
+    }
+
+    @Test
     fun pbThemesContainsFiveCoreThemes() {
         assertEquals(5, PBThemes.size)
         val ids = PBThemes.map { it.id }
