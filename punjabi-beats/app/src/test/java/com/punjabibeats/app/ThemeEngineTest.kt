@@ -27,4 +27,21 @@ class ThemeEngineTest {
         val viceTheme = pbThemeById("classic")
         assertEquals(Color(0xFFFF2E93), viceTheme.accent)
     }
+
+    @Test
+    fun appleMusicThemeResolvableById() {
+        val appleTheme = pbThemeById("apple")
+        assertNotNull(appleTheme)
+        assertEquals("Apple Music", appleTheme.name)
+        assertEquals("🍎", appleTheme.emoji)
+        assertEquals(Color(0xFFFA2D48), appleTheme.accent)
+        assertEquals(com.punjabibeats.app.ui.theme.PlayerStyle.APPLE, appleTheme.style)
+    }
+
+    @Test
+    fun pbThemesContainsFiveCoreThemes() {
+        assertEquals(5, PBThemes.size)
+        val ids = PBThemes.map { it.id }
+        assertEquals(listOf("classic", "apple", "anime", "cyber", "punjab"), ids)
+    }
 }

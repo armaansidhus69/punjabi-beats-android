@@ -26,6 +26,7 @@ data class PBTheme(
     val tagline: String = "",
     val style: PlayerStyle = when (id) {
         "classic", "vice" -> PlayerStyle.CLASSIC
+        "apple" -> PlayerStyle.APPLE
         "anime" -> PlayerStyle.ANIME
         "cyber" -> PlayerStyle.CYBER
         "punjab" -> PlayerStyle.PUNJAB
@@ -43,6 +44,15 @@ data class PBTheme(
                 Color(0xFF3E0B38),
                 Color(0xFF230728),
                 Color(0xFF13061A).copy(alpha = 0.5f),
+                background,
+            )
+        )
+        "apple" -> Brush.verticalGradient(
+            listOf(
+                Color(0xFF4A101D),
+                Color(0xFF2A0B14),
+                Color(0xFF19070D),
+                Color(0xFF100508).copy(alpha = 0.5f),
                 background,
             )
         )
@@ -98,6 +108,20 @@ val PBThemes = listOf(
         muted = Color(0xFFA592B3),
         tagline = "Vice City Neon • Hot Pink + Golden Crown",
         style = PlayerStyle.CLASSIC,
+    ),
+    PBTheme(
+        id = "apple",
+        name = "Apple Music",
+        emoji = "🍎",
+        background = Color(0xFF0A0A0C),
+        surface = Color(0xFF16161C),
+        card = Color(0xFF22222A),
+        accent = Color(0xFFFA2D48),
+        secondary = Color(0xFF007AFF),
+        text = Color.White,
+        muted = Color(0xFF9898A0),
+        tagline = "Cupertino Glass • Blurred mesh & iOS player controls",
+        style = PlayerStyle.APPLE,
     ),
     PBTheme(
         id = "anime",
