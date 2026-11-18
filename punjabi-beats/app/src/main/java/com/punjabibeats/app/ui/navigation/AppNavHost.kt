@@ -35,11 +35,15 @@ import com.punjabibeats.app.ui.screens.theme.ThemeStudioScreen
 private val NoPadding = PaddingValues(0.dp)
 
 @Composable
-fun AppNavHost(navController: NavHostController, controller: MusicPlayerController) {
+fun AppNavHost(
+    navController: NavHostController,
+    controller: MusicPlayerController,
+    modifier: Modifier = Modifier,
+) {
     NavHost(
         navController = navController,
         startDestination = Routes.HOME,
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         enterTransition = { fadeIn(tween(220)) },
         exitTransition = { fadeOut(tween(220)) },
         popEnterTransition = { fadeIn(tween(220)) },

@@ -104,8 +104,12 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
                     }
                 }
             },
-        ) { _ ->
-            AppNavHost(navController = navController, controller = playerController)
+        ) { innerPadding ->
+            AppNavHost(
+                navController = navController,
+                controller = playerController,
+                modifier = androidx.compose.ui.Modifier.padding(innerPadding),
+            )
         }
     }
 }
