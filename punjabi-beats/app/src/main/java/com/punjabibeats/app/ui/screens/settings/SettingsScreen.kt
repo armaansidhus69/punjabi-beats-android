@@ -27,6 +27,10 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -494,6 +498,56 @@ fun SettingsScreen(
                 steps = 19,
                 colors = SliderDefaults.colors(thumbColor = theme.accent, activeTrackColor = theme.accent),
             )
+
+            Spacer(Modifier.height(12.dp))
+
+            // Live Interactive Teleprompter Preview Card
+            Text(
+                "Live Teleprompter Preview",
+                style = MaterialTheme.typography.labelLarge,
+                color = theme.muted,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.height(6.dp))
+            val previewTextAlign = when (lyricsAlignment) {
+                "CENTER" -> TextAlign.Center
+                "RIGHT" -> TextAlign.End
+                else -> TextAlign.Start
+            }
+            var activePreviewLine by remember { mutableIntStateOf(1) }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .border(1.dp, theme.accent.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+                    .padding(16.dp),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(lyricsLineSpacing.dp),
+                ) {
+                    val sampleLines = listOf(
+                        "ਮਿੱਤਰਾਂ ਦਾ ਨਾਂ ਚੱਲਦਾ, ਜਿਵੇਂ ਚੱਲਦਾ ਸਿੱਕਾ ਬਰੈਂਡਡ",
+                        "ਦਿਲ ਦਾ ਨੀ ਮਾੜਾ ਤੇਰਾ ਸਿੱਧੂ ਮੂਸੇ ਵਾਲਾ",
+                        "ਸਦਾ ਚੜ੍ਹਦੀ ਕਲਾ ਦੇ ਵਿੱਚ ਰਹਿੰਦੇ ਆਂ",
+                    )
+                    sampleLines.forEachIndexed { idx, line ->
+                        val isActive = idx == activePreviewLine
+                        Text(
+                            text = line,
+                            fontSize = (if (isActive) lyricsTextSize else lyricsTextSize * 0.82f).sp,
+                            fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Medium,
+                            color = if (isActive) theme.accent else theme.muted.copy(alpha = 0.7f),
+                            textAlign = previewTextAlign,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { activePreviewLine = idx }
+                                .padding(vertical = 2.dp),
+                        )
+                    }
+                }
+            }
         }
 
         SectionCard(title = "Touch & Haptic Feedback") {
