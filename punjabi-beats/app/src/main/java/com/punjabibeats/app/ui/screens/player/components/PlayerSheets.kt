@@ -1,6 +1,7 @@
 package com.punjabibeats.app.ui.screens.player.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -173,12 +174,20 @@ fun QueueDrawer(
             ) {
                 items(queue.size) { index ->
                     val song = queue[index]
+                    val isPlayingThis = index == currentIndex
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .draggableItem(dragState, index)
                             .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (isPlayingThis) theme.accent.copy(alpha = 0.15f) else Color.Transparent
+                            )
+                            .border(
+                                width = if (isPlayingThis) 1.dp else 0.dp,
+                                color = if (isPlayingThis) theme.accent.copy(alpha = 0.4f) else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp),
+                            )
                             .clickable { controller.seekToIndex(index) }
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                     ) {
@@ -193,14 +202,19 @@ fun QueueDrawer(
                                 .weight(1f)
                                 .padding(vertical = 4.dp),
                         ) {
-                            Text(
-                                song.title,
-                                style = MaterialTheme.typography.titleSmall,
-                                color = if (index == currentIndex) theme.accent else theme.text,
-                                fontWeight = if (index == currentIndex) FontWeight.Bold else FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (isPlayingThis) {
+                                    Text("▶ ", color = theme.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                                Text(
+                                    song.title,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = if (isPlayingThis) theme.accent else theme.text,
+                                    fontWeight = if (isPlayingThis) FontWeight.Bold else FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                             Spacer(Modifier.height(2.dp))
                             Text(
                                 song.artist,
@@ -216,12 +230,19 @@ fun QueueDrawer(
                             color = theme.muted,
                             modifier = Modifier.padding(horizontal = 8.dp),
                         )
-                        Icon(
-                            Icons.Rounded.DragHandle,
-                            contentDescription = "Reorder (hold & drag)",
-                            tint = theme.muted.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(horizontal = 4.dp),
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .draggableItem(dragState, index),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Rounded.DragHandle,
+                                contentDescription = "Reorder (hold & drag)",
+                                tint = theme.muted.copy(alpha = 0.7f),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
                         IconButton(
                             onClick = { onRemove(index) },
                             modifier = Modifier.size(36.dp),

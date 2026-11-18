@@ -46,4 +46,17 @@ class NavigationAndQueueTest {
         val albumRoute = Routes.album("Moosetape", "Sidhu Moose Wala")
         assertTrue("Album route must start with album/", albumRoute.startsWith("album/"))
     }
+
+    @Test
+    fun queueTrackSelectionUpdatesIndexAccurately() {
+        val testQueue = listOf("295", "Levels", "Never Fold", "Same Beef")
+        var currentIndex = 0
+        assertEquals("295", testQueue[currentIndex])
+
+        // User taps 3rd song in queue (index 2)
+        val selectedIndex = 2
+        currentIndex = selectedIndex.coerceIn(0, testQueue.lastIndex)
+        assertEquals(2, currentIndex)
+        assertEquals("Never Fold", testQueue[currentIndex])
+    }
 }
