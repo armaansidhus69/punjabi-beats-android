@@ -41,12 +41,12 @@
 **Interfaces:**
 - Produces: Updated design tokens for Stitch surfaces (`#121316`, `#1f1f23`, `#292a2d`), typography styles, and high-res fallback album art resource.
 
-- [ ] **Step 1: Write unit test in `ThemeEngineTest` asserting Stitch design token presence and palette consistency**
-- [ ] **Step 2: Run test to verify failure**
-- [ ] **Step 3: Copy `04_album_art_295_sidhu_moose_wala.png` into `res/drawable/art_sidhu_295_fallback.png`**
-- [ ] **Step 4: Update `DesignTokens.kt` and `PBTheme.kt` with Stitch color tokens and typography definitions**
-- [ ] **Step 5: Run unit tests to verify they pass**
-- [ ] **Step 6: Commit changes**
+- [x] **Step 1: Write unit test in `ThemeEngineTest` asserting Stitch design token presence and palette consistency**
+- [x] **Step 2: Run test to verify failure**
+- [x] **Step 3: Copy `04_album_art_295_sidhu_moose_wala.png` into `res/drawable/art_sidhu_295_fallback.png`**
+- [x] **Step 4: Update `DesignTokens.kt` and `PBTheme.kt` with Stitch color tokens and typography definitions**
+- [x] **Step 5: Run unit tests to verify they pass**
+- [x] **Step 6: Commit changes**
 
 ---
 
@@ -67,13 +67,13 @@
   - Dial sliders for: Bass Boost, 3D Surround, Dhol Punch resonance.
 - Consumes: `AudioFxController` connecting to ExoPlayer audio session.
 
-- [ ] **Step 1: Write unit test `EqualizerViewModelTest` verifying preset band gains and dB-to-mB conversions**
-- [ ] **Step 2: Run test to verify failure**
-- [ ] **Step 3: Implement `AudioFxController` managing hardware `Equalizer` and `BassBoost`**
-- [ ] **Step 4: Implement `EqualizerViewModel` with StateFlow for band gains, active preset, and boost dials**
-- [ ] **Step 5: Implement `EqualizerScreen.kt` with custom spline Canvas curve and vertical band sliders**
-- [ ] **Step 6: Run unit tests to verify they pass**
-- [ ] **Step 7: Commit changes**
+- [x] **Step 1: Write unit test `EqualizerViewModelTest` verifying preset band gains and dB-to-mB conversions**
+- [x] **Step 2: Run test to verify failure**
+- [x] **Step 3: Implement `AudioFxController` managing hardware `Equalizer` and `BassBoost`**
+- [x] **Step 4: Implement `EqualizerViewModel` with StateFlow for band gains, active preset, and boost dials**
+- [x] **Step 5: Implement `EqualizerScreen.kt` with custom spline Canvas curve and vertical band sliders**
+- [x] **Step 6: Run unit tests to verify they pass**
+- [x] **Step 7: Commit changes**
 
 ---
 
@@ -93,12 +93,12 @@
   - Quick launch pill to open Car DSP Calibration screen.
   - Keep-screen-on utility flag.
 
-- [ ] **Step 1: Write unit test `CarDashboardViewModelTest` verifying driving preset switching and playback state tracking**
-- [ ] **Step 2: Run test to verify failure**
-- [ ] **Step 3: Implement `CarDashboardViewModel`**
-- [ ] **Step 4: Implement `CarDashboardScreen.kt` with large touch buttons and ambient contrast**
-- [ ] **Step 5: Run unit tests to verify they pass**
-- [ ] **Step 6: Commit changes**
+- [x] **Step 1: Write unit test `CarDashboardViewModelTest` verifying driving preset switching and playback state tracking**
+- [x] **Step 2: Run test to verify failure**
+- [x] **Step 3: Implement `CarDashboardViewModel`**
+- [x] **Step 4: Implement `CarDashboardScreen.kt` with large touch buttons and ambient contrast**
+- [x] **Step 5: Run unit tests to verify they pass**
+- [x] **Step 6: Commit changes**
 
 ---
 
@@ -117,12 +117,12 @@
   - Channel time-alignment delay adjustments (FL, FR, RL, RR, Sub in ms).
   - Subwoofer crossover frequency selector (50Hz, 80Hz, 120Hz).
 
-- [ ] **Step 1: Write unit test `CarDspViewModelTest` verifying balance/fader calculation and cabin preset values**
-- [ ] **Step 2: Run test to verify failure**
-- [ ] **Step 3: Implement `CarDspViewModel` with StateFlow for coordinates, speaker gain offsets, and delays**
-- [ ] **Step 4: Implement `CarDspCalibrationScreen.kt` with interactive draggable Canvas listener**
-- [ ] **Step 5: Run unit tests to verify they pass**
-- [ ] **Step 6: Commit changes**
+- [x] **Step 1: Write unit test `CarDspViewModelTest` verifying balance/fader calculation and cabin preset values**
+- [x] **Step 2: Run test to verify failure**
+- [x] **Step 3: Implement `CarDspViewModel` with StateFlow for coordinates, speaker gain offsets, and delays**
+- [x] **Step 4: Implement `CarDspCalibrationScreen.kt` with interactive draggable Canvas listener**
+- [x] **Step 5: Run unit tests to verify they pass**
+- [x] **Step 6: Commit changes**
 
 ---
 
@@ -142,13 +142,13 @@
   - `EXPANDED`: Dropdown overlay card with waveform scrubber, playback controls, and audio route selector.
   - `DISMISSED`: Swipe away to collapse.
 
-- [ ] **Step 1: Write unit test `DynamicIslandStateTest` verifying state transitions and gestures**
-- [ ] **Step 2: Run test to verify failure**
-- [ ] **Step 3: Implement `DynamicIslandState.kt` with state machine and transition animators**
-- [ ] **Step 4: Implement `DynamicIslandPill.kt` and `DynamicIslandExpandedCard.kt`**
-- [ ] **Step 5: Mount Dynamic Island overlay in `PunjabiBeatsAppRoot.kt` with toggle flag**
-- [ ] **Step 6: Run unit tests to verify they pass**
-- [ ] **Step 7: Commit changes**
+- [x] **Step 1: Write unit test `DynamicIslandStateTest` verifying state transitions and gestures**
+- [x] **Step 2: Run test to verify failure**
+- [x] **Step 3: Implement `DynamicIslandState.kt` with state machine and transition animators**
+- [x] **Step 4: Implement `DynamicIslandPill.kt` and `DynamicIslandExpandedCard.kt`**
+- [x] **Step 5: Mount Dynamic Island overlay in `PunjabiBeatsAppRoot.kt` with toggle flag**
+- [x] **Step 6: Run unit tests to verify they pass**
+- [x] **Step 7: Commit changes**
 
 ---
 
@@ -166,12 +166,12 @@
   - Real-time Karaoke On/Off badge toggle with animated pulse.
   - "Up Next" capsule card at bottom showing upcoming queue track.
 
-- [ ] **Step 1: Write unit test in `PlayerViewModelTest` verifying visualizer mode switching**
-- [ ] **Step 2: Implement multi-mode visualizer composable (Wave / Dot / Neon)**
-- [ ] **Step 3: Add Karaoke indicator toggle badge in lyrics view**
-- [ ] **Step 4: Add "Up Next" preview capsule card in `FullPlayerScreen.kt`**
-- [ ] **Step 5: Run unit tests to verify they pass**
-- [ ] **Step 6: Commit changes**
+- [x] **Step 1: Write unit test in `PlayerViewModelTest` verifying visualizer mode switching**
+- [x] **Step 2: Implement multi-mode visualizer composable (Wave / Dot / Neon)**
+- [x] **Step 3: Add Karaoke indicator toggle badge in lyrics view**
+- [x] **Step 4: Add "Up Next" preview capsule card in `FullPlayerScreen.kt`**
+- [x] **Step 5: Run unit tests to verify they pass**
+- [x] **Step 6: Commit changes**
 
 ---
 
@@ -188,11 +188,11 @@
   - Search & Explore with Category pills (All, Tracks, Artists, Playlists, Remixes), Trending tag cloud, and Curated Genre cards.
   - Library Screen with tabbed filters (Playlists, Downloads, Liked, Artists) and download storage meter.
 
-- [ ] **Step 1: Write unit test verifying category filter selection in `SearchViewModelTest`**
-- [ ] **Step 2: Update `SearchScreen.kt` with Stitch category filter pills and trending charts**
-- [ ] **Step 3: Update `LibraryScreen.kt` with tabbed header and storage indicators**
-- [ ] **Step 4: Run unit tests to verify they pass**
-- [ ] **Step 5: Commit changes**
+- [x] **Step 1: Write unit test verifying category filter selection in `SearchViewModelTest`**
+- [x] **Step 2: Update `SearchScreen.kt` with Stitch category filter pills and trending charts**
+- [x] **Step 3: Update `LibraryScreen.kt` with tabbed header and storage indicators**
+- [x] **Step 4: Run unit tests to verify they pass**
+- [x] **Step 5: Commit changes**
 
 ---
 
@@ -210,11 +210,11 @@
   - Navigation item in Settings to launch Equalizer and Car DSP Calibration.
   - AI Studio prompt presets row ("UK Drill", "Folk Tumbi Pop", "Old School Bhangra", "Lo-Fi Boliyan").
 
-- [ ] **Step 1: Write unit test in `SettingsViewModelTest` for new preferences**
-- [ ] **Step 2: Update `SettingsScreen.kt` with toggles and Equalizer / DSP navigation rows**
-- [ ] **Step 3: Update `AiStudioScreen.kt` with prompt preset chips**
-- [ ] **Step 4: Run unit tests to verify they pass**
-- [ ] **Step 5: Commit changes**
+- [x] **Step 1: Write unit test in `SettingsViewModelTest` for new preferences**
+- [x] **Step 2: Update `SettingsScreen.kt` with toggles and Equalizer / DSP navigation rows**
+- [x] **Step 3: Update `AiStudioScreen.kt` with prompt preset chips**
+- [x] **Step 4: Run unit tests to verify they pass**
+- [x] **Step 5: Commit changes**
 
 ---
 
@@ -229,7 +229,7 @@
   - `Screen.CarDashboard.route` -> `CarDashboardScreen`
   - `Screen.CarDsp.route` -> `CarDspCalibrationScreen`
 
-- [ ] **Step 1: Add new navigation destinations in `AppNavHost.kt`**
-- [ ] **Step 2: Run full unit test suite `.\gradlew.bat testDebugUnitTest`**
-- [ ] **Step 3: Verify zero test regressions across all test classes**
-- [ ] **Step 4: Commit and push changes to git `main`**
+- [x] **Step 1: Add new navigation destinations in `AppNavHost.kt`**
+- [x] **Step 2: Run full unit test suite `.\gradlew.bat testDebugUnitTest`**
+- [x] **Step 3: Verify zero test regressions across all test classes**
+- [x] **Step 4: Commit and push changes to git `main`**
