@@ -56,6 +56,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onOpenThemes: (() -> Unit)? = null,
     onOpenEqualizer: (() -> Unit)? = null,
+    onOpenCarMode: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -247,6 +248,39 @@ fun SettingsScreen(
                     }
                     Text(
                         text = "OPEN ›",
+                        color = theme.accent,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+            if (onOpenCarMode != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(theme.panel2)
+                        .clickable { onOpenCarMode.invoke() }
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = "Car Dashboard Mode & DSP",
+                            color = theme.text,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "Driver HUD • Gaddi 808 Slam • Cabin Tuning",
+                            color = theme.accent,
+                            fontSize = 12.sp,
+                        )
+                    }
+                    Text(
+                        text = "DRIVE ›",
                         color = theme.accent,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,

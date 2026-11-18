@@ -9,6 +9,8 @@ object Routes {
     const val SETTINGS = "settings"
     const val THEMES = "themes"
     const val EQUALIZER = "equalizer"
+    const val CAR_DASHBOARD = "car_dashboard"
+    const val CAR_DSP = "car_dsp"
     const val PLAYER = "player"
     const val LYRICS = "lyrics"
     const val PODCASTS = "podcasts"

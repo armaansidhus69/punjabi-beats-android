@@ -20,6 +20,8 @@ import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.screens.ai.AiStudioScreen
 import com.punjabibeats.app.ui.screens.album.AlbumDetailScreen
 import com.punjabibeats.app.ui.screens.artist.ArtistDetailScreen
+import com.punjabibeats.app.ui.screens.car.CarDashboardScreen
+import com.punjabibeats.app.ui.screens.car.CarDspCalibrationScreen
 import com.punjabibeats.app.ui.screens.equalizer.EqualizerScreen
 import com.punjabibeats.app.ui.screens.home.HomeScreen
 import com.punjabibeats.app.ui.screens.jam.JamScreen
@@ -100,10 +102,20 @@ fun AppNavHost(
                 onBack = { navController.popBackStack() },
                 onOpenThemes = { navController.navigate(Routes.THEMES) },
                 onOpenEqualizer = { navController.navigate(Routes.EQUALIZER) },
+                onOpenCarMode = { navController.navigate(Routes.CAR_DASHBOARD) },
             )
         }
         composable(Routes.EQUALIZER) {
             EqualizerScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable(Routes.CAR_DASHBOARD) {
+            CarDashboardScreen(
+                onExitCarMode = { navController.popBackStack() },
+                onOpenDspCalibration = { navController.navigate(Routes.CAR_DSP) },
+            )
+        }
+        composable(Routes.CAR_DSP) {
+            CarDspCalibrationScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable(Routes.THEMES) {
             ThemeStudioScreen(onBack = { navController.popBackStack() })
