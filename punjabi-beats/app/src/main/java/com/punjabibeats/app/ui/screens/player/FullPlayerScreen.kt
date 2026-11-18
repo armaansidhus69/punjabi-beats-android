@@ -93,6 +93,11 @@ import com.punjabibeats.app.ui.components.turntable.TurntableDeck
 import com.punjabibeats.app.ui.screens.player.components.QueueDrawer
 import com.punjabibeats.app.ui.screens.player.components.SleepTimerSheet
 import com.punjabibeats.app.ui.screens.player.components.SongDnaSheet
+import com.punjabibeats.app.ui.screens.player.components.KaraokeLivePreviewCard
+import com.punjabibeats.app.ui.screens.player.components.MultiModeVisualizer
+import com.punjabibeats.app.ui.screens.player.components.UpNextPreviewCapsule
+import com.punjabibeats.app.ui.screens.player.components.VisualizerMode
+import com.punjabibeats.app.ui.screens.player.components.VisualizerSelectorChips
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -481,8 +486,16 @@ fun FullPlayerScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            // 4. Dancing Spectrum Bars Waveform Equalizer
-            FullPlayerDancingSpectrum(
+            // 4. Multi-Mode Sonic Visualizer (Waveform / Dot Matrix / Neon Pulse)
+            var visualizerMode by remember { mutableStateOf(VisualizerMode.WAVEFORM) }
+            VisualizerSelectorChips(
+                currentMode = visualizerMode,
+                onModeSelect = { visualizerMode = it },
+                accentColor = theme.accent,
+            )
+            Spacer(Modifier.height(4.dp))
+            MultiModeVisualizer(
+                mode = visualizerMode,
                 isPlaying = isPlaying,
                 tint = theme.accent,
                 modifier = Modifier.padding(bottom = 6.dp),
@@ -612,6 +625,30 @@ fun FullPlayerScreen(
                     )
                 }
             }
+
+            Spacer(Modifier.height(10.dp))
+
+            // Up Next Capsule Pill (Screen 07)
+            val queue by player.queue.collectAsStateWithLifecycle()
+            val currentIndex by player.currentIndex.collectAsStateWithLifecycle()
+            val upNextSong = if (currentIndex + 1 < queue.size) queue[currentIndex + 1] else null
+            if (upNextSong != null) {
+                UpNextPreviewCapsule(
+                    upNextSong = upNextSong,
+                    playlistContext = song?.albumName?.ifBlank { "Moosetape" } ?: "Moosetape",
+                    onPlayNext = { player.next() },
+                    onOpenQueue = { showQueue = true },
+                    accentColor = theme.accent,
+                )
+                Spacer(Modifier.height(12.dp))
+            }
+
+            // Inline Live Karaoke Verse Preview Card (Screen 07)
+            KaraokeLivePreviewCard(
+                onOpenLyrics = onOpenLyrics,
+                accentColor = theme.accent,
+                songTitle = song?.title,
+            )
 
             Spacer(Modifier.height(10.dp))
 
