@@ -31,7 +31,7 @@ class ThemeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic_waveform")
 
     val isTurntableMode: StateFlow<Boolean> = settings.turntableMode()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 
     private var themeJob: Job? = null
     private var seekbarJob: Job? = null

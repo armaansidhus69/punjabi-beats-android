@@ -48,17 +48,30 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val PENDING_JAM_CODE = stringPreferencesKey("pending_jam_code")
         val PODCAST_FEEDS_JSON = stringPreferencesKey("podcast_feeds_json")
         val THEME_ID = stringPreferencesKey("theme_id")
+        val THEME_VERSION = intPreferencesKey("theme_version")
         val SEEKBAR_STYLE = stringPreferencesKey("seekbar_style")
         val TURNTABLE_MODE = booleanPreferencesKey("turntable_mode")
     }
 
-    fun themeId(): Flow<String> = context.pbDataStore.data.map { it[Keys.THEME_ID] ?: "classic" }
-    suspend fun saveThemeId(themeId: String) = context.pbDataStore.edit { it[Keys.THEME_ID] = themeId }
+    fun themeId(): Flow<String> = context.pbDataStore.data.map { prefs ->
+        val version = prefs[Keys.THEME_VERSION] ?: 1
+        val saved = prefs[Keys.THEME_ID]
+        // Automatic upgrade: legacy v1.0 default was "punjab"; upgrade to Vice City Neon ("classic")
+        if (version < 2 || saved == null || saved == "punjab") {
+            "classic"
+        } else {
+            saved
+        }
+    }
+    suspend fun saveThemeId(themeId: String) = context.pbDataStore.edit {
+        it[Keys.THEME_ID] = themeId
+        it[Keys.THEME_VERSION] = 2
+    }
 
     fun seekbarStyle(): Flow<String> = context.pbDataStore.data.map { it[Keys.SEEKBAR_STYLE] ?: "classic_waveform" }
     suspend fun saveSeekbarStyle(style: String) = context.pbDataStore.edit { it[Keys.SEEKBAR_STYLE] = style }
 
-    fun turntableMode(): Flow<Boolean> = context.pbDataStore.data.map { it[Keys.TURNTABLE_MODE] ?: false }
+    fun turntableMode(): Flow<Boolean> = context.pbDataStore.data.map { it[Keys.TURNTABLE_MODE] ?: true }
     suspend fun saveTurntableMode(enabled: Boolean) = context.pbDataStore.edit { it[Keys.TURNTABLE_MODE] = enabled }
 
     /** Jam room code arriving via a punjabibeats://jam/… deep link, consumed once. */

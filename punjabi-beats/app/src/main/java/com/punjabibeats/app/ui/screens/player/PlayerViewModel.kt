@@ -48,7 +48,7 @@ class PlayerViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic_waveform")
 
     val isTurntableMode = settingsDataStore.turntableMode()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 
     val equalizerEnabled = settingsDataStore.equalizerEnabled()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
