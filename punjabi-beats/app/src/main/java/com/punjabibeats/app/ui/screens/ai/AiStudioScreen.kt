@@ -2,6 +2,11 @@ package com.punjabibeats.app.ui.screens.ai
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material3.Surface
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -127,6 +132,7 @@ fun AiStudioScreen(
             controller = controller,
             onOpenPlayer = onOpenPlayer,
             bottomPadding = bottomPadding,
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -138,10 +144,11 @@ private fun AiTabs(
     controller: MusicPlayerController,
     onOpenPlayer: () -> Unit,
     bottomPadding: PaddingValues,
+    modifier: Modifier = Modifier,
 ) {
     val theme = LocalPBTheme.current
     var selected by remember { mutableIntStateOf(0) }
-    Column {
+    Column(modifier = modifier.fillMaxWidth()) {
         // Segmented Switcher Pill
         Row(
             modifier = Modifier
@@ -365,7 +372,7 @@ private fun ChatTab(
     bottomPadding: PaddingValues,
 ) {
     val theme = LocalPBTheme.current
-    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val listState = rememberLazyListState()
     LaunchedEffect(uiState.messages.size) {
         if (uiState.messages.isNotEmpty()) {
             listState.animateScrollToItem(uiState.messages.lastIndex)
@@ -376,6 +383,7 @@ private fun ChatTab(
             state = listState,
             modifier = Modifier
                 .weight(1f)
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -397,38 +405,69 @@ private fun ChatTab(
                 item { PbLoading(modifier = Modifier.height(48.dp)) }
             }
         }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp)
-                .clip(RoundedCornerShape(22.dp))
-                .background(theme.surface)
-                .border(1.dp, theme.panel2, RoundedCornerShape(22.dp))
-                .padding(horizontal = 8.dp),
+
+        // Fixed bottom chat input dock
+        Surface(
+            color = theme.surface.copy(alpha = 0.98f),
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            border = BorderStroke(1.dp, theme.accent.copy(alpha = 0.25f)),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Box(Modifier.weight(1f)) {
-                BasicTextField(
-                    value = uiState.chatInput,
-                    onValueChange = viewModel::onChatInputChange,
-                    textStyle = TextStyle(color = theme.text, fontSize = 15.sp),
-                    decorationBox = { inner ->
-                        Box(Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
-                            if (uiState.chatInput.isEmpty()) Text("Ask the music assistant…", color = theme.muted, fontSize = 15.sp)
-                            inner()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            IconButton(
-                onClick = { viewModel.sendChatMessage() },
-                modifier = Modifier.size(44.dp),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send", tint = theme.accent)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(theme.background)
+                        .border(1.dp, theme.panel2, RoundedCornerShape(22.dp))
+                        .padding(horizontal = 14.dp, vertical = 4.dp),
+                ) {
+                    BasicTextField(
+                        value = uiState.chatInput,
+                        onValueChange = viewModel::onChatInputChange,
+                        textStyle = TextStyle(color = theme.text, fontSize = 15.sp),
+                        decorationBox = { inner ->
+                            Box(Modifier.padding(vertical = 8.dp)) {
+                                if (uiState.chatInput.isEmpty()) {
+                                    Text("Ask anything about Punjabi music…", color = theme.muted, fontSize = 14.sp)
+                                }
+                                inner()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                Spacer(Modifier.width(8.dp))
+                IconButton(
+                    onClick = { viewModel.sendChatMessage() },
+                    enabled = uiState.chatInput.isNotBlank() && !uiState.isThinking,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(if (uiState.chatInput.isNotBlank()) theme.accent else theme.surface),
+                ) {
+                    if (uiState.isThinking) {
+                        CircularProgressIndicator(
+                            color = theme.background,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    } else {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.Send,
+                            contentDescription = "Send",
+                            tint = if (uiState.chatInput.isNotBlank()) theme.background else theme.muted,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
             }
         }
-        Spacer(Modifier.height(bottomPadding.calculateBottomPadding() + 8.dp))
     }
 }
 
