@@ -482,6 +482,7 @@ private fun ResultsSection(
                     SongRow(
                         song = song,
                         isPlaying = song.id == currentSongId || (currentSongId == null && index == 0 && showAll),
+                        onArtistClick = onSelectArtist,
                         onClick = {
                             controller.playQueue(filteredSongs, index)
                             onOpenPlayer()

@@ -475,12 +475,24 @@ fun UniversalSeekbar(
                     drawCircle(Color.White, radius = 4.dp.toPx(), center = Offset(playedX, centerY))
                 }
 
-                SeekbarStyle.DUAL_GRADIENT -> {
-                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 5.dp.toPx(), cap = StrokeCap.Round)
-                    val gradient = Brush.horizontalGradient(listOf(secondary, primary))
-                    drawLine(gradient, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 6.dp.toPx(), cap = StrokeCap.Round)
+                SeekbarStyle.ELASTIC_STRING -> {
+                    // Physics-based vibrating elastic resonant string with harmonic tension
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 2.5.dp.toPx(), cap = StrokeCap.Round)
+                    if (playedX > 0f) {
+                        val stringPath = Path()
+                        val steps = (playedX / 6f).toInt().coerceAtLeast(2)
+                        stringPath.moveTo(0f, centerY)
+                        for (i in 1..steps) {
+                            val px = (i.toFloat() / steps) * playedX
+                            val harmonicTension = sin((px / playedX) * Math.PI.toFloat())
+                            val vibration = if (isPlaying) sin(phase * 4f + i * 0.4f) * 7.dp.toPx() * harmonicTension else 0f
+                            stringPath.lineTo(px, centerY + vibration)
+                        }
+                        drawPath(stringPath, Brush.horizontalGradient(listOf(primary, secondary)), style = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round))
+                    }
+                    drawCircle(secondary.copy(alpha = 0.4f), radius = 13.dp.toPx() * pulse, center = Offset(playedX, centerY))
                     drawCircle(primary, radius = 9.dp.toPx(), center = Offset(playedX, centerY))
-                    drawCircle(secondary, radius = 4.dp.toPx(), center = Offset(playedX, centerY))
+                    drawCircle(Color.White, radius = 4.dp.toPx(), center = Offset(playedX, centerY))
                 }
             }
         }
@@ -783,6 +795,17 @@ fun SeekbarMiniLivePreview(
                     drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5f)
                     drawLine(gold, Offset(0f, centerY), Offset(playedX, centerY), strokeWidth = 2.5f)
                     drawCircle(gold, radius = 3.5f * pulse, center = Offset(playedX, centerY))
+                }
+                SeekbarStyle.ELASTIC_STRING -> {
+                    drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 1.5f)
+                    val steps = 12
+                    for (i in 0 until steps) {
+                        val x = (playedX * i) / steps
+                        val tension = sin((i.toFloat() / steps) * Math.PI.toFloat())
+                        val y = centerY + sin(i * 0.7f + phase * 2f) * 4f * tension
+                        drawLine(primary, Offset(x, y), Offset(minOf(x + (playedX / steps), playedX), centerY), strokeWidth = 2f)
+                    }
+                    drawCircle(primary, radius = 3.5f * pulse, center = Offset(playedX, centerY))
                 }
                 else -> {
                     drawLine(trackMuted, Offset(0f, centerY), Offset(w, centerY), strokeWidth = 2f)

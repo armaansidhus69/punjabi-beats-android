@@ -47,6 +47,9 @@ class PlayerViewModel @Inject constructor(
     val seekbarStyle = settingsDataStore.seekbarStyle()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic_waveform")
 
+    val playerDeckStyle = settingsDataStore.playerDeckStyle()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic")
+
     val isTurntableMode = settingsDataStore.turntableMode()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 
@@ -193,5 +196,11 @@ class PlayerViewModel @Inject constructor(
     fun setTurntableMode(enabled: Boolean) {
         turntableModeJob?.cancel()
         turntableModeJob = viewModelScope.launch { settingsDataStore.saveTurntableMode(enabled) }
+    }
+
+    private var playerDeckJob: Job? = null
+    fun setPlayerDeckStyle(deckId: String) {
+        playerDeckJob?.cancel()
+        playerDeckJob = viewModelScope.launch { settingsDataStore.savePlayerDeckStyle(deckId) }
     }
 }

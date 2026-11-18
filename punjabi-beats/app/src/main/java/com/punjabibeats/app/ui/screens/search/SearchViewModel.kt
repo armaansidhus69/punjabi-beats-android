@@ -60,7 +60,7 @@ class SearchViewModel @Inject constructor(
         }
         viewModelScope.launch {
             queryFlow
-                .debounce(300)
+                .debounce(150)
                 .collectLatest { query ->
                     executeSearch(query)
                 }

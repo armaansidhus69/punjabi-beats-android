@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -70,6 +71,8 @@ fun SettingsScreen(
     val pitch by viewModel.playbackPitch.collectAsStateWithLifecycle()
     val bands by viewModel.bands.collectAsStateWithLifecycle()
     val activeThemeId by viewModel.currentThemeId.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val playerDeckStyle by viewModel.playerDeckStyle.collectAsStateWithLifecycle()
     val dynamicIslandEnabled by viewModel.dynamicIslandEnabled.collectAsStateWithLifecycle()
     val carBtAutoLaunch by viewModel.carBtAutoLaunch.collectAsStateWithLifecycle()
     val streamingQuality by viewModel.streamingQuality.collectAsStateWithLifecycle()
@@ -198,12 +201,82 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            Spacer(Modifier.height(14.dp))
+            Text("Appearance Mode", color = theme.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                val modes = listOf("system" to "⚙️ System", "dark" to "🌙 Dark", "light" to "☀️ Light")
+                modes.forEach { (modeKey, modeTitle) ->
+                    val isSelected = themeMode.equals(modeKey, ignoreCase = true)
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) theme.accent.copy(alpha = 0.22f) else theme.surface)
+                            .border(1.dp, if (isSelected) theme.accent else theme.panel2, RoundedCornerShape(12.dp))
+                            .clickable { viewModel.setThemeMode(modeKey) }
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            modeTitle,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) theme.accent else theme.text,
+                        )
+                    }
+                }
+            }
         }
 
-        SectionCard(title = "Dynamic Island") {
+        SectionCard(title = "Player Decks (6 Styles)") {
+            Text(
+                "Select your signature playback deck with hardware-accelerated dithering",
+                color = theme.muted,
+                fontSize = 13.sp,
+            )
+            Spacer(Modifier.height(10.dp))
+            androidx.compose.foundation.lazy.LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(com.punjabibeats.app.ui.screens.player.decks.PlayerDeck.entries) { deck ->
+                    val isSelected = playerDeckStyle.equals(deck.id, ignoreCase = true)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (isSelected) theme.accent.copy(alpha = 0.22f) else theme.card)
+                            .border(
+                                width = if (isSelected) 1.5.dp else 1.dp,
+                                color = if (isSelected) theme.accent else theme.panel2,
+                                shape = RoundedCornerShape(14.dp),
+                            )
+                            .clickable { viewModel.setPlayerDeckStyle(deck.id) }
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(deck.iconEmoji, fontSize = 16.sp)
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                deck.displayName,
+                                fontSize = 13.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) theme.accent else theme.text,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        SectionCard(title = "Status-Bar Mini Player") {
             ToggleRow(
-                label = "Floating Island Notch",
-                subtitle = "Morphing camera cutout pill with waveform and transport controls",
+                label = "Status-Bar Docked Mini Player",
+                subtitle = "Compact status-bar pill with expandable floating pop-up player card",
                 checked = dynamicIslandEnabled,
                 onCheckedChange = viewModel::setDynamicIslandEnabled,
             )

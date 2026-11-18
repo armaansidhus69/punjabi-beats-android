@@ -44,8 +44,9 @@ class MainActivity : ComponentActivity() {
         captureJamDeepLink(intent)
         setContent {
             val themeId by settings.themeId().collectAsStateWithLifecycle(initialValue = "sunset_glow")
+            val themeMode by settings.themeMode().collectAsStateWithLifecycle(initialValue = "system")
             val currentTheme = remember(themeId) { pbThemeById(themeId) }
-            PunjabiBeatsTheme(theme = currentTheme) {
+            PunjabiBeatsTheme(theme = currentTheme, themeMode = themeMode) {
                 PunjabiBeatsAppRoot(playerController = playerController)
             }
         }

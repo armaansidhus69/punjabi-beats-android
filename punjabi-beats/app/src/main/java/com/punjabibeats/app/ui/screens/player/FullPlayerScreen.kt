@@ -109,7 +109,14 @@ import androidx.compose.ui.geometry.Size
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.PBTheme
 import com.punjabibeats.app.ui.theme.PlayerStyle
+import com.punjabibeats.app.ui.components.DitheredGradientBackground
 import com.punjabibeats.app.ui.screens.player.archetypes.AppleMusicPlayerContent
+import com.punjabibeats.app.ui.screens.player.decks.PlayerDeck
+import com.punjabibeats.app.ui.screens.player.decks.PlayerDeckSwitcher
+import com.punjabibeats.app.ui.screens.player.decks.LastWaveDeck
+import com.punjabibeats.app.ui.screens.player.decks.BitChordDeck
+import com.punjabibeats.app.ui.screens.player.decks.EchoMusicDeck
+import com.punjabibeats.app.ui.screens.player.decks.ArchiveTuneDeck
 
 /**
  * Dancing vertical neon pink spectrum bars waveform equalizer matching screenshot.
@@ -256,6 +263,11 @@ fun FullPlayerScreen(
     val rawSeekbarStyle by viewModel.seekbarStyle.collectAsStateWithLifecycle()
     val currentSeekbarStyle = remember(rawSeekbarStyle) { SeekbarStyle.fromId(rawSeekbarStyle) }
     val isTurntableMode by viewModel.isTurntableMode.collectAsStateWithLifecycle()
+    val rawDeckStyle by viewModel.playerDeckStyle.collectAsStateWithLifecycle()
+    val activeDeck = remember(rawDeckStyle, theme.style) {
+        if (rawDeckStyle == "classic" && theme.style == PlayerStyle.APPLE) PlayerDeck.APPLE
+        else PlayerDeck.fromId(rawDeckStyle)
+    }
 
     val pulseTransition = rememberInfiniteTransition(label = "pulse")
     val pulse by pulseTransition.animateFloat(
@@ -265,74 +277,172 @@ fun FullPlayerScreen(
         label = "artworkPulse",
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(gradientColors)),
+    DitheredGradientBackground(
+        colors = gradientColors,
+        modifier = Modifier.fillMaxSize(),
     ) {
-        if (theme.style == PlayerStyle.APPLE) {
-            AppleMusicPlayerContent(
-                song = song,
-                isPlaying = isPlaying,
-                positionMs = positionMs,
-                durationMs = durationMs,
-                isLiked = isLiked,
-                onSeek = { player.seekTo(it) },
-                onTogglePlay = { player.playPause() },
-                onSkipNext = { player.next() },
-                onSkipPrevious = { player.previous() },
-                onToggleFavorite = { viewModel.toggleLike() },
-                onOpenLyrics = onOpenLyrics,
-                onOpenQueue = { showQueue = true },
-                onOpenDna = { showDnaSheet = true },
-                onBack = onBack,
-            )
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-            // 1. Header matching screenshot: ∨, // NOW PLAYING //, ⋮
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        Icons.Rounded.KeyboardArrowDown,
-                        contentDescription = "Close player",
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp),
-                    )
-                }
-                Text(
-                    "//  NOW PLAYING  //",
-                    fontSize = 12.sp,
-                    color = theme.accent,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp,
-                    modifier = Modifier.weight(1f),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        when (activeDeck) {
+            PlayerDeck.APPLE -> {
+                AppleMusicPlayerContent(
+                    song = song,
+                    isPlaying = isPlaying,
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    isLiked = isLiked,
+                    onSeek = { player.seekTo(it) },
+                    onTogglePlay = { player.playPause() },
+                    onSkipNext = { player.next() },
+                    onSkipPrevious = { player.previous() },
+                    onToggleFavorite = { viewModel.toggleLike() },
+                    onOpenLyrics = onOpenLyrics,
+                    onOpenQueue = { showQueue = true },
+                    onOpenDna = { showDnaSheet = true },
+                    onBack = onBack,
+                    onSelectDeck = { viewModel.setPlayerDeckStyle(it.id) },
                 )
-                IconButton(onClick = { showDnaSheet = true }) {
-                    Icon(
-                        Icons.Rounded.MoreVert,
-                        contentDescription = "More options",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
             }
+            PlayerDeck.LASTWAVE -> {
+                LastWaveDeck(
+                    song = song,
+                    isPlaying = isPlaying,
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    isLiked = isLiked,
+                    currentSeekbarStyle = currentSeekbarStyle,
+                    onSeek = { player.seekTo(it) },
+                    onTogglePlay = { player.playPause() },
+                    onSkipNext = { player.next() },
+                    onSkipPrevious = { player.previous() },
+                    onToggleFavorite = { viewModel.toggleLike() },
+                    onOpenLyrics = onOpenLyrics,
+                    onOpenQueue = { showQueue = true },
+                    onOpenDna = { showDnaSheet = true },
+                    onOpenEqualizer = { showEqualizerSheet = true },
+                    onBack = onBack,
+                    onSelectSeekbarStyle = { viewModel.setSeekbarStyle(it) },
+                    onSelectDeck = { viewModel.setPlayerDeckStyle(it.id) },
+                )
+            }
+            PlayerDeck.BITCHORD -> {
+                BitChordDeck(
+                    song = song,
+                    isPlaying = isPlaying,
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    isLiked = isLiked,
+                    currentSeekbarStyle = currentSeekbarStyle,
+                    onSeek = { player.seekTo(it) },
+                    onTogglePlay = { player.playPause() },
+                    onSkipNext = { player.next() },
+                    onSkipPrevious = { player.previous() },
+                    onToggleFavorite = { viewModel.toggleLike() },
+                    onOpenLyrics = onOpenLyrics,
+                    onOpenQueue = { showQueue = true },
+                    onOpenDna = { showDnaSheet = true },
+                    onOpenEqualizer = { showEqualizerSheet = true },
+                    onBack = onBack,
+                    onSelectSeekbarStyle = { viewModel.setSeekbarStyle(it) },
+                    onSelectDeck = { viewModel.setPlayerDeckStyle(it.id) },
+                )
+            }
+            PlayerDeck.ECHO -> {
+                EchoMusicDeck(
+                    song = song,
+                    isPlaying = isPlaying,
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    isLiked = isLiked,
+                    currentSeekbarStyle = currentSeekbarStyle,
+                    onSeek = { player.seekTo(it) },
+                    onTogglePlay = { player.playPause() },
+                    onSkipNext = { player.next() },
+                    onSkipPrevious = { player.previous() },
+                    onToggleFavorite = { viewModel.toggleLike() },
+                    onOpenLyrics = onOpenLyrics,
+                    onOpenQueue = { showQueue = true },
+                    onOpenDna = { showDnaSheet = true },
+                    onOpenEqualizer = { showEqualizerSheet = true },
+                    onBack = onBack,
+                    onSelectSeekbarStyle = { viewModel.setSeekbarStyle(it) },
+                    onSelectDeck = { viewModel.setPlayerDeckStyle(it.id) },
+                )
+            }
+            PlayerDeck.ARCHIVE -> {
+                ArchiveTuneDeck(
+                    song = song,
+                    isPlaying = isPlaying,
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    isLiked = isLiked,
+                    currentSeekbarStyle = currentSeekbarStyle,
+                    onSeek = { player.seekTo(it) },
+                    onTogglePlay = { player.playPause() },
+                    onSkipNext = { player.next() },
+                    onSkipPrevious = { player.previous() },
+                    onToggleFavorite = { viewModel.toggleLike() },
+                    onOpenLyrics = onOpenLyrics,
+                    onOpenQueue = { showQueue = true },
+                    onOpenDna = { showDnaSheet = true },
+                    onOpenEqualizer = { showEqualizerSheet = true },
+                    onBack = onBack,
+                    onSelectSeekbarStyle = { viewModel.setSeekbarStyle(it) },
+                    onSelectDeck = { viewModel.setPlayerDeckStyle(it.id) },
+                )
+            }
+            PlayerDeck.CLASSIC -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                        .navigationBarsPadding()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // 1. Header matching screenshot: ∨, // NOW PLAYING //, ⋮
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                Icons.Rounded.KeyboardArrowDown,
+                                contentDescription = "Close player",
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp),
+                            )
+                        }
+                        Text(
+                            "//  NOW PLAYING  //",
+                            fontSize = 12.sp,
+                            color = theme.accent,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 2.sp,
+                            modifier = Modifier.weight(1f),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        )
+                        IconButton(onClick = { showDnaSheet = true }) {
+                            Icon(
+                                Icons.Rounded.MoreVert,
+                                contentDescription = "More options",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
+                    }
 
-            Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(4.dp))
 
-            // Player View Mode Switcher: Cover Art vs Turntable
-            Row(
+                    // Player Deck Switcher: Instant 1-tap switching across 6 decks
+                    PlayerDeckSwitcher(
+                        activeDeck = PlayerDeck.CLASSIC,
+                        onSelectDeck = { viewModel.setPlayerDeckStyle(it.id) },
+                    )
+
+                    Spacer(Modifier.height(6.dp))
+
+                    // Player View Mode Switcher: Cover Art vs Turntable
+                    Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
                     .background(theme.surface.copy(alpha = 0.85f))
@@ -759,6 +869,7 @@ fun FullPlayerScreen(
             }
             Spacer(Modifier.height(20.dp))
         }
+    }
     }
 
         if (showSleepSheet) {

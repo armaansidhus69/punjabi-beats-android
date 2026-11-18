@@ -51,6 +51,8 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val PODCAST_FEEDS_JSON = stringPreferencesKey("podcast_feeds_json")
         val THEME_ID = stringPreferencesKey("theme_id")
         val THEME_VERSION = intPreferencesKey("theme_version")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
+        val PLAYER_DECK_STYLE = stringPreferencesKey("player_deck_style")
         val SEEKBAR_STYLE = stringPreferencesKey("seekbar_style")
         val TURNTABLE_MODE = booleanPreferencesKey("turntable_mode")
         val DYNAMIC_ISLAND_ENABLED = booleanPreferencesKey("dynamic_island_enabled")
@@ -88,6 +90,16 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
             it[Keys.THEME_ID] = themeId
             it[Keys.THEME_VERSION] = 3
         }
+    }.isSuccess
+
+    fun themeMode(): Flow<String> = safeData.map { it[Keys.THEME_MODE] ?: "system" }
+    suspend fun saveThemeMode(mode: String) = runCatching {
+        context.pbDataStore.edit { it[Keys.THEME_MODE] = mode }
+    }.isSuccess
+
+    fun playerDeckStyle(): Flow<String> = safeData.map { it[Keys.PLAYER_DECK_STYLE] ?: "classic" }
+    suspend fun savePlayerDeckStyle(style: String) = runCatching {
+        context.pbDataStore.edit { it[Keys.PLAYER_DECK_STYLE] = style }
     }.isSuccess
 
     fun seekbarStyle(): Flow<String> = safeData.map { it[Keys.SEEKBAR_STYLE] ?: "classic_waveform" }

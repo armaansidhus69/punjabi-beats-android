@@ -56,7 +56,7 @@ import androidx.navigation.compose.rememberNavController
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.MiniPlayerBar
-import com.punjabibeats.app.ui.components.dynamicisland.DynamicIslandOverlay
+import com.punjabibeats.app.ui.components.player.StatusBarMiniPlayer
 import com.punjabibeats.app.ui.navigation.AppNavHost
 import com.punjabibeats.app.ui.navigation.Routes
 import com.punjabibeats.app.ui.theme.LocalPBTheme
@@ -116,10 +116,10 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
             }
 
             if (currentRoute != Routes.PLAYER && currentRoute != Routes.CAR_DASHBOARD) {
-                DynamicIslandOverlay(
+                StatusBarMiniPlayer(
                     controller = playerController,
                     onOpenPlayer = { navController.navigate(Routes.PLAYER) },
-                    onOpenCarMode = { navController.navigate(Routes.CAR_DASHBOARD) },
+                    onOpenEqualizer = { navController.navigate(Routes.EQUALIZER) },
                 )
             }
         }

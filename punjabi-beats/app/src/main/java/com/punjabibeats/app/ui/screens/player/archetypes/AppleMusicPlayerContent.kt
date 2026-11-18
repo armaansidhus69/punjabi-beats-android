@@ -69,6 +69,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.punjabibeats.app.core.util.formatDuration
 import com.punjabibeats.app.domain.model.Song
+import com.punjabibeats.app.ui.screens.player.decks.PlayerDeck
+import com.punjabibeats.app.ui.screens.player.decks.PlayerDeckSwitcher
 
 /**
  * Authentic Apple Music Player Archetype (Cupertino Glass layout).
@@ -92,6 +94,7 @@ fun AppleMusicPlayerContent(
     onOpenQueue: () -> Unit,
     onOpenDna: () -> Unit,
     onBack: () -> Unit,
+    onSelectDeck: ((PlayerDeck) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -231,7 +234,15 @@ fun AppleMusicPlayerContent(
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            if (onSelectDeck != null) {
+                PlayerDeckSwitcher(
+                    activeDeck = PlayerDeck.APPLE,
+                    onSelectDeck = onSelectDeck,
+                    modifier = Modifier.padding(bottom = 6.dp),
+                )
+            }
+
+            Spacer(Modifier.height(10.dp))
 
             // 3. Centerpiece: Floating Squircle Artwork with Apple Scale Physics & Deep Ambient Shadow
             Box(

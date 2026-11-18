@@ -60,6 +60,12 @@ class SettingsViewModel @Inject constructor(
     val currentThemeId: StateFlow<String> = settings.themeId()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "sunset_glow")
 
+    val themeMode: StateFlow<String> = settings.themeMode()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "system")
+
+    val playerDeckStyle: StateFlow<String> = settings.playerDeckStyle()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "classic")
+
     val dynamicIslandEnabled: StateFlow<Boolean> = settings.dynamicIslandEnabled()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 
@@ -109,6 +115,14 @@ class SettingsViewModel @Inject constructor(
 
     fun selectTheme(themeId: String) {
         viewModelScope.launch { runCatching { settings.saveThemeId(themeId) } }
+    }
+
+    fun setThemeMode(mode: String) = viewModelScope.launch {
+        settings.saveThemeMode(mode)
+    }
+
+    fun setPlayerDeckStyle(deckId: String) = viewModelScope.launch {
+        settings.savePlayerDeckStyle(deckId)
     }
 
     fun setDynamicIslandEnabled(enabled: Boolean) = viewModelScope.launch {

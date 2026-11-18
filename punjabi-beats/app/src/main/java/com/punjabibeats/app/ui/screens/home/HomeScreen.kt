@@ -181,25 +181,24 @@ private fun HomeTopBar(
             )
         }
 
-        // Center Title with Golden Crown on top and cursive script style
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.clickable { onOpenThemes?.invoke() },
+        // Compact Liquid Glass Brand Pill — Eliminates wasted vertical space to push discovery above the fold
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .background(theme.surface.copy(alpha = 0.85f))
+                .border(1.dp, theme.panel2.copy(alpha = 0.7f), RoundedCornerShape(20.dp))
+                .clickable { onOpenThemes?.invoke() }
+                .padding(horizontal = 14.dp, vertical = 6.dp),
         ) {
-            Text("👑", fontSize = 22.sp)
+            Text("👑", fontSize = 14.sp)
+            Spacer(Modifier.width(6.dp))
             Text(
                 "Punjabi Beats",
-                fontSize = 24.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = theme.text,
                 letterSpacing = 0.5.sp,
-            )
-            Text(
-                "YOUR MUSIC • YOUR UNIVERSE",
-                fontSize = 9.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = theme.accent,
-                letterSpacing = 2.sp,
             )
         }
 

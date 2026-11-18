@@ -44,6 +44,14 @@ data class PBTheme(
     val panel: Color get() = surface
     val panel2: Color get() = card
     val accent2: Color get() = secondary
+
+    fun toLightMode(): PBTheme = this.copy(
+        background = Color(0xFFF7F8FA),
+        surface = Color(0xFFFFFFFF),
+        card = Color(0xFFECEFF4),
+        text = Color(0xFF101318),
+        muted = Color(0xFF636D7E),
+    )
     val heroGradient: Brush get() = when (id) {
         "sunset_glow" -> Brush.verticalGradient(
             listOf(

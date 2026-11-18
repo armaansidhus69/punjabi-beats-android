@@ -46,31 +46,65 @@ private val PbShapes = androidx.compose.material3.Shapes(
 @Composable
 fun PunjabiBeatsTheme(
     theme: PBTheme = pbThemeById("sunset_glow"),
+    themeMode: String = "system",
     content: @Composable () -> Unit,
 ) {
-    val dynamicScheme = darkColorScheme(
-        primary = theme.accent,
-        onPrimary = theme.background,
-        primaryContainer = theme.panel2,
-        onPrimaryContainer = theme.accent,
-        secondary = theme.accent2,
-        onSecondary = theme.background,
-        secondaryContainer = theme.panel,
-        onSecondaryContainer = theme.text,
-        tertiary = theme.accent2,
-        background = theme.background,
-        onBackground = theme.text,
-        surface = theme.panel,
-        onSurface = theme.text,
-        surfaceVariant = theme.panel2,
-        onSurfaceVariant = theme.muted,
-        outline = theme.muted.copy(alpha = 0.35f),
-        outlineVariant = theme.panel2,
-        error = AccentRed,
-        onError = Color.White,
-        scrim = Color.Black,
-    )
-    androidx.compose.runtime.CompositionLocalProvider(LocalPBTheme provides theme) {
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = when (themeMode.lowercase()) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemDark
+    }
+    val effectiveTheme = if (!isDark) theme.toLightMode() else theme
+
+    val dynamicScheme = if (isDark) {
+        darkColorScheme(
+            primary = effectiveTheme.accent,
+            onPrimary = effectiveTheme.background,
+            primaryContainer = effectiveTheme.panel2,
+            onPrimaryContainer = effectiveTheme.accent,
+            secondary = effectiveTheme.accent2,
+            onSecondary = effectiveTheme.background,
+            secondaryContainer = effectiveTheme.panel,
+            onSecondaryContainer = effectiveTheme.text,
+            tertiary = effectiveTheme.accent2,
+            background = effectiveTheme.background,
+            onBackground = effectiveTheme.text,
+            surface = effectiveTheme.panel,
+            onSurface = effectiveTheme.text,
+            surfaceVariant = effectiveTheme.panel2,
+            onSurfaceVariant = effectiveTheme.muted,
+            outline = effectiveTheme.muted.copy(alpha = 0.35f),
+            outlineVariant = effectiveTheme.panel2,
+            error = AccentRed,
+            onError = Color.White,
+            scrim = Color.Black,
+        )
+    } else {
+        androidx.compose.material3.lightColorScheme(
+            primary = effectiveTheme.accent,
+            onPrimary = Color.White,
+            primaryContainer = effectiveTheme.panel2,
+            onPrimaryContainer = effectiveTheme.text,
+            secondary = effectiveTheme.accent2,
+            onSecondary = Color.White,
+            secondaryContainer = effectiveTheme.panel,
+            onSecondaryContainer = effectiveTheme.text,
+            tertiary = effectiveTheme.accent2,
+            background = effectiveTheme.background,
+            onBackground = effectiveTheme.text,
+            surface = effectiveTheme.panel,
+            onSurface = effectiveTheme.text,
+            surfaceVariant = effectiveTheme.panel2,
+            onSurfaceVariant = effectiveTheme.muted,
+            outline = effectiveTheme.muted.copy(alpha = 0.35f),
+            outlineVariant = effectiveTheme.panel2,
+            error = AccentRed,
+            onError = Color.White,
+            scrim = Color.Black,
+        )
+    }
+    androidx.compose.runtime.CompositionLocalProvider(LocalPBTheme provides effectiveTheme) {
         MaterialTheme(
             colorScheme = dynamicScheme,
             typography = PbTypography,

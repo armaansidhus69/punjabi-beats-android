@@ -199,6 +199,7 @@ fun SongRow(
     isPlaying: Boolean = false,
     isLiked: Boolean? = null,
     onToggleLike: (() -> Unit)? = null,
+    onArtistClick: ((String) -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     val theme = LocalPBTheme.current
@@ -235,10 +236,13 @@ fun SongRow(
             Spacer(Modifier.height(3.dp))
             Text(
                 "${song.artist} • ${formatDuration(song.durationMs)}",
-                color = theme.muted,
+                color = if (onArtistClick != null) theme.accent.copy(alpha = 0.9f) else theme.muted,
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = if (onArtistClick != null) {
+                    Modifier.clickable { onArtistClick(song.artist) }
+                } else Modifier,
             )
         }
         if (isPlaying) {

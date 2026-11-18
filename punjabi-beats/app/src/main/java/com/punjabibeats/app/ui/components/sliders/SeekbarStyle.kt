@@ -27,7 +27,7 @@ enum class SeekbarStyle(
     LIQUID_TUBE("liquid_tube", "Liquid Tube", "🧪", "Fluid visceral liquid mercury/neon plasma tube"),
     PUNJABI_RHYTHM("punjabi_rhythm", "Punjabi Dhol Beat", "🥁", "Traditional Punjabi Bhangra folk rhythm waveform"),
     GOLDEN_SPARKLE("golden_sparkle", "Golden Sparkle", "✨", "Glittering golden starlight particle trail"),
-    DUAL_GRADIENT("dual_gradient", "Dual Gradient", "🎨", "Smooth 2-tone theme accent blend transition");
+    ELASTIC_STRING("elastic_string", "Elastic String", "🪕", "Physics-based vibrating elastic resonant string with harmonic tension");
 
     companion object {
         fun fromId(id: String): SeekbarStyle = when (id) {
@@ -35,6 +35,8 @@ enum class SeekbarStyle(
             "orbit" -> CONSTELLATION
             "water_ripple" -> BUBBLES
             "minimalist_hairline" -> LIQUID_TUBE
+            "dual_gradient" -> ELASTIC_STRING
+            "elastic" -> ELASTIC_STRING
             else -> entries.firstOrNull { it.id == id } ?: CLASSIC_WAVEFORM
         }
     }
