@@ -60,8 +60,36 @@ class SettingsViewModel @Inject constructor(
     val currentThemeId: StateFlow<String> = settings.themeId()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "sunset_glow")
 
+    val dynamicIslandEnabled: StateFlow<Boolean> = settings.dynamicIslandEnabled()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    val carBtAutoLaunch: StateFlow<Boolean> = settings.carBtAutoLaunch()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val streamingQuality: StateFlow<String> = settings.streamingQuality()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "Hi-Res Lossless (24-bit / 96kHz)")
+
+    val dolbyAtmos: StateFlow<Boolean> = settings.dolbyAtmos()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
     fun selectTheme(themeId: String) {
         viewModelScope.launch { runCatching { settings.saveThemeId(themeId) } }
+    }
+
+    fun setDynamicIslandEnabled(enabled: Boolean) = viewModelScope.launch {
+        settings.saveDynamicIslandEnabled(enabled)
+    }
+
+    fun setCarBtAutoLaunch(enabled: Boolean) = viewModelScope.launch {
+        settings.saveCarBtAutoLaunch(enabled)
+    }
+
+    fun setStreamingQuality(quality: String) = viewModelScope.launch {
+        settings.saveStreamingQuality(quality)
+    }
+
+    fun setDolbyAtmos(enabled: Boolean) = viewModelScope.launch {
+        settings.saveDolbyAtmos(enabled)
     }
 
     /** EQ band descriptors; falls back to standard 5-band configuration before first playback. */

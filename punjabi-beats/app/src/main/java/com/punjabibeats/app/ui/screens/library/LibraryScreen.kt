@@ -31,12 +31,17 @@ import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.CloudDone
+import androidx.compose.material.icons.rounded.DownloadForOffline
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Smartphone
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -174,6 +179,26 @@ fun LibraryScreen(
                 }
             }
         }
+
+        Spacer(Modifier.height(14.dp))
+
+        // Stitch Screen 08 Hero Special Collections Carousel
+        LibraryHeroCarousel(
+            likedCount = uiState.likedSongs.size,
+            downloadCount = uiState.downloads.size,
+            onPlayLiked = {
+                if (uiState.likedSongs.isNotEmpty()) {
+                    controller.playQueue(uiState.likedSongs, 0)
+                    onOpenPlayer()
+                }
+            },
+            onShuffleDownloads = {
+                if (uiState.downloads.isNotEmpty()) {
+                    controller.playQueue(uiState.downloads.shuffled(), 0)
+                    onOpenPlayer()
+                }
+            },
+        )
 
         Spacer(Modifier.height(14.dp))
 
@@ -721,6 +746,222 @@ private fun LocalTab(
                             }
                         },
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LibraryHeroCarousel(
+    likedCount: Int,
+    downloadCount: Int,
+    onPlayLiked: () -> Unit,
+    onShuffleDownloads: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        // 1. Liked Songs Big Card (Screen 08)
+        item {
+            Box(
+                modifier = Modifier
+                    .width(280.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color(0xFF7C3AED), Color(0xFF5B21B6), Color(0xFF1F1B2E)),
+                        ),
+                    )
+                    .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
+                    .padding(16.dp),
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Rounded.Favorite,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color.White.copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                        ) {
+                            Text(
+                                "Auto-Offline",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(14.dp))
+
+                    Text(
+                        "Liked Songs",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Text(
+                        "$likedCount tracks • Sidhu, Karan & more",
+                        fontSize = 11.sp,
+                        color = Color.White.copy(alpha = 0.8f),
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(
+                                Icons.Rounded.CloudDone,
+                                contentDescription = null,
+                                tint = Color(0xFFCEBDFF),
+                                modifier = Modifier.size(14.dp),
+                            )
+                            Text(
+                                "Synced Lossless",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFFCEBDFF),
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .clickable(onClick = onPlayLiked),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Rounded.PlayArrow,
+                                contentDescription = "Play Liked",
+                                tint = Color(0xFF1F1B2E),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Offline Desi Vault Card (Screen 08)
+        item {
+            Box(
+                modifier = Modifier
+                    .width(280.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFF1F1F23))
+                    .border(1.dp, Color(0xFF4EDEA3).copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                    .padding(16.dp),
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF4EDEA3).copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Rounded.DownloadForOffline,
+                                contentDescription = null,
+                                tint = Color(0xFF4EDEA3),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color(0xFF4EDEA3).copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                        ) {
+                            Text(
+                                "Gedhi Ready",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF4EDEA3),
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(14.dp))
+
+                    Text(
+                        "Offline Desi Vault",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE3E2E6),
+                    )
+                    Text(
+                        "$downloadCount tracks • 24-bit Lossless",
+                        fontSize = 11.sp,
+                        color = Color(0xFFCAC4D4),
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "No Data Required",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF4EDEA3),
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF38393C))
+                                .clickable(onClick = onShuffleDownloads),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                Icons.Rounded.Shuffle,
+                                contentDescription = "Shuffle Downloads",
+                                tint = Color(0xFF4EDEA3),
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
                 }
             }
         }

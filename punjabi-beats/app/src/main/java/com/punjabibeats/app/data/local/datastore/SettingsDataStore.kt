@@ -53,6 +53,10 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val THEME_VERSION = intPreferencesKey("theme_version")
         val SEEKBAR_STYLE = stringPreferencesKey("seekbar_style")
         val TURNTABLE_MODE = booleanPreferencesKey("turntable_mode")
+        val DYNAMIC_ISLAND_ENABLED = booleanPreferencesKey("dynamic_island_enabled")
+        val CAR_BT_AUTO_LAUNCH = booleanPreferencesKey("car_bt_auto_launch")
+        val STREAMING_QUALITY = stringPreferencesKey("streaming_quality")
+        val DOLBY_ATMOS = booleanPreferencesKey("dolby_atmos")
     }
 
     private val safeData: Flow<Preferences> = context.pbDataStore.data
@@ -89,6 +93,26 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
     fun turntableMode(): Flow<Boolean> = safeData.map { it[Keys.TURNTABLE_MODE] ?: true }
     suspend fun saveTurntableMode(enabled: Boolean) = runCatching {
         context.pbDataStore.edit { it[Keys.TURNTABLE_MODE] = enabled }
+    }.isSuccess
+
+    fun dynamicIslandEnabled(): Flow<Boolean> = safeData.map { it[Keys.DYNAMIC_ISLAND_ENABLED] ?: true }
+    suspend fun saveDynamicIslandEnabled(enabled: Boolean) = runCatching {
+        context.pbDataStore.edit { it[Keys.DYNAMIC_ISLAND_ENABLED] = enabled }
+    }.isSuccess
+
+    fun carBtAutoLaunch(): Flow<Boolean> = safeData.map { it[Keys.CAR_BT_AUTO_LAUNCH] ?: false }
+    suspend fun saveCarBtAutoLaunch(enabled: Boolean) = runCatching {
+        context.pbDataStore.edit { it[Keys.CAR_BT_AUTO_LAUNCH] = enabled }
+    }.isSuccess
+
+    fun streamingQuality(): Flow<String> = safeData.map { it[Keys.STREAMING_QUALITY] ?: "Hi-Res Lossless (24-bit / 96kHz)" }
+    suspend fun saveStreamingQuality(quality: String) = runCatching {
+        context.pbDataStore.edit { it[Keys.STREAMING_QUALITY] = quality }
+    }.isSuccess
+
+    fun dolbyAtmos(): Flow<Boolean> = safeData.map { it[Keys.DOLBY_ATMOS] ?: true }
+    suspend fun saveDolbyAtmos(enabled: Boolean) = runCatching {
+        context.pbDataStore.edit { it[Keys.DOLBY_ATMOS] = enabled }
     }.isSuccess
 
     /** Jam room code arriving via a punjabibeats://jam/… deep link, consumed once. */

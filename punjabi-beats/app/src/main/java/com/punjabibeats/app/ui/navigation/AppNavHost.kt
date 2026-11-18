@@ -103,6 +103,7 @@ fun AppNavHost(
                 onOpenThemes = { navController.navigate(Routes.THEMES) },
                 onOpenEqualizer = { navController.navigate(Routes.EQUALIZER) },
                 onOpenCarMode = { navController.navigate(Routes.CAR_DASHBOARD) },
+                onOpenCarDsp = { navController.navigate(Routes.CAR_DSP) },
             )
         }
         composable(Routes.EQUALIZER) {

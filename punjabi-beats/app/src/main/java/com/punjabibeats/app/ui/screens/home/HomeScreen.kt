@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Mic
@@ -312,6 +313,18 @@ private fun HomeContent(
             )
         }
 
+        // Stitch Screen 03: Daily Desi Radar Spotlight Banner
+        item {
+            DailyDesiRadarBanner(
+                onPlayRadar = {
+                    if (feed.heroSongs.isNotEmpty()) {
+                        controller.playQueue(feed.heroSongs, 0)
+                    }
+                },
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+        }
+
         // 3. Hero Pager with Palm Tree Sunset Card & 4-Dot Indicator
         if (feed.heroSongs.isNotEmpty()) {
             item { HeroPager(feed.heroSongs, controller, currentSongId, onOpenPlayer) }
@@ -595,4 +608,125 @@ private fun HeroPager(
 private fun rememberDayOffset(): Int {
     val dayOfYear = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_YEAR)
     return dayOfYear % 7
+}
+
+@Composable
+private fun DailyDesiRadarBanner(
+    onPlayRadar: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val theme = LocalPBTheme.current
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xFF1B1B1F))
+            .border(
+                1.dp,
+                Brush.horizontalGradient(
+                    listOf(theme.accent.copy(alpha = 0.5f), Color(0xFFFFB95F).copy(alpha = 0.35f)),
+                ),
+                RoundedCornerShape(20.dp),
+            )
+            .padding(14.dp),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(theme.accent.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.AutoAwesome,
+                            contentDescription = null,
+                            tint = theme.accent,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = "AI DESI ENGINE",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = theme.accent,
+                            letterSpacing = 1.sp,
+                        )
+                        Text(
+                            text = "Daily Desi Radar",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFE3E2E6),
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF292A2D))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Text(
+                        text = "100% Flow",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4EDEA3),
+                    )
+                }
+            }
+
+            Text(
+                text = "A generative Punjabi blend harmonizing late-night acoustic folk with heavy 808-dhol basses and Sidhu Moose Wala tape cuts.",
+                fontSize = 12.sp,
+                color = Color(0xFFCAC4D4),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(theme.accent)
+                        .clickable(onClick = onPlayRadar)
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.PlayArrow,
+                            contentDescription = "Play Radar",
+                            tint = Color(0xFF21005E),
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "Play Radar",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF21005E),
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

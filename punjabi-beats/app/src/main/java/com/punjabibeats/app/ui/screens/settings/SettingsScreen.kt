@@ -57,6 +57,7 @@ fun SettingsScreen(
     onOpenThemes: (() -> Unit)? = null,
     onOpenEqualizer: (() -> Unit)? = null,
     onOpenCarMode: (() -> Unit)? = null,
+    onOpenCarDsp: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -64,6 +65,10 @@ fun SettingsScreen(
     val pitch by viewModel.playbackPitch.collectAsStateWithLifecycle()
     val bands by viewModel.bands.collectAsStateWithLifecycle()
     val activeThemeId by viewModel.currentThemeId.collectAsStateWithLifecycle()
+    val dynamicIslandEnabled by viewModel.dynamicIslandEnabled.collectAsStateWithLifecycle()
+    val carBtAutoLaunch by viewModel.carBtAutoLaunch.collectAsStateWithLifecycle()
+    val streamingQuality by viewModel.streamingQuality.collectAsStateWithLifecycle()
+    val dolbyAtmos by viewModel.dolbyAtmos.collectAsStateWithLifecycle()
     val theme = LocalPBTheme.current
 
     Column(
@@ -185,6 +190,15 @@ fun SettingsScreen(
             }
         }
 
+        SectionCard(title = "Dynamic Island") {
+            ToggleRow(
+                label = "Floating Island Notch",
+                subtitle = "Morphing camera cutout pill with waveform and transport controls",
+                checked = dynamicIslandEnabled,
+                onCheckedChange = viewModel::setDynamicIslandEnabled,
+            )
+        }
+
         SectionCard(title = "Playback") {
             LabeledSlider(
                 label = "Tempo",
@@ -268,19 +282,52 @@ fun SettingsScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Car Dashboard Mode & DSP",
+                            text = "Car Dashboard Mode",
                             color = theme.text,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            text = "Driver HUD • Gaddi 808 Slam • Cabin Tuning",
+                            text = "Driver HUD • 80dp Transport • Fast Driver Picks",
                             color = theme.accent,
                             fontSize = 12.sp,
                         )
                     }
                     Text(
                         text = "DRIVE ›",
+                        color = theme.accent,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+            if (onOpenCarDsp != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(theme.panel2)
+                        .clickable { onOpenCarDsp.invoke() }
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = "Car DSP Acoustic Calibration",
+                            color = theme.text,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "Soundstage Fader • Cabin Delays • 68Hz Null Fix",
+                            color = theme.accent,
+                            fontSize = 12.sp,
+                        )
+                    }
+                    Text(
+                        text = "CALIBRATE ›",
                         color = theme.accent,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -329,6 +376,42 @@ fun SettingsScreen(
                 steps = 9,
                 onValueChangeFinished = null,
                 onValueChange = { viewModel.setVirtualizer(it.toInt()) },
+            )
+        }
+
+        SectionCard(title = "Audio & Streaming Engine") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        "Wi-Fi Audio Streaming",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = theme.text,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        streamingQuality,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = theme.accent,
+                    )
+                }
+            }
+            ToggleRow(
+                label = "Dolby Atmos • Spatial Desi Sound",
+                subtitle = "3D acoustic tuning for AirPods & headphones",
+                checked = dolbyAtmos,
+                onCheckedChange = viewModel::setDolbyAtmos,
+            )
+            ToggleRow(
+                label = "Auto-Launch Car Mode on Bluetooth",
+                subtitle = "Automatically open driver dashboard when connected to vehicle",
+                checked = carBtAutoLaunch,
+                onCheckedChange = viewModel::setCarBtAutoLaunch,
             )
         }
 
