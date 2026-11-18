@@ -143,10 +143,10 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            // Quick Theme Switcher Pills
+            // Quick Theme Switcher Pills (5 Themes)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 com.punjabibeats.app.ui.theme.PBThemes.forEach { th ->
                     val isSelected = activeThemeId.equals(th.id, ignoreCase = true)
@@ -161,15 +161,15 @@ fun SettingsScreen(
                                 shape = RoundedCornerShape(12.dp),
                             )
                             .clickable { viewModel.selectTheme(th.id) }
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 7.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(th.emoji, fontSize = 16.sp)
+                            Text(th.emoji, fontSize = 15.sp)
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                th.name.split(" ").first(),
-                                fontSize = 11.sp,
+                                th.name.split(" ").firstOrNull() ?: th.name,
+                                fontSize = 10.5.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) th.accent else theme.muted,
                                 maxLines = 1,

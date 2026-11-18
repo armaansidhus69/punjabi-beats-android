@@ -42,8 +42,8 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.material.icons.rounded.Shuffle
@@ -100,6 +100,7 @@ import androidx.compose.ui.geometry.Size
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 import com.punjabibeats.app.ui.theme.PBTheme
 import com.punjabibeats.app.ui.theme.PlayerStyle
+import com.punjabibeats.app.ui.screens.player.archetypes.AppleMusicPlayerContent
 
 /**
  * Dancing vertical neon pink spectrum bars waveform equalizer matching screenshot.
@@ -259,15 +260,33 @@ fun FullPlayerScreen(
             .fillMaxSize()
             .background(Brush.verticalGradient(gradientColors)),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        if (theme.style == PlayerStyle.APPLE) {
+            AppleMusicPlayerContent(
+                song = song,
+                isPlaying = isPlaying,
+                positionMs = positionMs,
+                durationMs = durationMs,
+                isLiked = isLiked,
+                onSeek = { player.seekTo(it) },
+                onTogglePlay = { player.playPause() },
+                onSkipNext = { player.next() },
+                onSkipPrevious = { player.previous() },
+                onToggleFavorite = { viewModel.toggleLike() },
+                onOpenLyrics = onOpenLyrics,
+                onOpenQueue = { showQueue = true },
+                onOpenDna = { showDnaSheet = true },
+                onBack = onBack,
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
             // 1. Header matching screenshot: ∨, // NOW PLAYING //, ⋮
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -694,7 +713,7 @@ fun FullPlayerScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            Icons.Rounded.QueueMusic,
+                            Icons.AutoMirrored.Rounded.QueueMusic,
                             contentDescription = null,
                             tint = theme.text,
                             modifier = Modifier.size(18.dp),
@@ -706,6 +725,7 @@ fun FullPlayerScreen(
             }
             Spacer(Modifier.height(20.dp))
         }
+    }
 
         if (showSleepSheet) {
             SleepTimerSheet(

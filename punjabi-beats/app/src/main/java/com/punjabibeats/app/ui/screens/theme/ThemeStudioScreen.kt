@@ -89,7 +89,7 @@ fun ThemeStudioScreen(
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
-                    "Choose your music identity • 4 Premium Themes",
+                    "Choose your music identity • 5 Premium Themes",
                     color = theme.muted,
                     fontSize = 13.sp,
                 )
