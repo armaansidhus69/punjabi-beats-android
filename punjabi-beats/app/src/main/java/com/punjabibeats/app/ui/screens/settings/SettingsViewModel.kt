@@ -72,6 +72,41 @@ class SettingsViewModel @Inject constructor(
     val dolbyAtmos: StateFlow<Boolean> = settings.dolbyAtmos()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 
+    val lyricsAlignment: StateFlow<String> = settings.lyricsAlignment()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "LEFT")
+
+    val lyricsTextSize: StateFlow<Float> = settings.lyricsTextSize()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 22f)
+
+    val lyricsLineSpacing: StateFlow<Float> = settings.lyricsLineSpacing()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 10f)
+
+    val touchFeedback: StateFlow<Boolean> = settings.touchFeedback()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    val heartbeatFeedback: StateFlow<Boolean> = settings.heartbeatFeedback()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    fun setLyricsAlignment(alignment: String) = viewModelScope.launch {
+        settings.saveLyricsAlignment(alignment)
+    }
+
+    fun setLyricsTextSize(size: Float) = viewModelScope.launch {
+        settings.saveLyricsTextSize(size)
+    }
+
+    fun setLyricsLineSpacing(spacing: Float) = viewModelScope.launch {
+        settings.saveLyricsLineSpacing(spacing)
+    }
+
+    fun setTouchFeedback(enabled: Boolean) = viewModelScope.launch {
+        settings.saveTouchFeedback(enabled)
+    }
+
+    fun setHeartbeatFeedback(enabled: Boolean) = viewModelScope.launch {
+        settings.saveHeartbeatFeedback(enabled)
+    }
+
     fun selectTheme(themeId: String) {
         viewModelScope.launch { runCatching { settings.saveThemeId(themeId) } }
     }

@@ -57,6 +57,11 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val CAR_BT_AUTO_LAUNCH = booleanPreferencesKey("car_bt_auto_launch")
         val STREAMING_QUALITY = stringPreferencesKey("streaming_quality")
         val DOLBY_ATMOS = booleanPreferencesKey("dolby_atmos")
+        val LYRICS_ALIGNMENT = stringPreferencesKey("lyrics_alignment")
+        val LYRICS_TEXT_SIZE = floatPreferencesKey("lyrics_text_size")
+        val LYRICS_LINE_SPACING = floatPreferencesKey("lyrics_line_spacing")
+        val TOUCH_FEEDBACK = booleanPreferencesKey("touch_feedback")
+        val HEARTBEAT_FEEDBACK = booleanPreferencesKey("heartbeat_feedback")
     }
 
     private val safeData: Flow<Preferences> = context.pbDataStore.data
@@ -113,6 +118,31 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
     fun dolbyAtmos(): Flow<Boolean> = safeData.map { it[Keys.DOLBY_ATMOS] ?: true }
     suspend fun saveDolbyAtmos(enabled: Boolean) = runCatching {
         context.pbDataStore.edit { it[Keys.DOLBY_ATMOS] = enabled }
+    }.isSuccess
+
+    fun lyricsAlignment(): Flow<String> = safeData.map { it[Keys.LYRICS_ALIGNMENT] ?: "LEFT" }
+    suspend fun saveLyricsAlignment(alignment: String) = runCatching {
+        context.pbDataStore.edit { it[Keys.LYRICS_ALIGNMENT] = alignment }
+    }.isSuccess
+
+    fun lyricsTextSize(): Flow<Float> = safeData.map { it[Keys.LYRICS_TEXT_SIZE] ?: 22f }
+    suspend fun saveLyricsTextSize(size: Float) = runCatching {
+        context.pbDataStore.edit { it[Keys.LYRICS_TEXT_SIZE] = size.coerceIn(16f, 32f) }
+    }.isSuccess
+
+    fun lyricsLineSpacing(): Flow<Float> = safeData.map { it[Keys.LYRICS_LINE_SPACING] ?: 10f }
+    suspend fun saveLyricsLineSpacing(spacing: Float) = runCatching {
+        context.pbDataStore.edit { it[Keys.LYRICS_LINE_SPACING] = spacing.coerceIn(4f, 24f) }
+    }.isSuccess
+
+    fun touchFeedback(): Flow<Boolean> = safeData.map { it[Keys.TOUCH_FEEDBACK] ?: true }
+    suspend fun saveTouchFeedback(enabled: Boolean) = runCatching {
+        context.pbDataStore.edit { it[Keys.TOUCH_FEEDBACK] = enabled }
+    }.isSuccess
+
+    fun heartbeatFeedback(): Flow<Boolean> = safeData.map { it[Keys.HEARTBEAT_FEEDBACK] ?: true }
+    suspend fun saveHeartbeatFeedback(enabled: Boolean) = runCatching {
+        context.pbDataStore.edit { it[Keys.HEARTBEAT_FEEDBACK] = enabled }
     }.isSuccess
 
     /** Jam room code arriving via a punjabibeats://jam/… deep link, consumed once. */

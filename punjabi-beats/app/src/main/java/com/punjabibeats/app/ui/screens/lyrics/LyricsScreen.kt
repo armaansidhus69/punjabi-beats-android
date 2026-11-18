@@ -47,6 +47,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,6 +80,14 @@ fun LyricsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val positionMs by viewModel.positionMs.collectAsStateWithLifecycle()
     val song by viewModel.player.currentSong.collectAsStateWithLifecycle()
+    val lyricsAlignment by viewModel.lyricsAlignment.collectAsStateWithLifecycle()
+    val lyricsTextSize by viewModel.lyricsTextSize.collectAsStateWithLifecycle()
+    val lyricsLineSpacing by viewModel.lyricsLineSpacing.collectAsStateWithLifecycle()
+    val textAlign = when (lyricsAlignment) {
+        "CENTER" -> TextAlign.Center
+        "RIGHT" -> TextAlign.End
+        else -> TextAlign.Start
+    }
     val snackbar = LocalPbSnackbar.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -284,6 +294,9 @@ fun LyricsScreen(
                                 selectMode = uiState.selectMode,
                                 words = if (isActive && uiState.scriptMode != ScriptMode.ROMAN) line.words else emptyList(),
                                 positionMs = effectivePositionMs,
+                                textAlign = textAlign,
+                                textSize = lyricsTextSize,
+                                lineSpacing = lyricsLineSpacing,
                                 onClick = {
                                     if (uiState.selectMode) viewModel.toggleSelected(index)
                                     else viewModel.player.seekTo((line.timeMs - uiState.timingOffsetMs).coerceAtLeast(0L))
@@ -316,14 +329,23 @@ private fun LyricLineItem(
     selectMode: Boolean,
     words: List<TimedWord>,
     positionMs: Long,
+    textAlign: TextAlign = TextAlign.Start,
+    textSize: Float = 22f,
+    lineSpacing: Float = 10f,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
     val theme = LocalPBTheme.current
+    val colAlignment = when (textAlign) {
+        TextAlign.Center -> Alignment.CenterHorizontally
+        TextAlign.End -> Alignment.End
+        else -> Alignment.Start
+    }
     Column(
+        horizontalAlignment = colAlignment,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp)
+            .padding(vertical = (lineSpacing / 2).dp)
             .clip(RoundedCornerShape(12.dp))
             .background(
                 when {
@@ -341,15 +363,18 @@ private fun LyricLineItem(
                 Box {
                     Text(
                         text,
-                        style = MaterialTheme.typography.titleLarge,
+                        fontSize = textSize.sp,
+                        fontWeight = FontWeight.Bold,
                         color = theme.muted,
-                        textAlign = TextAlign.Start,
+                        textAlign = textAlign,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     Text(
                         text,
-                        style = MaterialTheme.typography.titleLarge,
+                        fontSize = textSize.sp,
+                        fontWeight = FontWeight.Bold,
                         color = theme.accent,
-                        textAlign = TextAlign.Start,
+                        textAlign = textAlign,
                         modifier = Modifier
                             .fillMaxWidth(fillFraction)
                             .clipToBounds(),
@@ -358,17 +383,20 @@ private fun LyricLineItem(
             }
             else -> Text(
                 text,
-                style = MaterialTheme.typography.titleLarge,
+                fontSize = textSize.sp,
+                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
                 color = if (isActive) theme.accent else theme.muted,
-                textAlign = TextAlign.Start,
+                textAlign = textAlign,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
         if (roman != null) {
             Text(
                 roman,
-                style = MaterialTheme.typography.bodyMedium,
+                fontSize = (textSize * 0.72f).sp,
                 color = theme.muted.copy(alpha = 0.8f),
-                textAlign = TextAlign.Start,
+                textAlign = textAlign,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
         if (selectMode) {

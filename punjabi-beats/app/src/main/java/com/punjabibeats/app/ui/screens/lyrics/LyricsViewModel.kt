@@ -3,6 +3,7 @@ package com.punjabibeats.app.ui.screens.lyrics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.punjabibeats.app.core.util.UiState
+import com.punjabibeats.app.data.local.datastore.SettingsDataStore
 import com.punjabibeats.app.core.util.runSuspendCatching
 import com.punjabibeats.app.core.util.userMessage
 import com.punjabibeats.app.domain.model.ScriptMode
@@ -38,7 +39,17 @@ data class LyricsUiState(
 class LyricsViewModel @Inject constructor(
     private val lyricsRepository: LyricsRepository,
     val player: MusicPlayerController,
+    private val settings: SettingsDataStore,
 ) : ViewModel() {
+
+    val lyricsAlignment: StateFlow<String> = settings.lyricsAlignment()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "LEFT")
+
+    val lyricsTextSize: StateFlow<Float> = settings.lyricsTextSize()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 22f)
+
+    val lyricsLineSpacing: StateFlow<Float> = settings.lyricsLineSpacing()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 10f)
 
     private val _uiState = MutableStateFlow(LyricsUiState())
     val uiState: StateFlow<LyricsUiState> = _uiState.asStateFlow()

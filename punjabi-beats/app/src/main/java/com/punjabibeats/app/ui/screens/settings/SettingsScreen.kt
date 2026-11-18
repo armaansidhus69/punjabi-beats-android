@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -69,6 +70,11 @@ fun SettingsScreen(
     val carBtAutoLaunch by viewModel.carBtAutoLaunch.collectAsStateWithLifecycle()
     val streamingQuality by viewModel.streamingQuality.collectAsStateWithLifecycle()
     val dolbyAtmos by viewModel.dolbyAtmos.collectAsStateWithLifecycle()
+    val lyricsAlignment by viewModel.lyricsAlignment.collectAsStateWithLifecycle()
+    val lyricsTextSize by viewModel.lyricsTextSize.collectAsStateWithLifecycle()
+    val lyricsLineSpacing by viewModel.lyricsLineSpacing.collectAsStateWithLifecycle()
+    val touchFeedback by viewModel.touchFeedback.collectAsStateWithLifecycle()
+    val heartbeatFeedback by viewModel.heartbeatFeedback.collectAsStateWithLifecycle()
     val theme = LocalPBTheme.current
 
     Column(
@@ -412,6 +418,96 @@ fun SettingsScreen(
                 subtitle = "Automatically open driver dashboard when connected to vehicle",
                 checked = carBtAutoLaunch,
                 onCheckedChange = viewModel::setCarBtAutoLaunch,
+            )
+        }
+
+        SectionCard(title = "Lyrics & Teleprompter Typography") {
+            Text(
+                "Text Alignment",
+                style = MaterialTheme.typography.bodyLarge,
+                color = theme.text,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                listOf(
+                    Pair("LEFT", "⇤ Left"),
+                    Pair("CENTER", "≣ Center"),
+                    Pair("RIGHT", "⇥ Right"),
+                ).forEach { (id, label) ->
+                    val isSelected = lyricsAlignment == id
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) theme.accent else theme.surface)
+                            .border(1.dp, if (isSelected) theme.accent else theme.panel2, RoundedCornerShape(12.dp))
+                            .clickable { viewModel.setLyricsAlignment(id) }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            label,
+                            fontSize = 13.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) theme.background else theme.text,
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("Font Size", style = MaterialTheme.typography.bodyMedium, color = theme.text)
+                Text("${lyricsTextSize.toInt()} sp", style = MaterialTheme.typography.bodyMedium, color = theme.accent, fontWeight = FontWeight.Bold)
+            }
+            Slider(
+                value = lyricsTextSize,
+                onValueChange = viewModel::setLyricsTextSize,
+                valueRange = 16f..32f,
+                steps = 15,
+                colors = SliderDefaults.colors(thumbColor = theme.accent, activeTrackColor = theme.accent),
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("Line Spacing", style = MaterialTheme.typography.bodyMedium, color = theme.text)
+                Text("${lyricsLineSpacing.toInt()} dp", style = MaterialTheme.typography.bodyMedium, color = theme.accent, fontWeight = FontWeight.Bold)
+            }
+            Slider(
+                value = lyricsLineSpacing,
+                onValueChange = viewModel::setLyricsLineSpacing,
+                valueRange = 4f..24f,
+                steps = 19,
+                colors = SliderDefaults.colors(thumbColor = theme.accent, activeTrackColor = theme.accent),
+            )
+        }
+
+        SectionCard(title = "Touch & Haptic Feedback") {
+            ToggleRow(
+                label = "Touch Haptics on Sliders",
+                subtitle = "Subtle tactile click when dragging seekbars and sliders",
+                checked = touchFeedback,
+                onCheckedChange = viewModel::setTouchFeedback,
+            )
+            ToggleRow(
+                label = "Heartbeat Vibration Mode",
+                subtitle = "Pulsing rhythm vibration along seekbar and bass peaks",
+                checked = heartbeatFeedback,
+                onCheckedChange = viewModel::setHeartbeatFeedback,
             )
         }
 
