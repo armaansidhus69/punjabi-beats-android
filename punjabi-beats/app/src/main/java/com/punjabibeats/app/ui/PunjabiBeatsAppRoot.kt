@@ -55,6 +55,7 @@ import androidx.navigation.compose.rememberNavController
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.MiniPlayerBar
+import com.punjabibeats.app.ui.components.dynamicisland.DynamicIslandOverlay
 import com.punjabibeats.app.ui.navigation.AppNavHost
 import com.punjabibeats.app.ui.navigation.Routes
 import com.punjabibeats.app.ui.theme.LocalPBTheme
@@ -84,32 +85,42 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
     val theme = LocalPBTheme.current
 
     CompositionLocalProvider(LocalPbSnackbar provides snackbarHostState) {
-        Scaffold(
-            containerColor = theme.background,
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            bottomBar = {
-                Column {
-                    if (showChrome) {
-                        MiniPlayerBar(
-                            controller = playerController,
-                            onOpenPlayer = { navController.navigate(Routes.PLAYER) },
-                        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                containerColor = theme.background,
+                snackbarHost = { SnackbarHost(snackbarHostState) },
+                bottomBar = {
+                    Column {
+                        if (showChrome) {
+                            MiniPlayerBar(
+                                controller = playerController,
+                                onOpenPlayer = { navController.navigate(Routes.PLAYER) },
+                            )
+                        }
+                        AnimatedVisibility(
+                            visible = showChrome,
+                            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                        ) {
+                            PbBottomBar(currentRoute = currentRoute, navController = navController)
+                        }
                     }
-                    AnimatedVisibility(
-                        visible = showChrome,
-                        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-                    ) {
-                        PbBottomBar(currentRoute = currentRoute, navController = navController)
-                    }
-                }
-            },
-        ) { innerPadding ->
-            AppNavHost(
-                navController = navController,
-                controller = playerController,
-                modifier = androidx.compose.ui.Modifier.padding(innerPadding),
-            )
+                },
+            ) { innerPadding ->
+                AppNavHost(
+                    navController = navController,
+                    controller = playerController,
+                    modifier = androidx.compose.ui.Modifier.padding(innerPadding),
+                )
+            }
+
+            if (currentRoute != Routes.PLAYER && currentRoute != Routes.CAR_DASHBOARD) {
+                DynamicIslandOverlay(
+                    controller = playerController,
+                    onOpenPlayer = { navController.navigate(Routes.PLAYER) },
+                    onOpenCarMode = { navController.navigate(Routes.CAR_DASHBOARD) },
+                )
+            }
         }
     }
 }
