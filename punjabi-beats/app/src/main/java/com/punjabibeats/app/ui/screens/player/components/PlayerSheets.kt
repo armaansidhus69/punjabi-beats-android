@@ -38,14 +38,22 @@ import com.punjabibeats.app.ui.components.rememberDragDropState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.playback.AudioFormatInfo
 import com.punjabibeats.app.ui.components.ArtworkThumb
@@ -128,6 +136,41 @@ private fun TimerChip(label: String, active: Boolean, onClick: () -> Unit) {
     )
 }
 
+@Composable
+private fun QueueDancingWaveform(
+    color: Color,
+    modifier: Modifier = Modifier,
+) {
+    val transition = rememberInfiniteTransition(label = "queueDancingWaveform")
+    val phase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2f * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(1100, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "waveformPhase",
+    )
+    Row(
+        modifier = modifier.size(width = 16.dp, height = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        val bar1 = (0.35f + 0.65f * kotlin.math.abs(kotlin.math.sin(phase))).coerceIn(0.2f, 1f)
+        val bar2 = (0.35f + 0.65f * kotlin.math.abs(kotlin.math.sin(phase + 1.3f))).coerceIn(0.2f, 1f)
+        val bar3 = (0.35f + 0.65f * kotlin.math.abs(kotlin.math.sin(phase + 2.5f))).coerceIn(0.2f, 1f)
+        listOf(bar1, bar2, bar3).forEach { heightFraction ->
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(heightFraction)
+                    .clip(RoundedCornerShape(1.dp))
+                    .background(color),
+            )
+        }
+    }
+}
+
 /** Queue management drawer with long-press drag-and-drop reordering. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -179,14 +222,33 @@ fun QueueDrawer(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(14.dp))
                             .background(
-                                if (isPlayingThis) theme.accent.copy(alpha = 0.15f) else Color.Transparent
+                                if (isPlayingThis) {
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            theme.accent.copy(alpha = 0.22f),
+                                            theme.accent.copy(alpha = 0.08f),
+                                            Color.Transparent,
+                                        )
+                                    )
+                                } else {
+                                    Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+                                }
                             )
                             .border(
-                                width = if (isPlayingThis) 1.dp else 0.dp,
-                                color = if (isPlayingThis) theme.accent.copy(alpha = 0.4f) else Color.Transparent,
-                                shape = RoundedCornerShape(12.dp),
+                                width = if (isPlayingThis) 1.2.dp else 0.dp,
+                                brush = if (isPlayingThis) {
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            theme.accent,
+                                            theme.accent.copy(alpha = 0.3f),
+                                        )
+                                    )
+                                } else {
+                                    Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+                                },
+                                shape = RoundedCornerShape(14.dp),
                             )
                             .clickable { controller.seekToIndex(index) }
                             .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -204,7 +266,10 @@ fun QueueDrawer(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (isPlayingThis) {
-                                    Text("▶ ", color = theme.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    QueueDancingWaveform(
+                                        color = theme.accent,
+                                        modifier = Modifier.padding(end = 6.dp),
+                                    )
                                 }
                                 Text(
                                     song.title,
@@ -213,7 +278,26 @@ fun QueueDrawer(
                                     fontWeight = if (isPlayingThis) FontWeight.Bold else FontWeight.Medium,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false),
                                 )
+                                if (isPlayingThis) {
+                                    Spacer(Modifier.width(6.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(theme.accent.copy(alpha = 0.25f))
+                                            .border(0.8.dp, theme.accent, RoundedCornerShape(6.dp))
+                                            .padding(horizontal = 5.dp, vertical = 1.dp),
+                                    ) {
+                                        Text(
+                                            "PLAYING",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = theme.accent,
+                                            letterSpacing = 0.5.sp,
+                                        )
+                                    }
+                                }
                             }
                             Spacer(Modifier.height(2.dp))
                             Text(
