@@ -180,27 +180,7 @@ fun LibraryScreen(
             }
         }
 
-        Spacer(Modifier.height(14.dp))
-
-        // Stitch Screen 08 Hero Special Collections Carousel
-        LibraryHeroCarousel(
-            likedCount = uiState.likedSongs.size,
-            downloadCount = uiState.downloads.size,
-            onPlayLiked = {
-                if (uiState.likedSongs.isNotEmpty()) {
-                    controller.playQueue(uiState.likedSongs, 0)
-                    onOpenPlayer()
-                }
-            },
-            onShuffleDownloads = {
-                if (uiState.downloads.isNotEmpty()) {
-                    controller.playQueue(uiState.downloads.shuffled(), 0)
-                    onOpenPlayer()
-                }
-            },
-        )
-
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(10.dp))
 
         when (selectedTab) {
             0 -> LikedTab(uiState, currentSong?.id, viewModel, controller, onOpenPlayer, bottomPadding)
@@ -358,26 +338,45 @@ private fun LikedTab(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        controller.playQueue(uiState.likedSongs, 0)
-                        onOpenPlayer()
-                    }
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(theme.accent, CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Rounded.PlayArrow,
-                        contentDescription = "Play all",
-                        tint = Color.White,
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "${uiState.likedSongs.size} Tracks Saved",
+                        color = theme.muted,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
-                Spacer(Modifier.width(14.dp))
-                Text("Play all ${uiState.likedSongs.size} songs", color = theme.text, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(theme.accent)
+                        .clickable {
+                            controller.playQueue(uiState.likedSongs, 0)
+                            onOpenPlayer()
+                        }
+                        .padding(horizontal = 14.dp, vertical = 7.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            Icons.Rounded.PlayArrow,
+                            contentDescription = "Play all",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            "Play All",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.5.sp,
+                        )
+                    }
+                }
             }
         }
         items(uiState.likedSongs.size) { index ->

@@ -535,10 +535,10 @@ fun CategoryChipsRow(
             Row(
                 modifier = Modifier
                     .clip(pillShape)
-                    .background(if (isSelected) theme.accent else theme.surface)
+                    .background(if (isSelected) theme.accent.copy(alpha = 0.22f) else theme.surface)
                     .border(
                         1.dp,
-                        if (isSelected) theme.accent else theme.card.copy(alpha = 0.8f),
+                        if (isSelected) theme.accent else theme.panel2.copy(alpha = 0.6f),
                         pillShape
                     )
                     .clickable { onCategorySelected(cat) }
@@ -549,7 +549,7 @@ fun CategoryChipsRow(
                 Spacer(Modifier.width(6.dp))
                 Text(
                     cat,
-                    color = if (isSelected) Color.White else theme.muted,
+                    color = if (isSelected) theme.accent else theme.text,
                     fontSize = 13.sp,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 )

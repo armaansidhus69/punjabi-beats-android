@@ -200,8 +200,8 @@ private fun HomeTopBar(
             Text(
                 "YOUR MUSIC • YOUR UNIVERSE",
                 fontSize = 8.5.sp,
-                fontWeight = FontWeight.Bold,
-                color = theme.accent,
+                fontWeight = FontWeight.SemiBold,
+                color = theme.muted,
                 letterSpacing = 2.sp,
             )
         }
@@ -244,57 +244,39 @@ private fun HomeSearchPill(
 ) {
     val theme = LocalPBTheme.current
     val pillShape = RoundedCornerShape(24.dp)
-    val pillBorder = Color.White.copy(alpha = 0.12f)
+    val pillBorder = theme.panel2.copy(alpha = 0.6f)
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 6.dp)
+            .padding(horizontal = 20.dp, vertical = 4.dp)
             .clip(pillShape)
-            .background(theme.surface.copy(alpha = 0.9f))
+            .background(theme.surface.copy(alpha = 0.95f))
             .border(1.dp, pillBorder, pillShape)
             .clickable { onOpenSearch?.invoke() }
-            .padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             Icons.Rounded.Search,
             contentDescription = "Search",
-            tint = theme.muted,
+            tint = theme.accent,
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            text = "Search music, artists, podc...",
+            text = "Search Punjabi songs, artists, albums...",
             color = theme.muted,
             fontSize = 13.5.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        // AI Mode Glowing Gradient Pill from Mockup
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(theme.accent, theme.secondary)
-                    )
-                )
-                .clickable { onOpenAiStudio?.invoke() }
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("🪄", fontSize = 11.sp)
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    "AI Mode",
-                    fontSize = 11.5.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                )
-            }
-        }
+        Icon(
+            Icons.Rounded.Mic,
+            contentDescription = "Search",
+            tint = theme.muted,
+            modifier = Modifier.size(18.dp),
+        )
     }
 }
 
@@ -321,7 +303,7 @@ private fun HomeContent(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 20.dp),
     ) {
-        // 1. Top Bar matching screenshot: ☰, 👑 Punjabi Beats, 🔔 with pink dot
+        // 1. Top Bar: ☰, 👑 Punjabi Beats, 🔔
         item {
             HomeTopBar(
                 onOpenThemes = onOpenThemes,
@@ -330,45 +312,63 @@ private fun HomeContent(
             )
         }
 
-        // 2. Glowing Hot-Pink Pill Search Bar
+        // 2. Clean Full-Width Search Pill
         item {
             HomeSearchPill(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
                 onOpenSearch = onOpenSearch,
-                onOpenAiStudio = onOpenAiStudio,
-                modifier = Modifier.padding(bottom = 10.dp),
+                modifier = Modifier.padding(bottom = 8.dp),
             )
         }
 
-        // Stitch Screen 03: Daily Desi Radar Spotlight Banner
+        // 3. Category Filter Chips (Immediately under search for quick filtering)
         item {
-            DailyDesiRadarBanner(
-                onPlayRadar = {
-                    if (feed.heroSongs.isNotEmpty()) {
-                        controller.playQueue(feed.heroSongs, 0)
-                    }
-                },
+            CategoryChipsRow(
+                selectedCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it },
                 modifier = Modifier.padding(bottom = 12.dp),
             )
         }
 
-        // 3. Hero Pager with Palm Tree Sunset Card & 4-Dot Indicator
+        // 4. Single Spotlight Hero Card (Unified, clean & proportional)
         if (feed.heroSongs.isNotEmpty()) {
             item { HeroPager(feed.heroSongs, controller, currentSongId, onOpenPlayer) }
             item { Spacer(Modifier.height(14.dp)) }
         }
 
-        // 4. Category Filter Chips (All, Songs, Artists, Albums)
-        item {
-            CategoryChipsRow(
-                selectedCategory = selectedCategory,
-                onCategorySelected = { selectedCategory = it },
-                modifier = Modifier.padding(bottom = 14.dp),
-            )
+        // 5. 🔥 Trending Now (Directly visible without heavy scrolling!)
+        if (feed.trendingSongs.isNotEmpty()) {
+            item {
+                SectionHeader(
+                    title = "🔥 Trending Now",
+                    actionLabel = "See All >",
+                    onActionClick = {
+                        controller.playQueue(feed.trendingSongs)
+                        onOpenPlayer()
+                    },
+                )
+            }
+            item {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(feed.trendingSongs, key = { it.id }) { song ->
+                        SongCard(
+                            song = song,
+                            onClick = {
+                                controller.playQueue(feed.trendingSongs, feed.trendingSongs.indexOf(song))
+                                onOpenPlayer()
+                            },
+                        )
+                    }
+                }
+            }
+            item { Spacer(Modifier.height(14.dp)) }
         }
 
-        // 5. 👑 Curated Artists Row with Double Glowing Neon Rings
+        // 6. 👑 Curated Artists Row
         item {
             SectionHeader(
                 title = "👑 Curated Artists",
@@ -419,10 +419,10 @@ private fun HomeContent(
 
         item { Spacer(Modifier.height(14.dp)) }
 
-        // 6. 🎵 Moods Row with 4 Horizontal Cards
+        // 7. 🎵 Moods & Vibes
         item {
             SectionHeader(
-                title = "🎵 Moods",
+                title = "🎵 Moods & Vibes",
                 actionLabel = "See All >",
                 onActionClick = {
                     val firstMood = MOOD_CATEGORIES.firstOrNull()
@@ -448,28 +448,7 @@ private fun HomeContent(
             }
         }
 
-        // 7. Trending Now / Vice City Playlists
-        if (feed.trendingSongs.isNotEmpty()) {
-            item { Spacer(Modifier.height(16.dp)) }
-            item { SectionHeader("🔥 Trending Now") }
-            item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(feed.trendingSongs, key = { it.id }) { song ->
-                        SongCard(
-                            song = song,
-                            onClick = {
-                                controller.playQueue(feed.trendingSongs, feed.trendingSongs.indexOf(song))
-                                onOpenPlayer()
-                            },
-                        )
-                    }
-                }
-            }
-        }
-
+        // 8. 🎧 Quick Picks
         if (feed.quickPicks.isNotEmpty()) {
             item { Spacer(Modifier.height(14.dp)) }
             item { SectionHeader("Quick Picks", actionLabel = "For you") }
@@ -519,13 +498,13 @@ private fun HeroPager(
             pageSpacing = 12.dp,
         ) { index ->
             val song = heroSongs[(index + daySeed) % heroSongs.size]
-            val cardShape = RoundedCornerShape(22.dp)
+            val cardShape = RoundedCornerShape(20.dp)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(210.dp)
+                    .height(180.dp)
                     .clip(cardShape)
-                    .border(1.5.dp, theme.accent.copy(alpha = 0.5f), cardShape)
+                    .border(1.dp, theme.panel2.copy(alpha = 0.8f), cardShape)
                     .clickable {
                         controller.playQueue(heroSongs, heroSongs.indexOf(song))
                         onOpenPlayer()
@@ -544,7 +523,7 @@ private fun HeroPager(
                             Brush.verticalGradient(
                                 listOf(
                                     Color.Transparent,
-                                    Color(0x5508060D),
+                                    Color(0x4408060D),
                                     Color(0xEE08060D),
                                 )
                             )
@@ -553,45 +532,45 @@ private fun HeroPager(
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .padding(16.dp),
+                        .padding(14.dp),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("👑", fontSize = 14.sp)
+                        Text("👑", fontSize = 13.sp)
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            "JATTWAAD",
+                            "DAILY DESI RADAR",
                             color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 1.sp,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.5.sp,
                         )
                     }
                     Text(
-                        "DAILY PUNJABI HITS",
+                        "FEATURED PUNJABI HIT",
                         style = MaterialTheme.typography.labelSmall,
                         color = theme.accent,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp,
                     )
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(2.dp))
                     Text(
                         song.title + " • " + song.artist,
-                        color = theme.muted,
-                        fontSize = 12.5.sp,
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 12.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
 
-                // Glowing circular hot-pink Play button
+                // Clean circular Play button
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                        .size(46.dp)
+                        .padding(14.dp)
+                        .size(42.dp)
                         .clip(CircleShape)
                         .background(theme.accent)
-                        .border(1.5.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+                        .border(1.dp, Color.White.copy(alpha = 0.5f), CircleShape)
                         .clickable {
                             controller.playQueue(heroSongs, heroSongs.indexOf(song))
                             onOpenPlayer()
@@ -602,17 +581,17 @@ private fun HeroPager(
                         Icons.Rounded.PlayArrow,
                         contentDescription = "Play",
                         tint = Color.White,
-                        modifier = Modifier.size(26.dp),
+                        modifier = Modifier.size(22.dp),
                     )
                 }
             }
         }
 
-        // 4-dot indicator row below hero banner
+        // Dot indicator row below hero banner
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp),
+                .padding(top = 8.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -622,9 +601,9 @@ private fun HeroPager(
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 3.dp)
-                        .size(width = if (active) 22.dp else 6.dp, height = 6.dp)
-                        .clip(CircleShape)
-                        .background(if (active) theme.accent else theme.muted.copy(alpha = 0.35f)),
+                        .size(width = if (active) 18.dp else 5.dp, height = 5.dp)
+                    .clip(CircleShape)
+                    .background(if (active) theme.accent else theme.muted.copy(alpha = 0.35f)),
                 )
             }
         }
@@ -636,125 +615,4 @@ private fun HeroPager(
 private fun rememberDayOffset(): Int {
     val dayOfYear = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_YEAR)
     return dayOfYear % 7
-}
-
-@Composable
-private fun DailyDesiRadarBanner(
-    onPlayRadar: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val theme = LocalPBTheme.current
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(theme.card)
-            .border(
-                1.dp,
-                Brush.horizontalGradient(
-                    listOf(theme.accent.copy(alpha = 0.5f), theme.secondary.copy(alpha = 0.35f)),
-                ),
-                RoundedCornerShape(20.dp),
-            )
-            .padding(14.dp),
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(theme.accent.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.AutoAwesome,
-                            contentDescription = null,
-                            tint = theme.accent,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-                    Column {
-                        Text(
-                            text = "AI DESI ENGINE",
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = theme.accent,
-                            letterSpacing = 1.sp,
-                        )
-                        Text(
-                            text = "Daily Desi Radar",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = theme.text,
-                        )
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(theme.surface)
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                ) {
-                    Text(
-                        text = "100% Flow",
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = theme.secondary,
-                    )
-                }
-            }
-
-            Text(
-                text = "A generative Punjabi blend harmonizing late-night acoustic folk with heavy 808-dhol basses and Sidhu Moose Wala tape cuts.",
-                fontSize = 12.sp,
-                color = theme.muted,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(theme.accent)
-                        .clickable(onClick = onPlayRadar)
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.PlayArrow,
-                            contentDescription = "Play Radar",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp),
-                        )
-                        Text(
-                            text = "Play Radar",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                        )
-                    }
-                }
-            }
-        }
-    }
 }

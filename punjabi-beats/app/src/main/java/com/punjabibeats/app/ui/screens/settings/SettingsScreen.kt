@@ -670,7 +670,7 @@ private fun SectionCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .border(1.dp, theme.accent.copy(alpha = 0.25f), RoundedCornerShape(18.dp)),
+            .border(1.dp, theme.panel2.copy(alpha = 0.7f), RoundedCornerShape(18.dp)),
     ) {
         Column(
             modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp),
