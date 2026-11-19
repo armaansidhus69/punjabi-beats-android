@@ -46,16 +46,26 @@ private val PbShapes = androidx.compose.material3.Shapes(
 @Composable
 fun PunjabiBeatsTheme(
     theme: PBTheme = pbThemeById("sunset_glow"),
-    themeMode: String = "system",
+    themeMode: String = "dark",
     content: @Composable () -> Unit,
 ) {
-    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
     val isDark = when (themeMode.lowercase()) {
         "light" -> false
         "dark" -> true
-        else -> isSystemDark
+        else -> true // Punjabi Beats is a dark-first neon music experience
     }
     val effectiveTheme = if (!isDark) theme.toLightMode() else theme
+
+    val view = androidx.compose.ui.platform.LocalView.current
+    if (!view.isInEditMode) {
+        androidx.compose.runtime.SideEffect {
+            val window = (view.context as? android.app.Activity)?.window ?: return@SideEffect
+            androidx.core.view.WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !isDark
+                isAppearanceLightNavigationBars = !isDark
+            }
+        }
+    }
 
     val dynamicScheme = if (isDark) {
         darkColorScheme(

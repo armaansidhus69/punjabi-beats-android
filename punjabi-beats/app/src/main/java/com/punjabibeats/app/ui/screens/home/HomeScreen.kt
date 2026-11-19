@@ -649,11 +649,11 @@ private fun DailyDesiRadarBanner(
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF1B1B1F))
+            .background(theme.card)
             .border(
                 1.dp,
                 Brush.horizontalGradient(
-                    listOf(theme.accent.copy(alpha = 0.5f), Color(0xFFFFB95F).copy(alpha = 0.35f)),
+                    listOf(theme.accent.copy(alpha = 0.5f), theme.secondary.copy(alpha = 0.35f)),
                 ),
                 RoundedCornerShape(20.dp),
             )
@@ -695,7 +695,7 @@ private fun DailyDesiRadarBanner(
                             text = "Daily Desi Radar",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFE3E2E6),
+                            color = theme.text,
                         )
                     }
                 }
@@ -703,14 +703,14 @@ private fun DailyDesiRadarBanner(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF292A2D))
+                        .background(theme.surface)
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                 ) {
                     Text(
                         text = "100% Flow",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4EDEA3),
+                        color = theme.secondary,
                     )
                 }
             }
@@ -718,7 +718,7 @@ private fun DailyDesiRadarBanner(
             Text(
                 text = "A generative Punjabi blend harmonizing late-night acoustic folk with heavy 808-dhol basses and Sidhu Moose Wala tape cuts.",
                 fontSize = 12.sp,
-                color = Color(0xFFCAC4D4),
+                color = theme.muted,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -743,14 +743,14 @@ private fun DailyDesiRadarBanner(
                         Icon(
                             imageVector = Icons.Rounded.PlayArrow,
                             contentDescription = "Play Radar",
-                            tint = Color(0xFF21005E),
+                            tint = Color.White,
                             modifier = Modifier.size(16.dp),
                         )
                         Text(
                             text = "Play Radar",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF21005E),
+                            color = Color.White,
                         )
                     }
                 }

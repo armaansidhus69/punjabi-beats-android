@@ -120,13 +120,13 @@ fun StatusBarMiniPlayer(
                 .padding(top = 2.dp)
                 .height(26.dp)
                 .clip(RoundedCornerShape(13.dp))
-                .background(Color(0xFF0F0F14).copy(alpha = 0.94f))
+                .background(theme.surface.copy(alpha = 0.95f))
                 .border(
                     width = 0.8.dp,
                     brush = Brush.horizontalGradient(
                         listOf(
                             theme.accent.copy(alpha = 0.55f),
-                            Color(0xFF00F5FF).copy(alpha = 0.35f),
+                            theme.secondary.copy(alpha = 0.45f),
                             theme.accent.copy(alpha = 0.55f),
                         )
                     ),
@@ -181,14 +181,14 @@ fun StatusBarMiniPlayer(
                 contentAlignment = Alignment.TopCenter,
             ) {
                 Surface(
-                    color = Color(0xFF14141C).copy(alpha = 0.96f),
+                    color = theme.surface.copy(alpha = 0.96f),
                     shape = RoundedCornerShape(24.dp),
                     border = androidx.compose.foundation.BorderStroke(
                         1.dp,
                         Brush.verticalGradient(
                             listOf(
                                 theme.accent.copy(alpha = 0.7f),
-                                Color(0xFF00F5FF).copy(alpha = 0.3f),
+                                theme.secondary.copy(alpha = 0.4f),
                                 Color.Transparent,
                             )
                         ),
@@ -306,7 +306,7 @@ fun StatusBarMiniPlayer(
                                 Spacer(Modifier.height(4.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     FormatBadge("24-BIT LOSSLESS", theme.accent)
-                                    FormatBadge("DOLBY ATMOS", Color(0xFF00F5FF))
+                                    FormatBadge("DOLBY ATMOS", theme.secondary)
                                 }
                             }
                         }

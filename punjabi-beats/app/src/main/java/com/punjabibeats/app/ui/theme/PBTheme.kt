@@ -52,7 +52,15 @@ data class PBTheme(
         text = Color(0xFF101318),
         muted = Color(0xFF636D7E),
     )
-    val heroGradient: Brush get() = when (id) {
+    val heroGradient: Brush get() = if (background == Color(0xFFF7F8FA)) {
+        Brush.verticalGradient(
+            listOf(
+                accent.copy(alpha = 0.16f),
+                secondary.copy(alpha = 0.08f),
+                background,
+            )
+        )
+    } else when (id) {
         "sunset_glow" -> Brush.verticalGradient(
             listOf(
                 Color(0xFF38151D),

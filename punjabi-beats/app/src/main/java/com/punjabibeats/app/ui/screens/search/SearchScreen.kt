@@ -344,12 +344,12 @@ private fun SuggestionsSection(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFF1F1F23))
+                        .background(theme.surface)
                         .border(1.dp, theme.accent.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
                         .clickable { onPick(genre) }
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                 ) {
-                    Text(genre, color = Color(0xFFE3E2E6), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(genre, color = theme.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

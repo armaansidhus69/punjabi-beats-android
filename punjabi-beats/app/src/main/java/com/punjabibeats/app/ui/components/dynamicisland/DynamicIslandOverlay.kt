@@ -509,7 +509,7 @@ private fun ExpandedIslandCard(
                     Icon(
                         imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                         contentDescription = if (isPlaying) "Pause" else "Play",
-                        tint = Color(0xFF21005E),
+                        tint = Color.White,
                         modifier = Modifier.size(32.dp),
                     )
                 }

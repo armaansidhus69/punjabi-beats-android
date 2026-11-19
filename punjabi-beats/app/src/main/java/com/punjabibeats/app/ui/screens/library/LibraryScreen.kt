@@ -760,6 +760,7 @@ private fun LibraryHeroCarousel(
     onShuffleDownloads: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val theme = LocalPBTheme.current
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 20.dp),
@@ -864,7 +865,7 @@ private fun LibraryHeroCarousel(
                             Icon(
                                 Icons.Rounded.PlayArrow,
                                 contentDescription = "Play Liked",
-                                tint = Color(0xFF1F1B2E),
+                                tint = theme.background,
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -879,7 +880,7 @@ private fun LibraryHeroCarousel(
                 modifier = Modifier
                     .width(280.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color(0xFF1F1F23))
+                    .background(theme.card)
                     .border(1.dp, Color(0xFF4EDEA3).copy(alpha = 0.35f), RoundedCornerShape(20.dp))
                     .padding(16.dp),
             ) {
@@ -924,12 +925,12 @@ private fun LibraryHeroCarousel(
                         "Offline Desi Vault",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFE3E2E6),
+                        color = theme.text,
                     )
                     Text(
                         "$downloadCount tracks • 24-bit Lossless",
                         fontSize = 11.sp,
-                        color = Color(0xFFCAC4D4),
+                        color = theme.muted,
                     )
 
                     Spacer(Modifier.height(12.dp))

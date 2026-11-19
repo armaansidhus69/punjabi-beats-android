@@ -92,7 +92,7 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         }
     }.isSuccess
 
-    fun themeMode(): Flow<String> = safeData.map { it[Keys.THEME_MODE] ?: "system" }
+    fun themeMode(): Flow<String> = safeData.map { it[Keys.THEME_MODE] ?: "dark" }
     suspend fun saveThemeMode(mode: String) = runCatching {
         context.pbDataStore.edit { it[Keys.THEME_MODE] = mode }
     }.isSuccess
