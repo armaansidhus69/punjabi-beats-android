@@ -174,7 +174,7 @@ fun SettingsScreen(
                     val isSelected = activeThemeId.equals(th.id, ignoreCase = true)
                     Box(
                         modifier = Modifier
-                            .width(88.dp)
+                            .width(96.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .background(if (isSelected) th.accent.copy(alpha = 0.22f) else theme.card)
                             .border(
@@ -193,7 +193,7 @@ fun SettingsScreen(
                                 th.name,
                                 fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) th.accent else theme.muted,
+                                color = if (isSelected) th.accent else theme.text,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -513,7 +513,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) theme.accent else theme.surface)
+                            .background(if (isSelected) theme.accent.copy(alpha = 0.22f) else theme.surface)
                             .border(1.dp, if (isSelected) theme.accent else theme.panel2, RoundedCornerShape(12.dp))
                             .clickable { viewModel.setLyricsAlignment(id) }
                             .padding(vertical = 10.dp),
@@ -523,7 +523,7 @@ fun SettingsScreen(
                             label,
                             fontSize = 13.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) theme.background else theme.text,
+                            color = if (isSelected) theme.accent else theme.text,
                         )
                     }
                 }
@@ -536,13 +536,13 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text("Font Size", style = MaterialTheme.typography.bodyMedium, color = theme.text)
-                Text("${lyricsTextSize.toInt()} sp", style = MaterialTheme.typography.bodyMedium, color = theme.accent, fontWeight = FontWeight.Bold)
+                Text("${lyricsTextSize.toInt()} sp", style = MaterialTheme.typography.bodyMedium, color = theme.secondary, fontWeight = FontWeight.Bold)
             }
             Slider(
                 value = lyricsTextSize,
                 onValueChange = viewModel::setLyricsTextSize,
                 valueRange = 16f..32f,
-                steps = 15,
+                steps = 0,
                 colors = SliderDefaults.colors(thumbColor = theme.accent, activeTrackColor = theme.accent),
             )
 
@@ -553,13 +553,13 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text("Line Spacing", style = MaterialTheme.typography.bodyMedium, color = theme.text)
-                Text("${lyricsLineSpacing.toInt()} dp", style = MaterialTheme.typography.bodyMedium, color = theme.accent, fontWeight = FontWeight.Bold)
+                Text("${lyricsLineSpacing.toInt()} dp", style = MaterialTheme.typography.bodyMedium, color = theme.secondary, fontWeight = FontWeight.Bold)
             }
             Slider(
                 value = lyricsLineSpacing,
                 onValueChange = viewModel::setLyricsLineSpacing,
                 valueRange = 4f..24f,
-                steps = 19,
+                steps = 0,
                 colors = SliderDefaults.colors(thumbColor = theme.accent, activeTrackColor = theme.accent),
             )
 
@@ -703,7 +703,7 @@ private fun ToggleRow(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedTrackColor = theme.accent,
-                checkedThumbColor = theme.background,
+                checkedThumbColor = Color.White,
                 uncheckedTrackColor = theme.surface,
                 uncheckedThumbColor = theme.muted,
             ),
@@ -725,14 +725,14 @@ private fun LabeledSlider(
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Text(label, style = MaterialTheme.typography.bodyLarge, color = theme.text, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-            Text(valueLabel, style = MaterialTheme.typography.bodyMedium, color = theme.accent, fontWeight = FontWeight.Bold)
+            Text(valueLabel, style = MaterialTheme.typography.bodyMedium, color = theme.secondary, fontWeight = FontWeight.Bold)
         }
         Slider(
             value = value,
             onValueChange = onValueChange,
             onValueChangeFinished = onValueChangeFinished,
             valueRange = valueRange,
-            steps = steps,
+            steps = 0,
             colors = androidx.compose.material3.SliderDefaults.colors(
                 thumbColor = theme.accent,
                 activeTrackColor = theme.accent,
