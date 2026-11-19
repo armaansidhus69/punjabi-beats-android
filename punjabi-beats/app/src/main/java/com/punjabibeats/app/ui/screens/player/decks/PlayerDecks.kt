@@ -360,6 +360,7 @@ fun LastWaveDeck(
                 Icon(Icons.Rounded.Equalizer, contentDescription = "EQ", tint = neonCyan)
             }
         }
+        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -520,6 +521,7 @@ fun BitChordDeck(
                 Icon(Icons.AutoMirrored.Rounded.QueueMusic, contentDescription = "Queue", tint = matrixGreen)
             }
         }
+        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -695,6 +697,7 @@ fun EchoMusicDeck(
                 Icon(Icons.Rounded.Lyrics, contentDescription = "Lyrics", tint = echoAqua)
             }
         }
+        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -929,5 +932,6 @@ fun ArchiveTuneDeck(
                 Icon(Icons.AutoMirrored.Rounded.QueueMusic, contentDescription = "Queue", tint = tapeBeige)
             }
         }
+        Spacer(Modifier.height(24.dp))
     }
 }

@@ -15,8 +15,8 @@ android {
         applicationId = "com.punjabibeats.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 12
-        versionName = "1.4.1"
+        versionCode = 13
+        versionName = "1.4.2"
         vectorDrawables { useSupportLibrary = true }
 
         buildConfigField("String", "BASE_URL", "\"https://punjabi-beats-api.vercel.app\"")

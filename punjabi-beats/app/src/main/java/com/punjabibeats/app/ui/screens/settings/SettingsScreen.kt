@@ -273,15 +273,6 @@ fun SettingsScreen(
             }
         }
 
-        SectionCard(title = "Status-Bar Mini Player") {
-            ToggleRow(
-                label = "Status-Bar Docked Mini Player",
-                subtitle = "Compact status-bar pill with expandable floating pop-up player card",
-                checked = dynamicIslandEnabled,
-                onCheckedChange = viewModel::setDynamicIslandEnabled,
-            )
-        }
-
         SectionCard(title = "Playback") {
             LabeledSlider(
                 label = "Tempo",

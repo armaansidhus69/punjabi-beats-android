@@ -211,7 +211,7 @@ private fun PlaylistTab(
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
-            .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+            .padding(bottom = 20.dp),
     ) {
         Spacer(Modifier.height(8.dp))
         Text(
@@ -427,7 +427,7 @@ private fun ChatTab(
             modifier = Modifier
                 .fillMaxWidth()
                 .imePadding()
-                .padding(bottom = bottomPadding.calculateBottomPadding()),
+                .padding(bottom = 4.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

@@ -56,7 +56,6 @@ import androidx.navigation.compose.rememberNavController
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.MiniPlayerBar
-import com.punjabibeats.app.ui.components.player.StatusBarMiniPlayer
 import com.punjabibeats.app.ui.navigation.AppNavHost
 import com.punjabibeats.app.ui.navigation.Routes
 import com.punjabibeats.app.ui.theme.LocalPBTheme
@@ -114,14 +113,6 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
                     modifier = androidx.compose.ui.Modifier.padding(innerPadding),
                 )
             }
-
-            if (currentRoute != Routes.PLAYER && currentRoute != Routes.CAR_DASHBOARD) {
-                StatusBarMiniPlayer(
-                    controller = playerController,
-                    onOpenPlayer = { navController.navigate(Routes.PLAYER) },
-                    onOpenEqualizer = { navController.navigate(Routes.EQUALIZER) },
-                )
-            }
         }
     }
 }
@@ -129,21 +120,16 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
 @Composable
 private fun PbBottomBar(currentRoute: String?, navController: androidx.navigation.NavHostController) {
     val theme = LocalPBTheme.current
-    val barColor = theme.surface.copy(alpha = 0.95f)
+    val barColor = theme.surface.copy(alpha = 0.96f)
 
     Surface(
         color = barColor,
-        tonalElevation = 4.dp,
+        tonalElevation = 6.dp,
         modifier = Modifier
             .fillMaxWidth()
             .border(
-                width = 1.dp,
-                brush = Brush.verticalGradient(
-                    listOf(
-                        theme.accent.copy(alpha = 0.25f),
-                        Color.Transparent,
-                    )
-                ),
+                width = 0.8.dp,
+                color = theme.panel2.copy(alpha = 0.6f),
                 shape = androidx.compose.ui.graphics.RectangleShape,
             )
             .navigationBarsPadding(),
@@ -151,57 +137,51 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
+                .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BottomDestination.entries.forEach { destination ->
                 val selected = currentRoute == destination.route
-                val pillShape = CircleShape
 
-                Box(
+                Column(
                     modifier = Modifier
-                        .height(48.dp)
-                        .clip(pillShape)
-                        .then(
-                            if (selected) {
-                                Modifier.background(
-                                    Brush.linearGradient(listOf(theme.accent, theme.secondary))
-                                )
-                            } else {
-                                Modifier.background(Color.Transparent)
-                            }
-                        )
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
                         .clickable {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+                            if (currentRoute != destination.route) {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         }
-                        .padding(horizontal = if (selected) 16.dp else 12.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.Center,
+                        .padding(vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (selected) theme.accent.copy(alpha = 0.18f) else Color.Transparent)
+                            .padding(horizontal = 12.dp, vertical = 3.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             destination.icon,
                             contentDescription = destination.label,
-                            tint = if (selected) Color.White else theme.muted,
-                            modifier = Modifier.size(22.dp),
+                            tint = if (selected) theme.accent else theme.muted,
+                            modifier = Modifier.size(23.dp),
                         )
-                        if (selected) {
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                destination.label,
-                                color = Color.White,
-                                fontSize = 10.5.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
                     }
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        destination.label,
+                        color = if (selected) theme.accent else theme.muted,
+                        fontSize = 10.5.sp,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        maxLines = 1,
+                    )
                 }
             }
         }

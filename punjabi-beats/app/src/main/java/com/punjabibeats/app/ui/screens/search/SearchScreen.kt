@@ -164,7 +164,7 @@ fun SearchScreen(
                 onClearRecent = viewModel::clearRecentSearches,
                 modifier = Modifier.weight(1f),
             )
-            Spacer(Modifier.height(bottomPadding.calculateBottomPadding() + 120.dp))
+            Spacer(Modifier.height(20.dp))
             return@Column
         }
 
@@ -469,7 +469,7 @@ private fun ResultsSection(
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+            .padding(bottom = 20.dp),
     ) {
         val showAll = state.tab == SearchTab.ALL
 

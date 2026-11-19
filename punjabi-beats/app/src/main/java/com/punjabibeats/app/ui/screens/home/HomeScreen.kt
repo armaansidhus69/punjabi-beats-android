@@ -181,24 +181,28 @@ private fun HomeTopBar(
             )
         }
 
-        // Compact Liquid Glass Brand Pill — Eliminates wasted vertical space to push discovery above the fold
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(theme.surface.copy(alpha = 0.85f))
-                .border(1.dp, theme.panel2.copy(alpha = 0.7f), RoundedCornerShape(20.dp))
-                .clickable { onOpenThemes?.invoke() }
-                .padding(horizontal = 14.dp, vertical = 6.dp),
+        // Signature Punjabi Beats Branding
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.clickable { onOpenThemes?.invoke() },
         ) {
-            Text("👑", fontSize = 14.sp)
-            Spacer(Modifier.width(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("👑", fontSize = 18.sp)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    "Punjabi Beats",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = theme.text,
+                    letterSpacing = 0.5.sp,
+                )
+            }
             Text(
-                "Punjabi Beats",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = theme.text,
-                letterSpacing = 0.5.sp,
+                "YOUR MUSIC • YOUR UNIVERSE",
+                fontSize = 8.5.sp,
+                fontWeight = FontWeight.Bold,
+                color = theme.accent,
+                letterSpacing = 2.sp,
             )
         }
 
@@ -315,7 +319,7 @@ private fun HomeContent(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+        contentPadding = PaddingValues(bottom = 20.dp),
     ) {
         // 1. Top Bar matching screenshot: ☰, 👑 Punjabi Beats, 🔔 with pink dot
         item {

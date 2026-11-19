@@ -276,7 +276,7 @@ fun PlaylistDetailScreen(
                 subtitle = "Add songs from search, or save AI playlists here.",
             )
         } else {
-            LazyColumn(contentPadding = PaddingValues(bottom = bottomPadding.calculateBottomPadding() + 130.dp)) {
+            LazyColumn(contentPadding = PaddingValues(bottom = 20.dp)) {
                 items(songs.size) { index ->
                     val song = songs[index]
                     SongRow(
@@ -313,7 +313,7 @@ private fun LikedTab(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+                .padding(bottom = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -352,7 +352,7 @@ private fun LikedTab(
         }
         return
     }
-    LazyColumn(contentPadding = PaddingValues(bottom = bottomPadding.calculateBottomPadding() + 130.dp)) {
+    LazyColumn(contentPadding = PaddingValues(bottom = 20.dp)) {
         item {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -406,7 +406,7 @@ private fun PlaylistsTab(
 ) {
     val theme = LocalPBTheme.current
     Column(
-        modifier = Modifier.padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+        modifier = Modifier.padding(bottom = 20.dp),
     ) {
         Row(
             modifier = Modifier
@@ -486,7 +486,7 @@ private fun DownloadsTab(
         )
         return
     }
-    LazyColumn(contentPadding = PaddingValues(bottom = bottomPadding.calculateBottomPadding() + 130.dp)) {
+    LazyColumn(contentPadding = PaddingValues(bottom = 20.dp)) {
         items(uiState.downloads.size) { index ->
             val song = uiState.downloads[index]
             Column {
@@ -609,7 +609,7 @@ private fun LocalTab(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+                .padding(bottom = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -730,7 +730,7 @@ private fun LocalTab(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+                contentPadding = PaddingValues(bottom = 20.dp),
             ) {
                 itemsIndexed(filtered, key = { _, song -> song.id }) { index, song ->
                     SongRow(

@@ -119,7 +119,7 @@ private fun JamLobby(viewModel: JamViewModel, bottomPadding: PaddingValues) {
             .fillMaxSize()
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
-            .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+            .padding(bottom = 20.dp),
     ) {
         // Sunset Campfire Hero Header Banner
         Box(
@@ -267,7 +267,7 @@ private fun JamRoomContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = bottomPadding.calculateBottomPadding() + 130.dp),
+            .padding(bottom = 20.dp),
     ) {
         Row(
             modifier = Modifier
