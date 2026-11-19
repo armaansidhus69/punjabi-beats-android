@@ -330,7 +330,7 @@ fun SettingsScreen(
                         )
                         Text(
                             text = "DSP Matrix • Gaddi 808 & Dhol Presets",
-                            color = theme.accent,
+                            color = theme.muted,
                             fontSize = 12.sp,
                         )
                     }
@@ -363,7 +363,7 @@ fun SettingsScreen(
                         )
                         Text(
                             text = "Driver HUD • 80dp Transport • Fast Driver Picks",
-                            color = theme.accent,
+                            color = theme.muted,
                             fontSize = 12.sp,
                         )
                     }
@@ -396,7 +396,7 @@ fun SettingsScreen(
                         )
                         Text(
                             text = "Soundstage Fader • Cabin Delays • 68Hz Null Fix",
-                            color = theme.accent,
+                            color = theme.muted,
                             fontSize = 12.sp,
                         )
                     }
@@ -660,7 +660,7 @@ private fun SectionCard(
     Text(
         title,
         style = MaterialTheme.typography.titleMedium,
-        color = theme.accent,
+        color = theme.text,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
     )

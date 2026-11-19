@@ -137,14 +137,14 @@ fun LibraryScreen(
                     "Library",
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
-                    color = theme.accent,
+                    color = theme.text,
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = onOpenPodcasts) {
-                    Icon(Icons.Rounded.CloudDownload, contentDescription = "Podcasts", tint = theme.accent)
+                    Icon(Icons.Rounded.CloudDownload, contentDescription = "Podcasts", tint = theme.text)
                 }
                 IconButton(onClick = onOpenSettings) {
-                    Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = theme.accent)
+                    Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = theme.text)
                 }
             }
         }
@@ -164,7 +164,7 @@ fun LibraryScreen(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(if (isSelected) theme.accent else theme.surface)
+                        .background(if (isSelected) theme.accent.copy(alpha = 0.22f) else theme.surface)
                         .border(1.dp, if (isSelected) theme.accent else theme.panel2, RoundedCornerShape(20.dp))
                         .clickable { selectedTab = tab.index }
                         .padding(vertical = 10.dp),
@@ -172,7 +172,7 @@ fun LibraryScreen(
                 ) {
                     Text(
                         tab.label,
-                        color = if (isSelected) theme.background else theme.text,
+                        color = if (isSelected) theme.accent else theme.muted,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         fontSize = 14.sp,
                     )
@@ -373,7 +373,7 @@ private fun LikedTab(
                     Icon(
                         Icons.Rounded.PlayArrow,
                         contentDescription = "Play all",
-                        tint = theme.background,
+                        tint = Color.White,
                     )
                 }
                 Spacer(Modifier.width(14.dp))
@@ -865,7 +865,7 @@ private fun LibraryHeroCarousel(
                             Icon(
                                 Icons.Rounded.PlayArrow,
                                 contentDescription = "Play Liked",
-                                tint = theme.background,
+                                tint = Color.White,
                                 modifier = Modifier.size(20.dp),
                             )
                         }

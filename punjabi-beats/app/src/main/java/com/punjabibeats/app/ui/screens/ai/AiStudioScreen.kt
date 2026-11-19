@@ -114,7 +114,7 @@ fun AiStudioScreen(
                     "✨ AI Studio",
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
-                    color = theme.accent,
+                    color = theme.text,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -163,7 +163,8 @@ private fun AiTabs(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(if (isSelected) theme.accent else Color.Transparent)
+                        .background(if (isSelected) theme.accent.copy(alpha = 0.22f) else Color.Transparent)
+                        .border(1.dp, if (isSelected) theme.accent else Color.Transparent, RoundedCornerShape(20.dp))
                         .clickable { selected = index }
                         .padding(vertical = 12.dp),
                     contentAlignment = Alignment.Center,
@@ -172,7 +173,7 @@ private fun AiTabs(
                         label,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (isSelected) theme.background else theme.text,
+                        color = if (isSelected) theme.accent else theme.muted,
                     )
                 }
             }
@@ -292,14 +293,14 @@ private fun PlaylistTab(
             onClick = { viewModel.generatePlaylist() },
             enabled = uiState.playlistState !is UiState.Loading,
             shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = theme.background),
+            colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = Color.White),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .height(48.dp),
         ) {
             if (uiState.playlistState is UiState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.background)
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
                 Spacer(Modifier.width(10.dp))
                 Text("✨ Composing…", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             } else {

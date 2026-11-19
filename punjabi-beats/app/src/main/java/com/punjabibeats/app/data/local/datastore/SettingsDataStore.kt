@@ -79,7 +79,7 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
         val version = prefs[Keys.THEME_VERSION] ?: 1
         val saved = prefs[Keys.THEME_ID]
         // Automatic upgrade: upgrade legacy theme IDs to Sunset Glow ("sunset_glow")
-        if (version < 3) {
+        if (version < 4) {
             "sunset_glow"
         } else {
             saved ?: "sunset_glow"
@@ -88,7 +88,7 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
     suspend fun saveThemeId(themeId: String) = runCatching {
         context.pbDataStore.edit {
             it[Keys.THEME_ID] = themeId
-            it[Keys.THEME_VERSION] = 3
+            it[Keys.THEME_VERSION] = 4
         }
     }.isSuccess
 

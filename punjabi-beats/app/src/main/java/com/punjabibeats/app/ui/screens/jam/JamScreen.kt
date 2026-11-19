@@ -133,7 +133,7 @@ private fun JamLobby(viewModel: JamViewModel, bottomPadding: PaddingValues) {
                     "👥 Jam Rooms",
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
-                    color = theme.accent,
+                    color = theme.text,
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
@@ -161,10 +161,10 @@ private fun JamLobby(viewModel: JamViewModel, bottomPadding: PaddingValues) {
                     enabled = !uiState.connecting,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = theme.background),
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = Color.White),
                 ) {
                     if (uiState.connecting) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.background)
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
                     } else {
                         Text("Create Room", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
@@ -216,7 +216,7 @@ private fun JamLobby(viewModel: JamViewModel, bottomPadding: PaddingValues) {
                     enabled = codeInput.length == JamViewModel.ROOM_CODE_LENGTH && !uiState.connecting,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = theme.background),
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.accent, contentColor = Color.White),
                 ) {
                     Text("Join Room", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }

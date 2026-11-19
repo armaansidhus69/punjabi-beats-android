@@ -107,7 +107,7 @@ fun SearchScreen(
                     "Search",
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
-                    color = theme.accent,
+                    color = theme.text,
                 )
             }
         }
@@ -132,7 +132,7 @@ fun SearchScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(if (isSelected) theme.accent else theme.panel)
+                        .background(if (isSelected) theme.accent.copy(alpha = 0.22f) else theme.surface)
                         .border(1.dp, if (isSelected) theme.accent else theme.panel2, RoundedCornerShape(20.dp))
                         .clickable { viewModel.setTab(item.tab) }
                         .padding(horizontal = 14.dp, vertical = 8.dp),
@@ -140,13 +140,13 @@ fun SearchScreen(
                     Icon(
                         item.icon,
                         contentDescription = item.label,
-                        tint = if (isSelected) theme.background else theme.muted,
+                        tint = if (isSelected) theme.accent else theme.muted,
                         modifier = Modifier.size(16.dp),
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
                         item.label,
-                        color = if (isSelected) theme.background else theme.text,
+                        color = if (isSelected) theme.accent else theme.text,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         fontSize = 13.sp,
                     )

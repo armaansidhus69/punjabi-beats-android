@@ -252,13 +252,18 @@ fun SongRow(
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .border(1.5.dp, theme.accent, CircleShape),
+                .background(if (isPlaying) theme.accent.copy(alpha = 0.2f) else Color.Transparent)
+                .border(
+                    1.dp,
+                    if (isPlaying) theme.accent else theme.muted.copy(alpha = 0.35f),
+                    CircleShape,
+                ),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 if (isPlaying) Icons.Rounded.Pause else Icons.Filled.PlayArrow,
                 contentDescription = if (isPlaying) "Pause" else "Play",
-                tint = theme.accent,
+                tint = if (isPlaying) theme.accent else theme.text,
                 modifier = Modifier.size(18.dp),
             )
         }

@@ -72,7 +72,7 @@ object DesignTokens {
     val AuroraBg = Color(0xFF070514)
     val AuroraSurface = Color(0xFF110C24)
     val AuroraCard = Color(0xFF1B1438)
-    val AuroraAccent = Color(0xFFE040FB)         // Luminous Magenta
+    val AuroraAccent = Color(0xFF9D4EDD)         // Luminous Electric Violet
     val AuroraSecondary = Color(0xFF536DFE)      // Electric Indigo
     val AuroraText = Color(0xFFFFFFFF)
     val AuroraMuted = Color(0xFFAFA7CE)
