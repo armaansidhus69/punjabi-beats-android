@@ -75,6 +75,7 @@ import com.punjabibeats.app.domain.model.JAM_REACTIONS
 import com.punjabibeats.app.ui.components.ArtworkThumb
 import com.punjabibeats.app.ui.components.GlassCard
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
+import com.punjabibeats.app.ui.components.PremiumScreenHeader
 import com.punjabibeats.app.ui.components.ReactionsOverlay
 import com.punjabibeats.app.ui.components.SectionHeader
 import com.punjabibeats.app.ui.components.SongRow
@@ -121,28 +122,11 @@ private fun JamLobby(viewModel: JamViewModel, bottomPadding: PaddingValues) {
             .verticalScroll(rememberScrollState())
             .padding(bottom = 20.dp),
     ) {
-        // Sunset Campfire Hero Header Banner
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(theme.heroGradient)
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-        ) {
-            Column {
-                Text(
-                    "👥 Jam Rooms",
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = theme.text,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "Listen together, perfectly in sync. One person hosts, everyone hears the same millisecond.",
-                    color = theme.muted,
-                    fontSize = 15.sp,
-                )
-            }
-        }
+        PremiumScreenHeader(
+            title = "Jam together",
+            subtitle = "Share the same beat, wherever your friends are.",
+            eyebrow = "LISTENING, TOGETHER",
+        )
 
         Spacer(Modifier.height(18.dp))
 

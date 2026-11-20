@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Brush
@@ -120,16 +122,16 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
 @Composable
 private fun PbBottomBar(currentRoute: String?, navController: androidx.navigation.NavHostController) {
     val theme = LocalPBTheme.current
-    val barColor = theme.surface.copy(alpha = 0.96f)
+    val barColor = theme.background.copy(alpha = 0.98f)
 
     Surface(
         color = barColor,
-        tonalElevation = 6.dp,
+        tonalElevation = 0.dp,
         modifier = Modifier
             .fillMaxWidth()
             .border(
                 width = 0.8.dp,
-                color = theme.panel2.copy(alpha = 0.6f),
+                color = theme.panel2.copy(alpha = 0.34f),
                 shape = androidx.compose.ui.graphics.RectangleShape,
             )
             .navigationBarsPadding(),
@@ -137,11 +139,15 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
+                .padding(top = 7.dp, bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BottomDestination.entries.forEach { destination ->
                 val selected = currentRoute == destination.route
+                val iconScale by animateFloatAsState(
+                    targetValue = if (selected) 1.08f else 1f,
+                    label = "${destination.label}NavScale",
+                )
 
                 Column(
                     modifier = Modifier
@@ -156,29 +162,29 @@ private fun PbBottomBar(currentRoute: String?, navController: androidx.navigatio
                                 }
                             }
                         }
-                        .padding(vertical = 4.dp),
+                        .padding(vertical = 2.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(if (selected) theme.accent.copy(alpha = 0.18f) else Color.Transparent)
-                            .padding(horizontal = 12.dp, vertical = 3.dp),
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (selected) theme.accent.copy(alpha = 0.17f) else Color.Transparent)
+                            .padding(horizontal = 15.dp, vertical = 4.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             destination.icon,
                             contentDescription = destination.label,
                             tint = if (selected) theme.accent else theme.muted,
-                            modifier = Modifier.size(23.dp),
+                            modifier = Modifier.size(21.dp).scale(iconScale),
                         )
                     }
                     Spacer(Modifier.height(2.dp))
                     Text(
                         destination.label,
                         color = if (selected) theme.accent else theme.muted,
-                        fontSize = 10.5.sp,
+                        fontSize = 10.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                         maxLines = 1,
                     )

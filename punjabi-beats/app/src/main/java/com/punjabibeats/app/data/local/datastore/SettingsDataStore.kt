@@ -78,7 +78,7 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
     fun themeId(): Flow<String> = safeData.map { prefs ->
         val version = prefs[Keys.THEME_VERSION] ?: 1
         val saved = prefs[Keys.THEME_ID]
-        // Automatic upgrade: upgrade legacy theme IDs to Sunset Glow ("sunset_glow")
+        // Automatic upgrade: upgrade legacy theme IDs to Punjabi Royale ("sunset_glow")
         if (version < 4) {
             "sunset_glow"
         } else {

@@ -177,7 +177,7 @@ private fun HomeTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 7.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -188,7 +188,7 @@ private fun HomeTopBar(
         ) {
             Box(
                 modifier = Modifier
-                    .size(38.dp)
+                    .size(34.dp)
                     .clip(CircleShape)
                     .background(theme.surface)
                     .border(1.dp, theme.panel2.copy(alpha = 0.6f), CircleShape),
@@ -196,11 +196,11 @@ private fun HomeTopBar(
             ) {
                 Text("👑", fontSize = 18.sp)
             }
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(8.dp))
             Column {
                 Text(
                     "Punjabi Beats",
-                    fontSize = 19.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = theme.text,
                     letterSpacing = 0.3.sp,
@@ -223,46 +223,46 @@ private fun HomeTopBar(
             // 🎨 Themes
             IconButton(
                 onClick = { onOpenThemes?.invoke() },
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(32.dp),
             ) {
                 Icon(
                     Icons.Rounded.Palette,
                     contentDescription = "Themes",
                     tint = theme.text,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(18.dp),
                 )
             }
 
             // 🚗 Car Mode
             IconButton(
                 onClick = { onOpenCarMode?.invoke() },
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(32.dp),
             ) {
                 Icon(
                     Icons.Rounded.DirectionsCar,
                     contentDescription = "Car Mode",
                     tint = theme.text,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(18.dp),
                 )
             }
 
             // ⚙️ Settings
             IconButton(
                 onClick = { onOpenSettings?.invoke() },
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(32.dp),
             ) {
                 Icon(
                     Icons.Rounded.Settings,
                     contentDescription = "Settings",
                     tint = theme.text,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(18.dp),
                 )
             }
 
             // 🔔 Notification Bell with unread dot
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(32.dp)
                     .clickable(onClick = onNotificationClick),
                 contentAlignment = Alignment.Center,
             ) {
@@ -270,7 +270,7 @@ private fun HomeTopBar(
                     Icons.Rounded.NotificationsNone,
                     contentDescription = "Notifications",
                     tint = theme.text,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(18.dp),
                 )
                 Box(
                     modifier = Modifier

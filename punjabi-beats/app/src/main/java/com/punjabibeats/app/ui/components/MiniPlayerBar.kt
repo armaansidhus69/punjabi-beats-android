@@ -34,8 +34,10 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -134,16 +136,16 @@ fun MiniPlayerBar(
         val song = currentSong ?: return@AnimatedVisibility
         val progress = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
 
-        val pillShape = RoundedCornerShape(22.dp)
+        val pillShape = RoundedCornerShape(18.dp)
         val miniBackground = Brush.horizontalGradient(
-            listOf(theme.card.copy(alpha = 0.95f), theme.surface.copy(alpha = 0.95f))
+            listOf(theme.card.copy(alpha = 0.98f), theme.surface.copy(alpha = 0.98f))
         )
-        val miniBorderColor = Color.White.copy(alpha = 0.12f)
+        val miniBorderColor = theme.accent.copy(alpha = 0.28f)
         val miniBorderWidth = 1.dp
 
         Column(
             modifier = Modifier
-                .padding(horizontal = 14.dp, vertical = 6.dp)
+                .padding(horizontal = 12.dp, vertical = 5.dp)
                 .clip(pillShape)
                 .background(miniBackground)
                 .border(miniBorderWidth, miniBorderColor, pillShape)
@@ -153,9 +155,9 @@ fun MiniPlayerBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 12.dp, end = 6.dp, top = 8.dp, bottom = 8.dp),
+                    .padding(start = 9.dp, end = 5.dp, top = 7.dp, bottom = 7.dp),
             ) {
-                ArtworkThumb(url = song.artworkUrl, size = 48.dp, cornerRadius = 14.dp)
+                ArtworkThumb(url = song.artworkUrl, size = 44.dp, cornerRadius = 12.dp)
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -165,14 +167,14 @@ fun MiniPlayerBar(
                         song.title,
                         color = theme.text,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         song.artist,
                         color = theme.muted,
-                        fontSize = 12.sp,
+                        fontSize = 11.5.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -193,9 +195,13 @@ fun MiniPlayerBar(
                         modifier = Modifier.size(20.dp),
                     )
                 }
-                IconButton(
+                FilledIconButton(
                     onClick = { controller.playPause() },
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(38.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = theme.accent,
+                        contentColor = Color.White,
+                    ),
                 ) {
                     if (isBuffering) {
                         CircularProgressIndicator(
@@ -228,7 +234,7 @@ fun MiniPlayerBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(2.dp)
-                    .padding(horizontal = 14.dp)
+                    .padding(horizontal = 10.dp)
                     .clip(RoundedCornerShape(2.dp))
                     .background(Color.White.copy(alpha = 0.08f)),
             ) {
@@ -236,7 +242,7 @@ fun MiniPlayerBar(
                     modifier = Modifier
                         .fillMaxWidth(progress)
                         .height(2.dp)
-                        .background(theme.accent)
+                    .background(Brush.horizontalGradient(listOf(theme.accent, theme.secondary)))
                 )
             }
         }

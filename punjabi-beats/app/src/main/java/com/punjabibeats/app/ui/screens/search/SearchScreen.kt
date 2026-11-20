@@ -63,6 +63,7 @@ import com.punjabibeats.app.domain.model.ArtistCard
 import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.ArtworkThumb
+import com.punjabibeats.app.ui.components.PremiumScreenHeader
 import com.punjabibeats.app.ui.components.PbLoading
 import com.punjabibeats.app.ui.components.SongRow
 import com.punjabibeats.app.ui.theme.LocalPBTheme
@@ -95,22 +96,7 @@ fun SearchScreen(
             .fillMaxSize()
             .statusBarsPadding(),
     ) {
-        // Themed Skyline Header
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(theme.heroGradient)
-                .padding(horizontal = 20.dp, vertical = 14.dp),
-        ) {
-            Column {
-                Text(
-                    "Search",
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = theme.text,
-                )
-            }
-        }
+        PremiumScreenHeader("Discover", "Find the next track for your mood.")
 
         // Pill Search Bar
         SearchField(

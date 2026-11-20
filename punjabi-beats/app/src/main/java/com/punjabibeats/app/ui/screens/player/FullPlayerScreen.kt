@@ -413,9 +413,9 @@ fun FullPlayerScreen(
                             )
                         }
                         Text(
-                            "//  NOW PLAYING  //",
-                            fontSize = 12.sp,
-                            color = theme.accent,
+                            "PUNJABI BEATS  •  NOW PLAYING",
+                            fontSize = 10.sp,
+                            color = theme.secondary,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp,
                             modifier = Modifier.weight(1f),
@@ -543,7 +543,7 @@ fun FullPlayerScreen(
                     Text(
                         song?.title ?: "Nothing playing",
                         style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White,
+                        color = theme.text,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -551,7 +551,7 @@ fun FullPlayerScreen(
                     Text(
                         song?.artist ?: "Pick a track to start the party",
                         fontSize = 15.sp,
-                        color = theme.accent,
+                        color = theme.secondary,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

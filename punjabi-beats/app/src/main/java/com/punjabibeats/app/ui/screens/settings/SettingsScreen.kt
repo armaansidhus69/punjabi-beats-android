@@ -104,6 +104,13 @@ fun SettingsScreen(
             Spacer(Modifier.width(4.dp))
             Column {
                 Text(
+                    "PUNJABI BEATS  •  LISTEN YOUR WAY",
+                    color = theme.secondary,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.1.sp,
+                )
+                Text(
                     "Settings",
                     color = theme.text,
                     fontSize = 24.sp,

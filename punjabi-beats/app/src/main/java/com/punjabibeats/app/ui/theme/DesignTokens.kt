@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * Design tokens matching the 7 modern aesthetic styles from user mockups:
- * 1. Sunset Glow & Cyber Glass (Screenshots 1 & 2)
+ * 1. Punjabi Royale (midnight plum, aurora violet, and dhol gold)
  * 2. AI Mood Studio (Screenshot 2)
  * 3. Aquamarine Frosted Glass (Screenshot 3)
  * 4. Cloud Blue Neumorphic (Screenshot 4)
@@ -14,14 +14,14 @@ import androidx.compose.ui.graphics.Color
  * 7. Electric Aurora & Waves (Screenshot 7)
  */
 object DesignTokens {
-    // 1. Sunset Glow & Cyber Glass
-    val SunsetBg = Color(0xFF09080E)
-    val SunsetSurface = Color(0xFF15131C)
-    val SunsetCard = Color(0xFF1F1C29)
-    val SunsetAccent = Color(0xFFFF5E3A)       // Coral Orange
-    val SunsetSecondary = Color(0xFFFFA048)    // Peach Gold
-    val SunsetText = Color(0xFFFFFFFF)
-    val SunsetMuted = Color(0xFFA5A0B5)
+    // Punjabi Royale: midnight plum, aurora violet, and a restrained dhol-gold accent.
+    val SunsetBg = Color(0xFF090811)
+    val SunsetSurface = Color(0xFF13111D)
+    val SunsetCard = Color(0xFF1D1928)
+    val SunsetAccent = Color(0xFFB77AFF)
+    val SunsetSecondary = Color(0xFFE8BF72)
+    val SunsetText = Color(0xFFF8F5FC)
+    val SunsetMuted = Color(0xFFA9A3B5)
 
     // 2. AI Mood Studio
     val MoodBg = Color(0xFF0D0B12)

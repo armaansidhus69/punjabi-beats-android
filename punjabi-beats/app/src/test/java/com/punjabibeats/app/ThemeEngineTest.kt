@@ -12,11 +12,11 @@ import org.junit.Test
 class ThemeEngineTest {
 
     @Test
-    fun defaultThemeMatchesSunsetGlowPalette() {
+    fun defaultThemeMatchesPunjabiRoyalePalette() {
         val defaultTheme = pbThemeById(null)
         assertNotNull(defaultTheme)
-        assertEquals("Sunset Glow", defaultTheme.name)
-        assertEquals("🌅", defaultTheme.emoji)
+        assertEquals("Punjabi Royale", defaultTheme.name)
+        assertEquals("👑", defaultTheme.emoji)
         assertEquals(DesignTokens.SunsetAccent, defaultTheme.accent)
         assertEquals(DesignTokens.SunsetBg, defaultTheme.background)
         assertEquals(DesignTokens.SunsetSurface, defaultTheme.surface)
@@ -26,9 +26,9 @@ class ThemeEngineTest {
     }
 
     @Test
-    fun sunsetGlowThemeResolvableById() {
+    fun punjabiRoyaleThemeResolvableByLegacyId() {
         val theme = pbThemeById("sunset_glow")
-        assertEquals("Sunset Glow", theme.name)
+        assertEquals("Punjabi Royale", theme.name)
         assertEquals(DesignTokens.SunsetAccent, theme.accent)
     }
 

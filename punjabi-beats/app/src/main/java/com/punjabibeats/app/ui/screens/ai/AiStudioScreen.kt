@@ -65,6 +65,7 @@ import com.punjabibeats.app.domain.model.AiMessage
 import com.punjabibeats.app.domain.model.AiRole
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.ArtworkThumb
+import com.punjabibeats.app.ui.components.PremiumScreenHeader
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.PbLoading
 import com.punjabibeats.app.ui.theme.LocalPBTheme
@@ -102,28 +103,11 @@ fun AiStudioScreen(
             .background(theme.background)
             .statusBarsPadding(),
     ) {
-        // Sunset Skyline Hero Header
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(theme.heroGradient)
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-        ) {
-            Column {
-                Text(
-                    "✨ AI Studio",
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = theme.text,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Create playlists, get song suggestions & chat with your music assistant.",
-                    color = theme.muted,
-                    fontSize = 15.sp,
-                )
-            }
-        }
+        PremiumScreenHeader(
+            title = "AI Studio",
+            subtitle = "Shape a playlist around the way you feel.",
+            eyebrow = "YOUR SOUND, REIMAGINED",
+        )
 
         AiTabs(
             viewModel = viewModel,

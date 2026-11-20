@@ -63,10 +63,10 @@ data class PBTheme(
     } else when (id) {
         "sunset_glow" -> Brush.verticalGradient(
             listOf(
-                Color(0xFF38151D),
-                Color(0xFF26101B),
-                Color(0xFF140A18),
-                Color(0xFF09080E).copy(alpha = 0.5f),
+                Color(0xFF28183D),
+                Color(0xFF20142E),
+                Color(0xFF15101F),
+                Color(0xFF090811).copy(alpha = 0.5f),
                 background,
             )
         )
@@ -134,12 +134,12 @@ data class PBTheme(
     }
 }
 
-/** Exactly 7 Next-Gen Glass & Glow Themes matching user design mockups. */
+/** Seven player themes, led by the Punjabi Royale default. */
 val PBThemes = listOf(
     PBTheme(
         id = "sunset_glow",
-        name = "Sunset Glow",
-        emoji = "🌅",
+        name = "Punjabi Royale",
+        emoji = "👑",
         background = DesignTokens.SunsetBg,
         surface = DesignTokens.SunsetSurface,
         card = DesignTokens.SunsetCard,
@@ -147,7 +147,7 @@ val PBThemes = listOf(
         secondary = DesignTokens.SunsetSecondary,
         text = DesignTokens.SunsetText,
         muted = DesignTokens.SunsetMuted,
-        tagline = "Obsidian Glass • Neon Sunset Coral & AI Glow",
+        tagline = "Midnight plum • aurora violet • dhol gold",
         style = PlayerStyle.SUNSET_GLASS,
     ),
     PBTheme(

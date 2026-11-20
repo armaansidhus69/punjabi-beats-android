@@ -76,6 +76,7 @@ import com.punjabibeats.app.data.local.LocalMusicScanner
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.EmptyState
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
+import com.punjabibeats.app.ui.components.PremiumScreenHeader
 import com.punjabibeats.app.ui.components.SongRow
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 
@@ -115,39 +116,18 @@ fun LibraryScreen(
             .background(theme.background)
             .statusBarsPadding(),
     ) {
-        // Sunset Skyline Header with Icons
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(theme.heroGradient)
-                .padding(horizontal = 20.dp, vertical = 14.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.Rounded.Folder,
-                    contentDescription = null,
-                    tint = theme.accent,
-                    modifier = Modifier.size(32.dp),
-                )
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    "Library",
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = theme.text,
-                    modifier = Modifier.weight(1f),
-                )
+        PremiumScreenHeader(
+            title = "Your Library",
+            subtitle = "Your saved sounds, ready when you are.",
+            actions = {
                 IconButton(onClick = onOpenPodcasts) {
-                    Icon(Icons.Rounded.CloudDownload, contentDescription = "Podcasts", tint = theme.text)
+                    Icon(Icons.Rounded.CloudDownload, contentDescription = "Podcasts", tint = theme.muted)
                 }
                 IconButton(onClick = onOpenSettings) {
-                    Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = theme.text)
+                    Icon(Icons.Rounded.Settings, contentDescription = "Settings", tint = theme.muted)
                 }
-            }
-        }
+            },
+        )
 
         Spacer(Modifier.height(10.dp))
 
