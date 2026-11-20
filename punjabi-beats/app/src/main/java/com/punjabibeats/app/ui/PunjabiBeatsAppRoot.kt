@@ -58,6 +58,7 @@ import androidx.navigation.compose.rememberNavController
 import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
 import com.punjabibeats.app.ui.components.MiniPlayerBar
+import com.punjabibeats.app.ui.components.dock.FloatingGlassNavBar
 import com.punjabibeats.app.ui.navigation.AppNavHost
 import com.punjabibeats.app.ui.navigation.Routes
 import com.punjabibeats.app.ui.theme.LocalPBTheme
@@ -104,7 +105,16 @@ fun PunjabiBeatsAppRoot(playerController: MusicPlayerController) {
                             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
                         ) {
-                            PbBottomBar(currentRoute = currentRoute, navController = navController)
+                            FloatingGlassNavBar(
+                                currentRoute = currentRoute,
+                                onTabSelected = { route ->
+                                    navController.navigate(route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                            )
                         }
                     }
                 },

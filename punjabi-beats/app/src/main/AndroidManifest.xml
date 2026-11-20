@@ -67,5 +67,32 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- Home Screen Widgets (BitChord Section 7 Architecture) -->
+        <receiver
+            android:name=".widget.PunjabiBeatsSquareWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.punjabibeats.app.ACTION_WIDGET_PLAY_PAUSE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_media_square_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.PunjabiBeatsWideWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.punjabibeats.app.ACTION_WIDGET_PLAY_PAUSE" />
+                <action android:name="com.punjabibeats.app.ACTION_WIDGET_NEXT" />
+                <action android:name="com.punjabibeats.app.ACTION_WIDGET_PREV" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_media_wide_info" />
+        </receiver>
     </application>
 </manifest>

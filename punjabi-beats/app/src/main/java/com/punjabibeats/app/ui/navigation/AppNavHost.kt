@@ -32,6 +32,7 @@ import com.punjabibeats.app.ui.screens.library.PlaylistDetailScreen
 import com.punjabibeats.app.ui.screens.lyrics.LyricsScreen
 import com.punjabibeats.app.ui.screens.player.FullPlayerScreen
 import com.punjabibeats.app.ui.screens.podcast.PodcastScreen
+import com.punjabibeats.app.ui.screens.replay.ReplayScreen
 import com.punjabibeats.app.ui.screens.search.SearchScreen
 import com.punjabibeats.app.ui.screens.settings.SettingsScreen
 import com.punjabibeats.app.ui.screens.theme.ThemeStudioScreen
@@ -67,6 +68,7 @@ fun AppNavHost(
                 onOpenEqualizer = { navController.navigate(Routes.EQUALIZER) },
                 onOpenPodcasts = { navController.navigate(Routes.PODCASTS) },
                 onOpenJam = { navController.navigate(Routes.JAM) },
+                onOpenReplay = { navController.navigate(Routes.REPLAY) },
                 bottomPadding = NoPadding,
             )
         }
@@ -129,6 +131,13 @@ fun AppNavHost(
         }
         composable(Routes.THEMES) {
             ThemeStudioScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            route = Routes.REPLAY,
+            enterTransition = { slideInVertically(tween(320)) { it } + fadeIn(tween(320)) },
+            popExitTransition = { slideOutVertically(tween(280)) { it } + fadeOut(tween(280)) },
+        ) {
+            ReplayScreen(onClose = { navController.popBackStack() })
         }
         composable(
             route = Routes.PLAYLIST_DETAIL,

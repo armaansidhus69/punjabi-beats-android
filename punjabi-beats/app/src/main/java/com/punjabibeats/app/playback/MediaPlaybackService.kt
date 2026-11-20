@@ -117,6 +117,16 @@ class MediaPlaybackService : MediaSessionService() {
             }
         })
         player.addListener(object : androidx.media3.common.Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                val song = player.currentMediaItem?.toSong()
+                com.punjabibeats.app.widget.BasePunjabiBeatsWidgetProvider.updateAllWidgets(
+                    this@MediaPlaybackService,
+                    song?.title,
+                    song?.artist,
+                    isPlaying,
+                )
+            }
+
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == androidx.media3.common.Player.STATE_READY) {
                     val currentSongId = player.currentMediaItem?.toSong()?.id
@@ -142,6 +152,13 @@ class MediaPlaybackService : MediaSessionService() {
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 crossfadeProcessor.onTrackChanged(player.duration.coerceAtLeast(0L))
+                val transitionSong = mediaItem?.toSong() ?: player.currentMediaItem?.toSong()
+                com.punjabibeats.app.widget.BasePunjabiBeatsWidgetProvider.updateAllWidgets(
+                    this@MediaPlaybackService,
+                    transitionSong?.title,
+                    transitionSong?.artist,
+                    player.isPlaying,
+                )
                 val currentIdx = player.currentMediaItemIndex
                 if (currentIdx in 0 until player.mediaItemCount) {
                     val currentItem = player.getMediaItemAt(currentIdx)
@@ -277,6 +294,24 @@ class MediaPlaybackService : MediaSessionService() {
     @OptIn(UnstableApi::class)
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val player = mediaSession?.player
+        if (player != null && intent?.action == ACTION_PLAYBACK_COMMAND) {
+            when (intent.getStringExtra(EXTRA_COMMAND)) {
+                com.punjabibeats.app.widget.BasePunjabiBeatsWidgetProvider.ACTION_PLAY_PAUSE -> {
+                    if (player.isPlaying) player.pause() else player.play()
+                }
+                com.punjabibeats.app.widget.BasePunjabiBeatsWidgetProvider.ACTION_NEXT -> {
+                    if (player.hasNextMediaItem()) player.seekToNext()
+                }
+                com.punjabibeats.app.widget.BasePunjabiBeatsWidgetProvider.ACTION_PREV -> {
+                    if (player.hasPreviousMediaItem()) player.seekToPrevious()
+                }
+            }
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
     override fun onTaskRemoved(rootIntent: Intent?) {
         val player = mediaSession?.player
         if (player == null || !player.playWhenReady || player.mediaItemCount == 0) {
@@ -294,6 +329,11 @@ class MediaPlaybackService : MediaSessionService() {
         serviceScope.cancel()
         mainScope.cancel()
         super.onDestroy()
+    }
+
+    companion object {
+        const val ACTION_PLAYBACK_COMMAND = "com.punjabibeats.app.ACTION_PLAYBACK_COMMAND"
+        const val EXTRA_COMMAND = "command"
     }
 
     /**

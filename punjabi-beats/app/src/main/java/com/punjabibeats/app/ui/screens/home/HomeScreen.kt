@@ -101,6 +101,7 @@ fun HomeScreen(
     onOpenEqualizer: (() -> Unit)? = null,
     onOpenPodcasts: (() -> Unit)? = null,
     onOpenJam: (() -> Unit)? = null,
+    onOpenReplay: (() -> Unit)? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val theme = LocalPBTheme.current
@@ -154,6 +155,7 @@ fun HomeScreen(
                 onOpenEqualizer = onOpenEqualizer,
                 onOpenPodcasts = onOpenPodcasts,
                 onOpenJam = onOpenJam,
+                onOpenReplay = onOpenReplay,
                 onMoodClick = { viewModel.playMood(it) },
                 onNotificationClick = {
                     scope.launch {
@@ -171,6 +173,7 @@ private fun HomeTopBar(
     onOpenThemes: (() -> Unit)?,
     onOpenCarMode: (() -> Unit)?,
     onOpenSettings: (() -> Unit)?,
+    onOpenReplay: (() -> Unit)? = null,
     onNotificationClick: () -> Unit = {},
 ) {
     val theme = LocalPBTheme.current
@@ -220,6 +223,15 @@ private fun HomeTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
+            // 📊 2026 Replay / Wrapped
+            if (onOpenReplay != null) {
+                IconButton(
+                    onClick = { onOpenReplay.invoke() },
+                    modifier = Modifier.size(32.dp),
+                ) {
+                    Text("📊", fontSize = 16.sp)
+                }
+            }
             // 🎨 Themes
             IconButton(
                 onClick = { onOpenThemes?.invoke() },
@@ -540,6 +552,7 @@ private fun HomeContent(
     onOpenEqualizer: (() -> Unit)? = null,
     onOpenPodcasts: (() -> Unit)? = null,
     onOpenJam: (() -> Unit)? = null,
+    onOpenReplay: (() -> Unit)? = null,
     onMoodClick: (com.punjabibeats.app.domain.model.MoodCategory) -> Unit,
     onNotificationClick: () -> Unit = {},
     bottomPadding: PaddingValues,
@@ -558,6 +571,7 @@ private fun HomeContent(
                 onOpenThemes = onOpenThemes,
                 onOpenCarMode = onOpenCarMode,
                 onOpenSettings = onOpenSettings,
+                onOpenReplay = onOpenReplay,
                 onNotificationClick = onNotificationClick,
             )
         }

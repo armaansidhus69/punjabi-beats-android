@@ -107,6 +107,13 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import com.punjabibeats.app.ui.theme.LocalPBTheme
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.runtime.CompositionLocalProvider
+import com.punjabibeats.app.ui.components.canvas.CanvasArtwork
+import com.punjabibeats.app.ui.components.canvas.CanvasArtworkPlayer
+import com.punjabibeats.app.ui.screens.player.decks.LandscapePlayerDeck
+import com.punjabibeats.app.ui.theme.rememberArtworkPalette
 import com.punjabibeats.app.ui.theme.PBTheme
 import com.punjabibeats.app.ui.theme.PlayerStyle
 import com.punjabibeats.app.ui.components.DitheredGradientBackground
@@ -202,6 +209,17 @@ fun FullPlayerScreen(
 ) {
     val theme = LocalPBTheme.current
     val player = viewModel.player
+
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || configuration.screenWidthDp >= 720
+    if (isLandscape) {
+        LandscapePlayerDeck(
+            controller = player,
+            onClose = onBack,
+        )
+        return
+    }
+
     val song by player.currentSong.collectAsStateWithLifecycle()
     val isPlaying by player.isPlaying.collectAsStateWithLifecycle()
     val isBuffering by player.isBuffering.collectAsStateWithLifecycle()
@@ -218,38 +236,22 @@ fun FullPlayerScreen(
         viewModel.events.collect { message -> snackbar.showSnackbar(message) }
     }
 
-    val context = LocalContext.current
-    var gradientColors by remember(theme) {
-        mutableStateOf(listOf(theme.panel2, theme.background, theme.background))
+    // BitChord Section 7: Dynamic Artwork-Driven Theming & Palette Extraction
+    val artworkPalette = rememberArtworkPalette(song?.artworkUrl)
+    val dynamicTheme = remember(theme, artworkPalette) {
+        theme.copy(
+            accent = artworkPalette.accent,
+            surface = artworkPalette.wash,
+            card = artworkPalette.elevated,
+        )
     }
-    LaunchedEffect(song?.artworkUrl, theme) {
-        val url = song?.artworkUrl ?: run {
-            gradientColors = listOf(theme.panel2, theme.background, theme.background)
-            return@LaunchedEffect
-        }
-        val request = ImageRequest.Builder(context)
-            .data(url)
-            .allowHardware(false)
-            .size(160)
-            .build()
-        val bitmap = runCatching {
-            (context.imageLoader.execute(request).drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
-        }.getOrNull()
-        if (bitmap != null) {
-            val (vibrant, dominant) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                val palette = Palette.from(bitmap).maximumColorCount(24).generate()
-                val dom = palette.getDominantColor(theme.panel2.toArgb())
-                val vib = palette.getVibrantColor(dom)
-                vib to dom
-            }
-            gradientColors = listOf(
-                Color(vibrant).copy(alpha = 0.85f),
-                Color(dominant).copy(alpha = 0.9f),
-                theme.background,
-            )
-        } else {
-            gradientColors = listOf(theme.panel2, theme.background, theme.background)
-        }
+
+    val gradientColors = remember(artworkPalette) {
+        listOf(
+            artworkPalette.accent.copy(alpha = 0.40f),
+            artworkPalette.wash.copy(alpha = 0.65f),
+            artworkPalette.background,
+        )
     }
 
     var showSleepSheet by remember { mutableStateOf(false) }
@@ -277,10 +279,28 @@ fun FullPlayerScreen(
         label = "artworkPulse",
     )
 
-    DitheredGradientBackground(
-        colors = gradientColors,
-        modifier = Modifier.fillMaxSize(),
-    ) {
+    CompositionLocalProvider(LocalPBTheme provides dynamicTheme) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // BitChord Section 7: Animated Motion Video Canvas
+            CanvasArtworkPlayer(
+                artwork = song?.let {
+                    CanvasArtwork(
+                        url = it.streamUrl ?: "",
+                        fallbackUrl = it.artworkUrl,
+                        title = it.title,
+                        artist = it.artist,
+                        album = it.albumName,
+                    )
+                },
+                isPlaying = isPlaying,
+                fallbackArtworkUrl = song?.artworkUrl,
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            DitheredGradientBackground(
+                colors = gradientColors,
+                modifier = Modifier.fillMaxSize(),
+            ) {
         when (activeDeck) {
             PlayerDeck.APPLE -> {
                 AppleMusicPlayerContent(
@@ -917,6 +937,8 @@ fun FullPlayerScreen(
                 onSelectStyle = { viewModel.setSeekbarStyle(it.id) },
                 onDismiss = { showSeekbarPicker = false },
             )
+        }
+    }
         }
     }
 }

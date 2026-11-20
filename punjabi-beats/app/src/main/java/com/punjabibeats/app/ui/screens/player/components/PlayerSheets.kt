@@ -57,6 +57,7 @@ import androidx.compose.animation.core.tween
 import com.punjabibeats.app.domain.model.Song
 import com.punjabibeats.app.playback.AudioFormatInfo
 import com.punjabibeats.app.ui.components.ArtworkThumb
+import com.punjabibeats.app.ui.components.glass.menuFrost
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 
 /** Sleep timer options: 15/30/45/60 minutes or end of the current track. */
@@ -194,7 +195,7 @@ fun QueueDrawer(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = theme.surface,
+        containerColor = menuFrost(theme.surface, alpha = 0.88f),
     ) {
         Column(
             modifier = Modifier
@@ -356,7 +357,7 @@ fun SongDnaSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = theme.surface,
+        containerColor = menuFrost(theme.surface, alpha = 0.88f),
     ) {
         Column(
             modifier = Modifier
@@ -513,7 +514,7 @@ fun EqualizerSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = theme.surface,
+        containerColor = menuFrost(theme.surface, alpha = 0.88f),
     ) {
         Column(
             modifier = Modifier

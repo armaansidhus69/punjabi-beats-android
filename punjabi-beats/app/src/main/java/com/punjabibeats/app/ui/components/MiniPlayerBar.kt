@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.punjabibeats.app.playback.MusicPlayerController
+import com.punjabibeats.app.ui.components.glass.LiquidGlassDefaults
 import com.punjabibeats.app.ui.screens.player.PlayerViewModel
 import com.punjabibeats.app.ui.theme.LocalPBTheme
 
@@ -136,19 +138,23 @@ fun MiniPlayerBar(
         val song = currentSong ?: return@AnimatedVisibility
         val progress = if (durationMs > 0) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
 
-        val pillShape = RoundedCornerShape(18.dp)
+        // BitChord Section 7: Frosted Glass UI with specular highlight rim
+        val pillShape = RoundedCornerShape(20.dp)
         val miniBackground = Brush.horizontalGradient(
-            listOf(theme.card.copy(alpha = 0.98f), theme.surface.copy(alpha = 0.98f))
+            listOf(theme.card.copy(alpha = 0.85f), theme.surface.copy(alpha = 0.88f))
         )
-        val miniBorderColor = theme.accent.copy(alpha = 0.28f)
-        val miniBorderWidth = 1.dp
 
         Column(
             modifier = Modifier
                 .padding(horizontal = 12.dp, vertical = 5.dp)
+                .shadow(elevation = 16.dp, shape = pillShape, ambientColor = Color.Black, spotColor = theme.accent.copy(alpha = 0.25f))
                 .clip(pillShape)
                 .background(miniBackground)
-                .border(miniBorderWidth, miniBorderColor, pillShape)
+                .border(
+                    width = LiquidGlassDefaults.EdgeWidth,
+                    brush = LiquidGlassDefaults.specularRim(theme.accent),
+                    shape = pillShape,
+                )
                 .clickable(onClick = onOpenPlayer),
         ) {
             Row(
