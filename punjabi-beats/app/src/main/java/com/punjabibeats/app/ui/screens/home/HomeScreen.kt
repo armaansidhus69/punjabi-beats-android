@@ -25,14 +25,18 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.DirectionsCar
+import androidx.compose.material.icons.rounded.Equalizer
+import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.NotificationsNone
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -68,7 +72,6 @@ import com.punjabibeats.app.playback.MusicPlayerController
 import com.punjabibeats.app.ui.components.ArtistCard
 import com.punjabibeats.app.ui.components.ErrorState
 import com.punjabibeats.app.ui.components.LocalPbSnackbar
-import com.punjabibeats.app.ui.components.MoodTile
 import com.punjabibeats.app.ui.components.PbLoading
 import com.punjabibeats.app.ui.components.SectionHeader
 import com.punjabibeats.app.ui.components.SongCard
@@ -94,6 +97,10 @@ fun HomeScreen(
     onOpenSearch: (() -> Unit)? = null,
     onOpenAiStudio: (() -> Unit)? = null,
     onArtistClick: ((String) -> Unit)? = null,
+    onOpenCarMode: (() -> Unit)? = null,
+    onOpenEqualizer: (() -> Unit)? = null,
+    onOpenPodcasts: (() -> Unit)? = null,
+    onOpenJam: (() -> Unit)? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val theme = LocalPBTheme.current
@@ -143,6 +150,10 @@ fun HomeScreen(
                 onOpenSearch = onOpenSearch,
                 onOpenAiStudio = onOpenAiStudio,
                 onArtistClick = onArtistClick,
+                onOpenCarMode = onOpenCarMode,
+                onOpenEqualizer = onOpenEqualizer,
+                onOpenPodcasts = onOpenPodcasts,
+                onOpenJam = onOpenJam,
                 onMoodClick = { viewModel.playMood(it) },
                 onNotificationClick = {
                     scope.launch {
@@ -158,77 +169,311 @@ fun HomeScreen(
 @Composable
 private fun HomeTopBar(
     onOpenThemes: (() -> Unit)?,
-    onMenuClick: () -> Unit = {},
+    onOpenCarMode: (() -> Unit)?,
+    onOpenSettings: (() -> Unit)?,
     onNotificationClick: () -> Unit = {},
 ) {
     val theme = LocalPBTheme.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 10.dp),
+            .padding(horizontal = 18.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(
-            onClick = onMenuClick,
-            modifier = Modifier.size(40.dp),
-        ) {
-            Icon(
-                Icons.Rounded.Menu,
-                contentDescription = "Menu",
-                tint = theme.text,
-                modifier = Modifier.size(26.dp),
-            )
-        }
-
-        // Signature Punjabi Beats Branding
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        // Left: Royal Crown + Punjabi Beats Brand
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.clickable { onOpenThemes?.invoke() },
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("👑", fontSize = 18.sp)
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    "Punjabi Beats",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = theme.text,
-                    letterSpacing = 0.5.sp,
-                )
-            }
-            Text(
-                "YOUR MUSIC • YOUR UNIVERSE",
-                fontSize = 8.5.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = theme.muted,
-                letterSpacing = 2.sp,
-            )
-        }
-
-        // Right Notification Bell with unread glowing pink dot
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clickable(onClick = onNotificationClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Rounded.NotificationsNone,
-                contentDescription = "Notifications",
-                tint = theme.text,
-                modifier = Modifier.size(24.dp),
-            )
-            // Unread pink dot
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 6.dp, end = 6.dp)
-                    .size(8.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
-                    .background(theme.accent)
-                    .border(1.dp, theme.background, CircleShape),
-            )
+                    .background(theme.surface)
+                    .border(1.dp, theme.panel2.copy(alpha = 0.6f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("👑", fontSize = 18.sp)
+            }
+            Spacer(Modifier.width(10.dp))
+            Column {
+                Text(
+                    "Punjabi Beats",
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = theme.text,
+                    letterSpacing = 0.3.sp,
+                )
+                Text(
+                    "YOUR MUSIC • YOUR UNIVERSE",
+                    fontSize = 8.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = theme.muted,
+                    letterSpacing = 1.8.sp,
+                )
+            }
+        }
+
+        // Right: Direct Quick Action Icons Row
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            // 🎨 Themes
+            IconButton(
+                onClick = { onOpenThemes?.invoke() },
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(
+                    Icons.Rounded.Palette,
+                    contentDescription = "Themes",
+                    tint = theme.text,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+
+            // 🚗 Car Mode
+            IconButton(
+                onClick = { onOpenCarMode?.invoke() },
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(
+                    Icons.Rounded.DirectionsCar,
+                    contentDescription = "Car Mode",
+                    tint = theme.text,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+
+            // ⚙️ Settings
+            IconButton(
+                onClick = { onOpenSettings?.invoke() },
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(
+                    Icons.Rounded.Settings,
+                    contentDescription = "Settings",
+                    tint = theme.text,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+
+            // 🔔 Notification Bell with unread dot
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clickable(onClick = onNotificationClick),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Rounded.NotificationsNone,
+                    contentDescription = "Notifications",
+                    tint = theme.text,
+                    modifier = Modifier.size(20.dp),
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 4.dp, end = 4.dp)
+                        .size(7.dp)
+                        .clip(CircleShape)
+                        .background(theme.accent)
+                        .border(1.dp, theme.background, CircleShape),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickAccessHub(
+    onOpenPodcasts: (() -> Unit)?,
+    onOpenEqualizer: (() -> Unit)?,
+    onOpenCarMode: (() -> Unit)?,
+    onOpenJam: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val theme = LocalPBTheme.current
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        QuickAccessChip(
+            emoji = "🎙️",
+            label = "Podcasts",
+            onClick = { onOpenPodcasts?.invoke() },
+            modifier = Modifier.weight(1f),
+        )
+        QuickAccessChip(
+            emoji = "🎚️",
+            label = "Equalizer",
+            onClick = { onOpenEqualizer?.invoke() },
+            modifier = Modifier.weight(1f),
+        )
+        QuickAccessChip(
+            emoji = "🚗",
+            label = "Car Mode",
+            onClick = { onOpenCarMode?.invoke() },
+            modifier = Modifier.weight(1f),
+        )
+        QuickAccessChip(
+            emoji = "👥",
+            label = "Jam",
+            onClick = { onOpenJam?.invoke() },
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun QuickAccessChip(
+    emoji: String,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val theme = LocalPBTheme.current
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        modifier = modifier
+            .height(40.dp)
+            .clip(shape)
+            .background(theme.surface.copy(alpha = 0.9f))
+            .border(1.dp, theme.panel2.copy(alpha = 0.65f), shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Text(emoji, fontSize = 14.sp)
+        Spacer(Modifier.width(5.dp))
+        Text(
+            text = label,
+            color = theme.text,
+            fontSize = 11.5.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun TopRankedTrendingSection(
+    songs: List<Song>,
+    currentSongId: String?,
+    controller: MusicPlayerController,
+    onOpenPlayer: () -> Unit,
+) {
+    val theme = LocalPBTheme.current
+    val topSongs = songs.take(5)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        topSongs.forEachIndexed { index, song ->
+            val isPlayingThis = song.id == currentSongId
+            val rankNumber = index + 1
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(if (isPlayingThis) theme.accent.copy(alpha = 0.14f) else theme.surface.copy(alpha = 0.7f))
+                    .border(
+                        1.dp,
+                        if (isPlayingThis) theme.accent.copy(alpha = 0.5f) else theme.panel2.copy(alpha = 0.5f),
+                        RoundedCornerShape(14.dp),
+                    )
+                    .clickable {
+                        controller.playQueue(songs, songs.indexOf(song))
+                        onOpenPlayer()
+                    }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Rank number badge (#1, #2, #3, etc.)
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(
+                            when (rankNumber) {
+                                1 -> theme.secondary.copy(alpha = 0.22f)
+                                2 -> theme.accent.copy(alpha = 0.22f)
+                                3 -> theme.accent.copy(alpha = 0.15f)
+                                else -> theme.surface
+                            }
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "#$rankNumber",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = when (rankNumber) {
+                            1 -> theme.secondary
+                            2 -> theme.accent
+                            else -> theme.muted
+                        },
+                    )
+                }
+
+                Spacer(Modifier.width(10.dp))
+
+                // Artwork
+                AsyncImage(
+                    model = song.artworkUrl,
+                    contentDescription = song.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(46.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                )
+
+                Spacer(Modifier.width(12.dp))
+
+                // Title + Artist
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = song.title,
+                        color = if (isPlayingThis) theme.accent else theme.text,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = song.artist,
+                        color = theme.muted,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                // Play / Pause Icon
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(if (isPlayingThis) theme.accent else theme.panel2.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = if (isPlayingThis) Icons.Rounded.Equalizer else Icons.Rounded.PlayArrow,
+                        contentDescription = "Play",
+                        tint = if (isPlayingThis) theme.background else theme.text,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
         }
     }
 }
@@ -291,6 +536,10 @@ private fun HomeContent(
     onOpenSearch: (() -> Unit)? = null,
     onOpenAiStudio: (() -> Unit)? = null,
     onArtistClick: ((String) -> Unit)? = null,
+    onOpenCarMode: (() -> Unit)? = null,
+    onOpenEqualizer: (() -> Unit)? = null,
+    onOpenPodcasts: (() -> Unit)? = null,
+    onOpenJam: (() -> Unit)? = null,
     onMoodClick: (com.punjabibeats.app.domain.model.MoodCategory) -> Unit,
     onNotificationClick: () -> Unit = {},
     bottomPadding: PaddingValues,
@@ -303,11 +552,12 @@ private fun HomeContent(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 20.dp),
     ) {
-        // 1. Top Bar: ☰, 👑 Punjabi Beats, 🔔
+        // 1. Top Bar: 👑 Punjabi Beats, 🎨 Themes, 🚗 Car, ⚙️ Settings, 🔔 Bell
         item {
             HomeTopBar(
                 onOpenThemes = onOpenThemes,
-                onMenuClick = { onOpenSettings?.invoke() ?: onOpenThemes?.invoke() },
+                onOpenCarMode = onOpenCarMode,
+                onOpenSettings = onOpenSettings,
                 onNotificationClick = onNotificationClick,
             )
         }
@@ -327,17 +577,28 @@ private fun HomeContent(
             CategoryChipsRow(
                 selectedCategory = selectedCategory,
                 onCategorySelected = { selectedCategory = it },
+                modifier = Modifier.padding(bottom = 10.dp),
+            )
+        }
+
+        // 4. Quick Access Hub (4 Smart Feature Cards: Podcasts, Equalizer, Car, Jam)
+        item {
+            QuickAccessHub(
+                onOpenPodcasts = onOpenPodcasts,
+                onOpenEqualizer = onOpenEqualizer,
+                onOpenCarMode = onOpenCarMode,
+                onOpenJam = onOpenJam,
                 modifier = Modifier.padding(bottom = 12.dp),
             )
         }
 
-        // 4. Single Spotlight Hero Card (Unified, clean & proportional)
+        // 5. Single Spotlight Hero Card (Unified, clean & proportional)
         if (feed.heroSongs.isNotEmpty()) {
             item { HeroPager(feed.heroSongs, controller, currentSongId, onOpenPlayer) }
             item { Spacer(Modifier.height(14.dp)) }
         }
 
-        // 5. 🔥 Trending Now (Directly visible without heavy scrolling!)
+        // 6. 🔥 Top 5 Trending Punjabi Tracks (Ranked Mini-List)
         if (feed.trendingSongs.isNotEmpty()) {
             item {
                 SectionHeader(
@@ -350,20 +611,12 @@ private fun HomeContent(
                 )
             }
             item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(feed.trendingSongs, key = { it.id }) { song ->
-                        SongCard(
-                            song = song,
-                            onClick = {
-                                controller.playQueue(feed.trendingSongs, feed.trendingSongs.indexOf(song))
-                                onOpenPlayer()
-                            },
-                        )
-                    }
-                }
+                TopRankedTrendingSection(
+                    songs = feed.trendingSongs,
+                    currentSongId = currentSongId,
+                    controller = controller,
+                    onOpenPlayer = onOpenPlayer,
+                )
             }
             item { Spacer(Modifier.height(14.dp)) }
         }

@@ -63,6 +63,10 @@ fun AppNavHost(
                 onOpenSearch = { navController.navigate(Routes.SEARCH) },
                 onOpenAiStudio = { navController.navigate(Routes.AI) },
                 onArtistClick = { artistName -> navController.navigate(Routes.artist(artistName)) },
+                onOpenCarMode = { navController.navigate(Routes.CAR_DASHBOARD) },
+                onOpenEqualizer = { navController.navigate(Routes.EQUALIZER) },
+                onOpenPodcasts = { navController.navigate(Routes.PODCASTS) },
+                onOpenJam = { navController.navigate(Routes.JAM) },
                 bottomPadding = NoPadding,
             )
         }
